@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: ar-bug-test
+  namespace: default
+  labels:
+    argo-rollouts.argoproj.io/controller-instance-id: "argo-rollouts"
+spec:
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause:
+            duration: 20s
+  selector:
+    matchLabels:
+      app: ar-bug-test
+  replicas: 10
+  template:
+    metadata:
+      labels:
+        app: ar-bug-test
+    spec:
+      containers:
+        - name: nginx
+          image: WOOPS
+          resources:
+            requests:
+              memory: '64Mi'
+              cpu: '50m'
+            limits:
+              memory: '128Mi'
+              cpu: '50m'
+          ports:
+            - containerPort: 80

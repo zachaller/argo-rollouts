@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: bad2good-setweight
+spec:
+  replicas: 4
+  progressDeadlineSeconds: 10
+  strategy:
+    canary:
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+      - setWeight: 50
+      - pause: {}
+  selector:
+    matchLabels:
+      app: bad2good-setweight
+  template:
+    metadata:
+      labels:
+        app: bad2good-setweight
+    spec:
+      containers:
+      - name: bad2good-setweight
+        image: nginx:1.19-alpine
+        command: null
+        resources:
+          requests:
+            memory: 16Mi
+            cpu: 1m
