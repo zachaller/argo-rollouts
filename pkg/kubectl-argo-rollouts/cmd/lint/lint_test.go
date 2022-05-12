@@ -28,6 +28,7 @@ func TestLintValidRollout(t *testing.T) {
 		"testdata/valid-alb-canary.yml",
 		"testdata/valid-nginx-canary.yml",
 		"testdata/valid-istio-v1beta1-mulitiple-virtualsvcs.yml",
+		"testdata/valid-analysis.yml",
 	}
 
 	for _, filename := range tests {
@@ -80,6 +81,10 @@ func TestLintInvalidRollout(t *testing.T) {
 		{
 			filename: "testdata/invalid-nginx-canary.yml",
 			errmsg:   "Error: spec.strategy.steps[1].experiment.templates[0].weight: Invalid value: 20: Experiment template weight is only available for TrafficRouting with SMI, ALB, and Istio at this time\n",
+		},
+		{
+			filename: "testdata/invalid-analysis.yml",
+			errmsg:   "",
 		},
 	}
 

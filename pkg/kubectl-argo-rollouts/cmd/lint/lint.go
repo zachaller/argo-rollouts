@@ -125,6 +125,7 @@ func (l *LintOptions) lintResource(path string) error {
 	var errList field.ErrorList
 	for _, rollout := range fileRollouts {
 		roRef := matchRolloutToReferences(rollout, refResource)
+		roRef.References.AnalysisTemplatesWithType = getAnalysisTemplatesFromRollout(rollout, refResource)
 
 		errList = append(errList, validation.ValidateRollout(&roRef.Rollout)...)
 		errList = append(errList, validation.ValidateRolloutReferencedResources(&roRef.Rollout, roRef.References)...)
@@ -201,6 +202,26 @@ func buildAllReferencedResources(gvk schema.GroupVersionKind, valueBytes []byte,
 			}
 			refResource.Ingresses = append(refResource.Ingresses, *ingressutil.NewLegacyIngress(&ingv1beta1))
 		}
+
+	case gvk.Group == v1alpha1.AnalysisTemplateGVR.Group && gvk.Kind == "AnalysisTemplate":
+		var analysisTemplate v1alpha1.AnalysisTemplate
+		err := unmarshal(valueBytes, &analysisTemplate)
+		if err != nil {
+			return err
+		}
+		refResource.AnalysisTemplatesWithType = append(refResource.AnalysisTemplatesWithType, validation.AnalysisTemplatesWithType{
+			AnalysisTemplates: []*v1alpha1.AnalysisTemplate{&analysisTemplate},
+		})
+
+	case gvk.Group == v1alpha1.AnalysisTemplateGVR.Group && gvk.Kind == "ClusterAnalysisTemplate":
+		var clusterAnalysisTemplate v1alpha1.ClusterAnalysisTemplate
+		err := unmarshal(valueBytes, &clusterAnalysisTemplate)
+		if err != nil {
+			return err
+		}
+		refResource.AnalysisTemplatesWithType = append(refResource.AnalysisTemplatesWithType, validation.AnalysisTemplatesWithType{
+			ClusterAnalysisTemplates: []*v1alpha1.ClusterAnalysisTemplate{&clusterAnalysisTemplate},
+		})
 
 	}
 	return nil
@@ -350,4 +371,47 @@ func setVirtualServiceManagedAnnotation(ro []v1alpha1.Rollout, refResource valid
 			}
 		}
 	}
+}
+
+// setAnalysisTemplatesManagedAnnotationAndFields This function attempts to configure the analysis templates with information
+// from the rollouts resources. This currently dose not support manifest with multiple rollout resources.
+func setAnalysisTemplatesManagedAnnotationAndFields(rollouts []v1alpha1.Rollout, refResource validation.ReferencedResources) {
+	//TODO: This function dose not currently support multiple rollouts
+	for _, ro := range rollouts {
+		for i, _ := range refResource.AnalysisTemplatesWithType {
+			if ro.Spec.Strategy.BlueGreen != nil {
+				blueGreen := ro.Spec.Strategy.BlueGreen
+				if blueGreen.PrePromotionAnalysis != nil {
+					refResource.AnalysisTemplatesWithType[i].TemplateType = validation.PrePromotionAnalysis
+					refResource.AnalysisTemplatesWithType[i].Args = blueGreen.PrePromotionAnalysis.Args
+					refResource.AnalysisTemplatesWithType[i].CanaryStepIndex = 0
+				}
+				if blueGreen.PostPromotionAnalysis != nil {
+					refResource.AnalysisTemplatesWithType[i].TemplateType = validation.PostPromotionAnalysis
+					refResource.AnalysisTemplatesWithType[i].Args = blueGreen.PrePromotionAnalysis.Args
+					refResource.AnalysisTemplatesWithType[i].CanaryStepIndex = 0
+				}
+			} else if ro.Spec.Strategy.Canary != nil {
+				canary := ro.Spec.Strategy.Canary
+				for i, step := range canary.Steps {
+					if step.Analysis != nil {
+						refResource.AnalysisTemplatesWithType[i].TemplateType = validation.InlineAnalysis
+						refResource.AnalysisTemplatesWithType[i].Args = step.Analysis.Args
+						refResource.AnalysisTemplatesWithType[i].CanaryStepIndex = i
+					}
+				}
+				if canary.Analysis != nil {
+					refResource.AnalysisTemplatesWithType[i].TemplateType = validation.BackgroundAnalysis
+					refResource.AnalysisTemplatesWithType[i].Args = canary.Analysis.Args
+					refResource.AnalysisTemplatesWithType[i].CanaryStepIndex = 0
+				}
+			}
+		}
+	}
+}
+
+// getAnalysisTemplatesFromRollout This function should go through the rollout and return all the analysis templates with
+// references to said rollout.
+func getAnalysisTemplatesFromRollout(rollouts v1alpha1.Rollout, refResource validation.ReferencedResources) []validation.AnalysisTemplatesWithType {
+	//TODO: need to implement
 }
