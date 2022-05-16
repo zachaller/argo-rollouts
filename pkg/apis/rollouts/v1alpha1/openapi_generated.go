@@ -115,10 +115,12 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SecretKeyRef":                                    schema_pkg_apis_rollouts_v1alpha1_SecretKeyRef(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale":                                  schema_pkg_apis_rollouts_v1alpha1_SetCanaryScale(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StickinessConfig":                                schema_pkg_apis_rollouts_v1alpha1_StickinessConfig(ref),
+		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch":                                     schema_pkg_apis_rollouts_v1alpha1_StringMatch(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TLSRoute":                                        schema_pkg_apis_rollouts_v1alpha1_TLSRoute(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TemplateService":                                 schema_pkg_apis_rollouts_v1alpha1_TemplateService(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TemplateSpec":                                    schema_pkg_apis_rollouts_v1alpha1_TemplateSpec(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TemplateStatus":                                  schema_pkg_apis_rollouts_v1alpha1_TemplateStatus(ref),
+		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TraefikTrafficRouting":                           schema_pkg_apis_rollouts_v1alpha1_TraefikTrafficRouting(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TrafficWeights":                                  schema_pkg_apis_rollouts_v1alpha1_TrafficWeights(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.ValueFrom":                                       schema_pkg_apis_rollouts_v1alpha1_ValueFrom(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.WavefrontMetric":                                 schema_pkg_apis_rollouts_v1alpha1_WavefrontMetric(ref),
@@ -3819,7 +3821,7 @@ func schema_pkg_apis_rollouts_v1alpha1_RolloutSpec(ref common.ReferenceCallback)
 					},
 					"progressDeadlineAbort": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ProgressDeadlineAbort is whether to abort the update when ProgressDeadlineSeconds is exceeded if analysis is not used. Default is false.",
+							Description: "ProgressDeadlineAbort is whether to abort the update when ProgressDeadlineSeconds is exceeded.",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -4113,11 +4115,17 @@ func schema_pkg_apis_rollouts_v1alpha1_RolloutTrafficRouting(ref common.Referenc
 							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.AppMeshTrafficRouting"),
 						},
 					},
+					"traefik": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Traefik holds specific configuration to use Traefik to route traffic",
+							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TraefikTrafficRouting"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.ALBTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.AmbassadorTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.AppMeshTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.IstioTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.NginxTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SMITrafficRouting"},
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.ALBTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.AmbassadorTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.AppMeshTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.IstioTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.NginxTrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SMITrafficRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TraefikTrafficRouting"},
 	}
 }
 
@@ -4334,6 +4342,40 @@ func schema_pkg_apis_rollouts_v1alpha1_StickinessConfig(ref common.ReferenceCall
 	}
 }
 
+func schema_pkg_apis_rollouts_v1alpha1_StringMatch(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "StringMatch Used to define what type of matching we will use exact, prefix, or regular expression",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"exact": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Exact The string must match exactly",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"prefix": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Prefix The string will be prefixed matched",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"regex": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Regex The string will be regular expression matched",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func schema_pkg_apis_rollouts_v1alpha1_TLSRoute(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -4529,6 +4571,28 @@ func schema_pkg_apis_rollouts_v1alpha1_TemplateStatus(ref common.ReferenceCallba
 		},
 		Dependencies: []string{
 			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+	}
+}
+
+func schema_pkg_apis_rollouts_v1alpha1_TraefikTrafficRouting(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "TraefikTrafficRouting defines the configuration required to use Traefik as traffic router",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"weightedTraefikServiceName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TraefikServiceName refer to the name of the Traefik service used to route traffic to the service",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"weightedTraefikServiceName"},
+			},
+		},
 	}
 }
 

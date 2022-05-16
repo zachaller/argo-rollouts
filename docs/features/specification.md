@@ -27,7 +27,15 @@ spec:
     matchLabels:
       app: guestbook
 
-  # Template describes the pods that will be created. Same as deployment
+  # WorkloadRef holds a references to a workload that provides Pod template 
+  # (e.g. Deployment). If used, then do not use Rollout template property.
+  workloadRef: 
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rollout-ref-deployment
+
+  # Template describes the pods that will be created. Same as deployment.
+  # If used, then do not use Rollout workloadRef property. 
   template:
     spec:
       containers:
@@ -60,8 +68,7 @@ spec:
   # Defaults to 600s
   progressDeadlineSeconds: 600
 
-  # Whether to abort the update when ProgressDeadlineSeconds
-  # is exceeded if analysis or experiment is not used.
+  # Whether to abort the update when ProgressDeadlineSeconds is exceeded.
   # Optional and default is false.
   progressDeadlineAbort: false
 

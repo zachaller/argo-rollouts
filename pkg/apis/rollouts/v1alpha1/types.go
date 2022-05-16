@@ -71,7 +71,7 @@ type RolloutSpec struct {
 	// Defaults to 600s.
 	ProgressDeadlineSeconds *int32 `json:"progressDeadlineSeconds,omitempty" protobuf:"varint,8,opt,name=progressDeadlineSeconds"`
 	// ProgressDeadlineAbort is whether to abort the update when ProgressDeadlineSeconds
-	// is exceeded if analysis is not used. Default is false.
+	// is exceeded.
 	// +optional
 	ProgressDeadlineAbort bool `json:"progressDeadlineAbort,omitempty" protobuf:"varint,12,opt,name=progressDeadlineAbort"`
 	// RestartAt indicates when all the pods of a Rollout should be restarted
@@ -361,6 +361,14 @@ type RolloutTrafficRouting struct {
 	Ambassador *AmbassadorTrafficRouting `json:"ambassador,omitempty" protobuf:"bytes,5,opt,name=ambassador"`
 	// AppMesh holds specific configuration to use AppMesh to route traffic
 	AppMesh *AppMeshTrafficRouting `json:"appMesh,omitempty" protobuf:"bytes,6,opt,name=appMesh"`
+	// Traefik holds specific configuration to use Traefik to route traffic
+	Traefik *TraefikTrafficRouting `json:"traefik,omitempty" protobuf:"bytes,7,opt,name=traefik"`
+}
+
+// TraefikTrafficRouting defines the configuration required to use Traefik as traffic router
+type TraefikTrafficRouting struct {
+	// TraefikServiceName refer to the name of the Traefik service used to route traffic to the service
+	WeightedTraefikServiceName string `json:"weightedTraefikServiceName" protobuf:"bytes,1,name=weightedTraefikServiceName"`
 }
 
 // AmbassadorTrafficRouting defines the configuration required to use Ambassador as traffic
@@ -561,6 +569,16 @@ type SetMirrorMatch struct {
 	Path       *StringMatch `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
 	Header     *StringMatch `json:"header,omitempty" protobuf:"bytes,4,opt,name=header"`
 	Percentage *int32       `json:"percentage,omitempty" protobuf:"varint,5,opt,name=percentage"`
+}
+
+// StringMatch Used to define what type of matching we will use exact, prefix, or regular expression
+type StringMatch struct {
+	// Exact The string must match exactly
+	Exact string `json:"exact,omitempty" protobuf:"bytes,1,opt,name=exact"`
+	// Prefix The string will be prefixed matched
+	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,name=prefix"`
+	// Regex The string will be regular expression matched
+	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,name=regex"`
 }
 
 // SetCanaryScale defines how to scale the newRS without changing traffic weight
