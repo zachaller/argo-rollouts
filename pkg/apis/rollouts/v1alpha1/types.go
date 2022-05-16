@@ -546,6 +546,21 @@ type CanaryStep struct {
 	// SetCanaryScale defines how to scale the newRS without changing traffic weight
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
+	// SetMirror Mirrors traffic that matches rules to a particular destination
+	// +optional
+	SetMirror *SetMirror `json:"setMirror,omitempty" protobuf:"bytes,7,opt,name=setMirror"`
+}
+
+type SetMirror struct {
+	Match *SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
+}
+
+type SetMirrorMatch struct {
+	Name       string       `json:"name" protobuf:"bytes,1,opt,name=name"`
+	Method     *StringMatch `json:"method,omitempty" protobuf:"bytes,2,opt,name=method"`
+	Path       *StringMatch `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
+	Header     *StringMatch `json:"header,omitempty" protobuf:"bytes,4,opt,name=header"`
+	Percentage *int32       `json:"percentage,omitempty" protobuf:"varint,5,opt,name=percentage"`
 }
 
 // SetCanaryScale defines how to scale the newRS without changing traffic weight
