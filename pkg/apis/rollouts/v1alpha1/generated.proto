@@ -402,6 +402,10 @@ message CanaryStep {
   // SetCanaryScale defines how to scale the newRS without changing traffic weight
   // +optional
   optional SetCanaryScale setCanaryScale = 5;
+
+  // SetMirror Mirrors traffic that matches rules to a particular destination
+  // +optional
+  optional SetMirror setMirror = 7;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -1465,6 +1469,22 @@ message SetCanaryScale {
   // MatchTrafficWeight cancels out previously set Replicas or Weight, effectively activating SetWeight
   // +optional
   optional bool matchTrafficWeight = 3;
+}
+
+message SetMirror {
+  optional SetMirrorMatch match = 1;
+}
+
+message SetMirrorMatch {
+  optional string name = 1;
+
+  optional StringMatch method = 2;
+
+  optional StringMatch path = 3;
+
+  optional StringMatch header = 4;
+
+  optional int32 percentage = 5;
 }
 
 message StickinessConfig {

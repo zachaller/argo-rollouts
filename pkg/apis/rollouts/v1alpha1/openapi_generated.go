@@ -114,6 +114,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.ScopeDetail":                                     schema_pkg_apis_rollouts_v1alpha1_ScopeDetail(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SecretKeyRef":                                    schema_pkg_apis_rollouts_v1alpha1_SecretKeyRef(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale":                                  schema_pkg_apis_rollouts_v1alpha1_SetCanaryScale(ref),
+		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror":                                       schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref),
+		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch":                                  schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StickinessConfig":                                schema_pkg_apis_rollouts_v1alpha1_StickinessConfig(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch":                                     schema_pkg_apis_rollouts_v1alpha1_StringMatch(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TLSRoute":                                        schema_pkg_apis_rollouts_v1alpha1_TLSRoute(ref),
@@ -1231,11 +1233,17 @@ func schema_pkg_apis_rollouts_v1alpha1_CanaryStep(ref common.ReferenceCallback) 
 							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale"),
 						},
 					},
+					"setMirror": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SetMirror Mirrors traffic that matches rules to a particular destination",
+							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror"),
+						},
+					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutAnalysis", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutExperimentStep", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutPause", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale"},
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutAnalysis", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutExperimentStep", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutPause", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror"},
 	}
 }
 
@@ -4312,6 +4320,68 @@ func schema_pkg_apis_rollouts_v1alpha1_SetCanaryScale(ref common.ReferenceCallba
 				},
 			},
 		},
+	}
+}
+
+func schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"match": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"},
+	}
+}
+
+func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"method": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+						},
+					},
+					"path": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+						},
+					},
+					"header": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+						},
+					},
+					"percentage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+				},
+				Required: []string{"name"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"},
 	}
 }
 
