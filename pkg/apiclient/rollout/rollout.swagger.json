@@ -1589,11 +1589,8 @@
           "type": "string",
           "title": "Name The name of the matching structure"
         },
-        "services": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
+        "service": {
+          "type": "string",
           "title": "Services The list of services to mirror the traffic to if the method, path, headers match"
         },
         "method": {

@@ -4408,7 +4408,7 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 					},
 					"percentage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Percetnage What percent of the traffic that matched the rules should be mirrored",
+							Description: "Percentage What percent of the traffic that matched the rules should be mirrored",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},

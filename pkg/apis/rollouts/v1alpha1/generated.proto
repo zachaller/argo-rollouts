@@ -1481,7 +1481,7 @@ message SetMirrorMatch {
   optional string name = 1;
 
   // Services The list of services to mirror the traffic to if the method, path, headers match
-  repeated string services = 2;
+  optional string service = 2;
 
   // Method What http methods should be mirrored
   optional StringMatch method = 3;

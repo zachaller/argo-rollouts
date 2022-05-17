@@ -632,13 +632,11 @@ spec:
                                       percentage:
                                         format: int32
                                         type: integer
-                                      services:
-                                        items:
-                                          type: string
-                                        type: array
+                                      service:
+                                        type: string
                                     required:
                                     - name
-                                    - services
+                                    - service
                                     type: object
                                   type: array
                               type: object

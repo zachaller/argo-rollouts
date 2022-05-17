@@ -568,7 +568,7 @@ type SetMirrorMatch struct {
 	// Name The name of the matching structure
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Services The list of services to mirror the traffic to if the method, path, headers match
-	Services []string `json:"services" protobuf:"bytes,2,opt,name=services"`
+	Service string `json:"service" protobuf:"bytes,2,opt,name=service"`
 	// Method What http methods should be mirrored
 	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,3,opt,name=method"`
 	// Path What url paths should be mirrored
