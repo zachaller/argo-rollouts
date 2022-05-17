@@ -588,11 +588,11 @@ type SetMirrorMatch struct {
 // StringMatch Used to define what type of matching we will use exact, prefix, or regular expression
 type StringMatch struct {
 	// Exact The string must match exactly
-	Exact string `json:"exact,omitempty" protobuf:"bytes,1,opt,oneof=matchtype,name=exact"`
+	Exact string `json:"exact,omitempty" protobuf:"bytes,1,opt,name=exact"`
 	// Prefix The string will be prefixed matched
-	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,oneof=matchtype,name=prefix"`
+	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,name=prefix"`
 	// Regex The string will be regular expression matched
-	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,oneof=matchtype,name=regex"`
+	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,name=regex"`
 }
 
 // SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
