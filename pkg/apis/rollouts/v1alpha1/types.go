@@ -560,25 +560,33 @@ type CanaryStep struct {
 }
 
 type SetMirror struct {
-	Match *SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
+	// Match Contains a list of rules that if mated will mirror the traffic to the services
+	Match []*SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
 }
 
 type SetMirrorMatch struct {
-	Name       string       `json:"name" protobuf:"bytes,1,opt,name=name"`
-	Method     *StringMatch `json:"method,omitempty" protobuf:"bytes,2,opt,name=method"`
-	Path       *StringMatch `json:"path,omitempty" protobuf:"bytes,3,opt,name=path"`
-	Header     *StringMatch `json:"header,omitempty" protobuf:"bytes,4,opt,name=header"`
-	Percentage *int32       `json:"percentage,omitempty" protobuf:"varint,5,opt,name=percentage"`
+	// Name The name of the matching structure
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+	// Services The list of services to mirror the traffic to if the method, path, headers match
+	Services []string `json:"services" protobuf:"bytes,2,opt,name=services"`
+	// Method What http methods should be mirrored
+	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,3,opt,name=method"`
+	// Path What url paths should be mirrored
+	Path *StringMatch `json:"path,omitempty" protobuf:"bytes,4,opt,name=path"`
+	// Header What request with matching headers should be mirrored
+	Header map[string]StringMatch `json:"header,omitempty" protobuf:"bytes,5,opt,name=header"`
+	// Percentage What percent of the traffic that matched the rules should be mirrored
+	Percentage *int32 `json:"percentage,omitempty" protobuf:"varint,6,opt,name=percentage"`
 }
 
 // StringMatch Used to define what type of matching we will use exact, prefix, or regular expression
 type StringMatch struct {
 	// Exact The string must match exactly
-	Exact string `json:"exact,omitempty" protobuf:"bytes,1,opt,name=exact"`
+	Exact string `json:"exact,omitempty" protobuf:"bytes,1,opt,oneof=matchtype,name=exact"`
 	// Prefix The string will be prefixed matched
-	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,name=prefix"`
+	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,oneof=matchtype,name=prefix"`
 	// Regex The string will be regular expression matched
-	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,name=regex"`
+	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,oneof=matchtype,name=regex"`
 }
 
 // SetCanaryScale defines how to scale the newRS without changing traffic weight

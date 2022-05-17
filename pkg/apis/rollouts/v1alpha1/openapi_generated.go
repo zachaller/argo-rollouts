@@ -4331,7 +4331,15 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref common.ReferenceCallback) c
 				Properties: map[string]spec.Schema{
 					"match": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"),
+							Description: "Match Contains a list of rules that if mated will mirror the traffic to the services",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -4350,34 +4358,63 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
+							Description: "Name The name of the matching structure",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"services": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Services The list of services to mirror the traffic to if the method, path, headers match",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 					"method": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+							Description: "Method What http methods should be mirrored",
+							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
 						},
 					},
 					"path": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+							Description: "Path What url paths should be mirrored",
+							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
 						},
 					},
 					"header": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+							Description: "Header What request with matching headers should be mirrored",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
+									},
+								},
+							},
 						},
 					},
 					"percentage": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
+							Description: "Percetnage What percent of the traffic that matched the rules should be mirrored",
+							Type:        []string{"integer"},
+							Format:      "int32",
 						},
 					},
 				},
-				Required: []string{"name"},
+				Required: []string{"name", "services"},
 			},
 		},
 		Dependencies: []string{

@@ -596,42 +596,51 @@ spec:
                             setMirror:
                               properties:
                                 match:
-                                  properties:
-                                    header:
-                                      properties:
-                                        exact:
+                                  items:
+                                    properties:
+                                      header:
+                                        additionalProperties:
+                                          properties:
+                                            exact:
+                                              type: string
+                                            prefix:
+                                              type: string
+                                            regex:
+                                              type: string
+                                          type: object
+                                        type: object
+                                      method:
+                                        properties:
+                                          exact:
+                                            type: string
+                                          prefix:
+                                            type: string
+                                          regex:
+                                            type: string
+                                        type: object
+                                      name:
+                                        type: string
+                                      path:
+                                        properties:
+                                          exact:
+                                            type: string
+                                          prefix:
+                                            type: string
+                                          regex:
+                                            type: string
+                                        type: object
+                                      percentage:
+                                        format: int32
+                                        type: integer
+                                      services:
+                                        items:
                                           type: string
-                                        prefix:
-                                          type: string
-                                        regex:
-                                          type: string
-                                      type: object
-                                    method:
-                                      properties:
-                                        exact:
-                                          type: string
-                                        prefix:
-                                          type: string
-                                        regex:
-                                          type: string
-                                      type: object
-                                    name:
-                                      type: string
-                                    path:
-                                      properties:
-                                        exact:
-                                          type: string
-                                        prefix:
-                                          type: string
-                                        regex:
-                                          type: string
-                                      type: object
-                                    percentage:
-                                      format: int32
-                                      type: integer
-                                  required:
-                                  - name
-                                  type: object
+                                        type: array
+                                    required:
+                                    - name
+                                    - services
+                                    type: object
+                                  type: array
                               type: object
                             setWeight:
                               format: int32

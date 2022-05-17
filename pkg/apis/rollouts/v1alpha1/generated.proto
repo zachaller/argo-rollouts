@@ -1472,19 +1472,28 @@ message SetCanaryScale {
 }
 
 message SetMirror {
-  optional SetMirrorMatch match = 1;
+  // Match Contains a list of rules that if mated will mirror the traffic to the services
+  repeated SetMirrorMatch match = 1;
 }
 
 message SetMirrorMatch {
+  // Name The name of the matching structure
   optional string name = 1;
 
-  optional StringMatch method = 2;
+  // Services The list of services to mirror the traffic to if the method, path, headers match
+  repeated string services = 2;
 
-  optional StringMatch path = 3;
+  // Method What http methods should be mirrored
+  optional StringMatch method = 3;
 
-  optional StringMatch header = 4;
+  // Path What url paths should be mirrored
+  optional StringMatch path = 4;
 
-  optional int32 percentage = 5;
+  // Header What request with matching headers should be mirrored
+  map<string, StringMatch> header = 5;
+
+  // Percentage What percent of the traffic that matched the rules should be mirrored
+  optional int32 percentage = 6;
 }
 
 message StickinessConfig {

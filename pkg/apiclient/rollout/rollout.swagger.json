@@ -1574,7 +1574,11 @@
       "type": "object",
       "properties": {
         "match": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
+          },
+          "title": "Match Contains a list of rules that if mated will mirror the traffic to the services"
         }
       }
     },
@@ -1582,20 +1586,35 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Name The name of the matching structure"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Services The list of services to mirror the traffic to if the method, path, headers match"
         },
         "method": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
+          "title": "Method What http methods should be mirrored"
         },
         "path": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
+          "title": "Path What url paths should be mirrored"
         },
         "header": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
+          },
+          "title": "Header What request with matching headers should be mirrored"
         },
         "percentage": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "title": "Percentage What percent of the traffic that matched the rules should be mirrored"
         }
       }
     },
