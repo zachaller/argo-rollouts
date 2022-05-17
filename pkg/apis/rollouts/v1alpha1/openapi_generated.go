@@ -4364,19 +4364,12 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 							Format:      "",
 						},
 					},
-					"services": {
+					"service": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Services The list of services to mirror the traffic to if the method, path, headers match",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"method": {
@@ -4414,7 +4407,7 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 						},
 					},
 				},
-				Required: []string{"name", "services"},
+				Required: []string{"name", "service"},
 			},
 		},
 		Dependencies: []string{
