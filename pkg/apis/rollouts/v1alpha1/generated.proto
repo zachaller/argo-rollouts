@@ -1494,6 +1494,7 @@ message SetHeaderRouting {
 
 message SetMirror {
   // Match Contains a list of rules that if mated will mirror the traffic to the services
+  // +optional
   repeated SetMirrorMatch match = 1;
 }
 
@@ -1505,12 +1506,15 @@ message SetMirrorMatch {
   optional string service = 2;
 
   // Method What http methods should be mirrored
+  // +optional
   optional StringMatch method = 3;
 
   // Path What url paths should be mirrored
+  // +optional
   optional StringMatch path = 4;
 
   // Header What request with matching headers should be mirrored
+  // +optional
   map<string, StringMatch> header = 5;
 
   // Percentage What percent of the traffic that matched the rules should be mirrored

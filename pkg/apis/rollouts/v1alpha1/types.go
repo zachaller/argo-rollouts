@@ -563,7 +563,8 @@ type CanaryStep struct {
 
 type SetMirror struct {
 	// Match Contains a list of rules that if mated will mirror the traffic to the services
-	Match []*SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
+	// +optional
+	Match []SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
 }
 
 type SetMirrorMatch struct {
@@ -572,10 +573,13 @@ type SetMirrorMatch struct {
 	// Services The list of services to mirror the traffic to if the method, path, headers match
 	Service string `json:"service" protobuf:"bytes,2,opt,name=service"`
 	// Method What http methods should be mirrored
+	// +optional
 	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,3,opt,name=method"`
 	// Path What url paths should be mirrored
+	// +optional
 	Path *StringMatch `json:"path,omitempty" protobuf:"bytes,4,opt,name=path"`
 	// Header What request with matching headers should be mirrored
+	// +optional
 	Header map[string]StringMatch `json:"header,omitempty" protobuf:"bytes,5,opt,name=header"`
 	// Percentage What percent of the traffic that matched the rules should be mirrored
 	Percentage *int32 `json:"percentage,omitempty" protobuf:"varint,6,opt,name=percentage"`

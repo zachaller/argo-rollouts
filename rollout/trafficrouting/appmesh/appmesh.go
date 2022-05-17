@@ -391,3 +391,7 @@ func GetRouteRule(route map[string]interface{}) (map[string]interface{}, string,
 
 	return routeRule, routeType, nil
 }
+
+func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+	return nil
+}

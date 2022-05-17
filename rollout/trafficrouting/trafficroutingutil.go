@@ -12,6 +12,8 @@ type TrafficRoutingReconciler interface {
 	SetWeight(desiredWeight int32, additionalDestinations ...v1alpha1.WeightDestination) error
 	// SetHeaderRouting sets the header routing step
 	SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) error
+	// SetMirror sets up the traffic router to mirror traffic to a service
+	SetMirror(headerRouting *v1alpha1.SetMirror) error
 	// VerifyWeight returns true if the canary is at the desired weight and additionalDestinations are at the weights specified
 	// Returns nil if weight verification is not supported or not applicable
 	VerifyWeight(desiredWeight int32, additionalDestinations ...v1alpha1.WeightDestination) (*bool, error)

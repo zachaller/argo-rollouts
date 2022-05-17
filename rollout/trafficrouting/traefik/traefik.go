@@ -167,3 +167,7 @@ func (r *Reconciler) VerifyWeight(desiredWeight int32, additionalDestinations ..
 func (r *Reconciler) Type() string {
 	return Type
 }
+
+func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+	return nil
+}

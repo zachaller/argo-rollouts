@@ -292,3 +292,7 @@ func getDesiredAnnotations(current *ingressutil.Ingress, r *v1alpha1.Rollout, po
 func (r *Reconciler) UpdateHash(canaryHash, stableHash string, additionalDestinations ...v1alpha1.WeightDestination) error {
 	return nil
 }
+
+func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+	return nil
+}

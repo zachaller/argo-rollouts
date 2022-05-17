@@ -1611,7 +1611,7 @@
           "items": {
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
           },
-          "title": "Match Contains a list of rules that if mated will mirror the traffic to the services"
+          "title": "Match Contains a list of rules that if mated will mirror the traffic to the services\n+optional"
         }
       }
     },
@@ -1628,18 +1628,18 @@
         },
         "method": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
-          "title": "Method What http methods should be mirrored"
+          "title": "Method What http methods should be mirrored\n+optional"
         },
         "path": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
-          "title": "Path What url paths should be mirrored"
+          "title": "Path What url paths should be mirrored\n+optional"
         },
         "header": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
           },
-          "title": "Header What request with matching headers should be mirrored"
+          "title": "Header What request with matching headers should be mirrored\n+optional"
         },
         "percentage": {
           "type": "integer",

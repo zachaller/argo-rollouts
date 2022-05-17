@@ -2353,13 +2353,9 @@ func (in *SetMirror) DeepCopyInto(out *SetMirror) {
 	*out = *in
 	if in.Match != nil {
 		in, out := &in.Match, &out.Match
-		*out = make([]*SetMirrorMatch, len(*in))
+		*out = make([]SetMirrorMatch, len(*in))
 		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(SetMirrorMatch)
-				(*in).DeepCopyInto(*out)
-			}
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	return
