@@ -554,6 +554,8 @@ type CanaryStep struct {
 	// SetCanaryScale defines how to scale the newRS without changing traffic weight
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
+	// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
+	SetHeaderRouting *SetHeaderRouting `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
 	// SetMirror Mirrors traffic that matches rules to a particular destination
 	// +optional
 	SetMirror *SetMirror `json:"setMirror,omitempty" protobuf:"bytes,7,opt,name=setMirror"`
@@ -587,6 +589,22 @@ type StringMatch struct {
 	Prefix string `json:"prefix,omitempty" protobuf:"bytes,2,opt,oneof=matchtype,name=prefix"`
 	// Regex The string will be regular expression matched
 	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,oneof=matchtype,name=regex"`
+}
+
+// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
+type SetHeaderRouting struct {
+	Match []HeaderRoutingMatch `json:"match,omitempty" protobuf:"bytes,1,rep,name=match"`
+}
+
+type HeaderRoutingMatch struct {
+	// HeaderName the name of the request header
+	HeaderName string `json:"headerName" protobuf:"varint,1,name=headerName"`
+	// HeaderValue the exact value of the header
+	// +optional
+	HeaderValue string `json:"headerValue,omitempty" protobuf:"varint,2,opt,name=headerValue"`
+	// HeaderValue the regex value of the header
+	// +optional
+	HeaderRegex string `json:"headerRegex,omitempty" protobuf:"varint,3,opt,name=headerRegex"`
 }
 
 // SetCanaryScale defines how to scale the newRS without changing traffic weight

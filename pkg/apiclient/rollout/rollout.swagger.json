@@ -821,6 +821,10 @@
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetCanaryScale",
           "title": "SetCanaryScale defines how to scale the newRS without changing traffic weight\n+optional"
         },
+        "setHeaderRouting": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting",
+          "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
+        },
         "setMirror": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirror",
           "title": "SetMirror Mirrors traffic that matches rules to a particular destination\n+optional"
@@ -916,6 +920,23 @@
         "fieldPath": {
           "type": "string",
           "title": "Required: Path of the field to select in the specified API version"
+        }
+      }
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.HeaderRoutingMatch": {
+      "type": "object",
+      "properties": {
+        "headerName": {
+          "type": "string",
+          "title": "HeaderName the name of the request header"
+        },
+        "headerValue": {
+          "type": "string",
+          "title": "HeaderValue the exact value of the header\n+optional"
+        },
+        "headerRegex": {
+          "type": "string",
+          "title": "HeaderValue the regex value of the header\n+optional"
         }
       }
     },
@@ -1569,6 +1590,18 @@
         }
       },
       "title": "SetCanaryScale defines how to scale the newRS without changing traffic weight"
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting": {
+      "type": "object",
+      "properties": {
+        "match": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.HeaderRoutingMatch"
+          }
+        }
+      },
+      "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
     },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirror": {
       "type": "object",
