@@ -1031,6 +1031,5 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 }
 
 func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
-	mirror.Match[0].
 	return nil
 }
