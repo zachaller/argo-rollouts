@@ -931,12 +931,8 @@
           "title": "HeaderName the name of the request header"
         },
         "headerValue": {
-          "type": "string",
-          "title": "HeaderValue the exact value of the header\n+optional"
-        },
-        "headerRegex": {
-          "type": "string",
-          "title": "HeaderValue the regex value of the header\n+optional"
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
+          "title": "HeaderValue the value of the header"
         }
       }
     },

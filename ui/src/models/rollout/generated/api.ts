@@ -674,16 +674,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRouti
     headerName?: string;
     /**
      * 
-     * @type {string}
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch
      */
-    headerValue?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch
-     */
-    headerRegex?: string;
+    headerValue?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch;
 }
 /**
  * 
