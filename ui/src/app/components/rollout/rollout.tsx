@@ -6,6 +6,7 @@ import {useHistory, useParams} from 'react-router-dom';
 import {
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep,
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutExperimentTemplate,
+    GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch,
     RolloutReplicaSetInfo,
     RolloutRolloutInfo,
     RolloutServiceApi,
@@ -305,14 +306,32 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
         content = 'Experiment';
         icon = 'fa-flask';
     }
+    if (props.step.setMirror) {
+        content = 'Set Mirror';
+        if (!props.step.setMirror.match) {
+            content = 'Set Mirror Off';
+        }
+    }
+    if (props.step.setHeaderRouting) {
+        content = `Set Header`;
+    }
 
     return (
         <React.Fragment>
             <EffectDiv className={`steps__step ${props.complete ? 'steps__step--complete' : ''} ${props.current ? 'steps__step--current' : ''}`}>
-                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) ? 'steps__step-title--experiment' : ''}`}>
-                    {icon && <i className={`fa ${icon}`} />} {content}
-                    {unit}
+                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirror && open) || (props.step.setHeaderRouting && open) ? 'steps__step-title--experiment' : ''}`}>
+                    {icon && <i className={`fa ${icon}`} />} {content}{unit}
                     {props.step.setCanaryScale && (
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
+                            <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                        </ThemeDiv>
+                    )}
+                    {props.step.setHeaderRouting && (
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
+                            <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                        </ThemeDiv>
+                    )}
+                    {props.step.setMirror && props.step.setMirror.match && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
@@ -326,6 +345,8 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                     </div>
                 )}
                 {props.step?.setCanaryScale && open && <WidgetItem values={props.step.setCanaryScale} />}
+                {props.step?.setHeaderRouting && open && <WidgetItem values={props.step.setHeaderRouting.match} />}
+                {props.step?.setMirror && open && <WidgetItemSetMirror values={props.step.setMirror.match} />}
             </EffectDiv>
             {!props.last && <ThemeDiv className='steps__connector' />}
         </React.Fragment>
@@ -367,6 +388,28 @@ const WidgetItem = ({values}: {values: Record<string, any>}) => {
                     </Fragment>
                 );
             })}
+        </EffectDiv>
+    );
+};
+
+const WidgetItemSetMirror = ({values}: {values: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch[]}) => {
+    if (!values) return null;
+    return (
+        <EffectDiv>
+            {values.map((record) => {
+                    if (!record.name) return null;
+                    return (
+                        <Fragment key={record.name}>
+                            <div className='steps__step__content-title'>Name</div>
+                            <div className='steps__step__content-value'>{record.name}</div>
+                            <div className='steps__step__content-title'>Service</div>
+                            <div className='steps__step__content-value'>{record.service}</div>
+                            <div className='steps__step__content-title'>Percentage</div>
+                            <div className='steps__step__content-value'>{record.percentage}</div>
+                        </Fragment>
+                    );
+            })}
+            <EffectDiv></EffectDiv>
         </EffectDiv>
     );
 };
