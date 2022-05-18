@@ -276,9 +276,9 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 	for i, step := range canary.Steps {
 		stepFldPath := fldPath.Child("steps").Index(i)
 		allErrs = append(allErrs, hasMultipleStepsType(step, stepFldPath)...)
-		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil && step.SetHeaderRouting == nil {
-			errVal := fmt.Sprintf("step.Experiment: %t step.Pause: %t step.SetWeight: %t step.Analysis: %t step.SetCanaryScale: %t step.SetHeaderRouting: %t",
-				step.Experiment == nil, step.Pause == nil, step.SetWeight == nil, step.Analysis == nil, step.SetCanaryScale == nil, step.SetHeaderRouting == nil)
+		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil && step.SetHeaderRouting == nil && step.SetMirror == nil {
+			errVal := fmt.Sprintf("step.Experiment: %t step.Pause: %t step.SetWeight: %t step.Analysis: %t step.SetCanaryScale: %t step.SetHeaderRouting: %t step.SetMirror: %t",
+				step.Experiment == nil, step.Pause == nil, step.SetWeight == nil, step.Analysis == nil, step.SetCanaryScale == nil, step.SetHeaderRouting == nil, step.SetMirror == nil)
 			allErrs = append(allErrs, field.Invalid(stepFldPath, errVal, InvalidStepMessage))
 		}
 		if step.SetWeight != nil && (*step.SetWeight < 0 || *step.SetWeight > 100) {
@@ -294,6 +294,12 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 			trafficRouting := rollout.Spec.Strategy.Canary.TrafficRouting
 			if trafficRouting == nil || trafficRouting.Istio == nil {
 				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setHeaderRouting"), step.SetHeaderRouting, InvalidSetHeaderRoutingTrafficPolicy))
+			}
+		}
+		if step.SetMirror != nil {
+			trafficRouting := rollout.Spec.Strategy.Canary.TrafficRouting
+			if trafficRouting == nil || trafficRouting.Istio == nil {
+				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setMirror"), step.SetMirror, "SetMirror requires TrafficRouting, supports Istio only"))
 			}
 		}
 
