@@ -614,6 +614,8 @@ spec:
                                     - headerValue
                                     type: object
                                   type: array
+                                name:
+                                  type: string
                               type: object
                             setMirror:
                               properties:
@@ -661,6 +663,8 @@ spec:
                                     - service
                                     type: object
                                   type: array
+                                name:
+                                  type: string
                               type: object
                             setWeight:
                               format: int32
@@ -755,6 +759,10 @@ spec:
                                 type: object
                               virtualService:
                                 properties:
+                                  managedRoutes:
+                                    items:
+                                      type: string
+                                    type: array
                                   name:
                                     type: string
                                   routes:
@@ -779,6 +787,10 @@ spec:
                               virtualServices:
                                 items:
                                   properties:
+                                    managedRoutes:
+                                      items:
+                                        type: string
+                                      type: array
                                     name:
                                       type: string
                                     routes:

@@ -753,6 +753,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtua
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtualService
      */
     tlsRoutes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1TLSRoute>;
+    /**
+     * A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+     * @type {Array<string>}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtualService
+     */
+    managedRoutes?: Array<string>;
 }
 /**
  * MeasurementRetention defines the settings for retaining the number of measurements during the analysis.
@@ -1536,6 +1542,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetCanarySc
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting {
     /**
      * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting
+     */
+    name?: string;
+    /**
+     * 
      * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch>}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting
      */
@@ -1547,6 +1559,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRo
  * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror
  */
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror {
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror
+     */
+    name?: string;
     /**
      * 
      * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>}

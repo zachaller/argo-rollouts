@@ -487,6 +487,19 @@ func GetCurrentSetHeaderRouting(rollout *v1alpha1.Rollout, index int32) *v1alpha
 	return nil
 }
 
+func GetCurrentSetMirror(rollout *v1alpha1.Rollout, index int32) *v1alpha1.SetMirror {
+	if int32(len(rollout.Spec.Strategy.Canary.Steps)) == index {
+		index--
+	}
+	for i := index; i >= 0; i-- {
+		step := rollout.Spec.Strategy.Canary.Steps[i]
+		if step.SetMirror != nil {
+			return step.SetMirror
+		}
+	}
+	return nil
+}
+
 // UseSetCanaryScale will return a SetCanaryScale if specified and should be used, returns nil otherwise.
 // TrafficRouting is required to be set for SetCanaryScale to be applicable.
 // If MatchTrafficWeight is set after a previous SetCanaryScale step, it will likewise be ignored.

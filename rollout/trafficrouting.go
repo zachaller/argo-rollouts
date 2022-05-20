@@ -126,7 +126,6 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 
 		currentStep, index := replicasetutil.GetCurrentCanaryStep(c.rollout)
 		desiredWeight := int32(0)
-		var setHeaderRouting *v1alpha1.SetHeaderRouting
 		weightDestinations := make([]v1alpha1.WeightDestination, 0)
 
 		var canaryHash, stableHash string
@@ -165,7 +164,6 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 			}
 		} else if index != nil {
 			atDesiredReplicaCount := replicasetutil.AtDesiredReplicaCountsForCanary(c.rollout, c.newRS, c.stableRS, c.otherRSs, nil)
-			setHeaderRouting = replicasetutil.GetCurrentSetHeaderRouting(c.rollout, *index)
 			if !atDesiredReplicaCount && !c.rollout.Status.PromoteFull {
 				// Use the previous weight since the new RS is not ready for a new weight
 				for i := *index - 1; i >= 0; i-- {
@@ -185,6 +183,20 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 			} else {
 				desiredWeight = 100
 			}
+
+			setHeaderRouting := replicasetutil.GetCurrentSetHeaderRouting(c.rollout, *index)
+			if setHeaderRouting != nil {
+				if err = reconciler.SetHeaderRouting(setHeaderRouting); err != nil {
+					return err
+				}
+			}
+
+			setMirror := replicasetutil.GetCurrentSetMirror(c.rollout, *index)
+			if setMirror != nil {
+				if err = reconciler.SetMirror(setMirror); err != nil {
+					return err
+				}
+			}
 		}
 
 		err = reconciler.UpdateHash(canaryHash, stableHash, weightDestinations...)
@@ -195,10 +207,6 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 		err = reconciler.SetWeight(desiredWeight, weightDestinations...)
 		if err != nil {
 			c.recorder.Warnf(c.rollout, record.EventOptions{EventReason: "TrafficRoutingError"}, err.Error())
-			return err
-		}
-
-		if err = reconciler.SetHeaderRouting(setHeaderRouting); err != nil {
 			return err
 		}
 

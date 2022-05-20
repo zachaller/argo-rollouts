@@ -25,7 +25,6 @@ import (
 const Http = "http"
 const Tls = "tls"
 const Type = "Istio"
-const HeaderRouteName = "argo-rollouts-header-based-route"
 
 // NewReconciler returns a reconciler struct that brings the Virtual Service into the desired state
 func NewReconciler(r *v1alpha1.Rollout, client dynamic.Interface, recorder record.EventRecorder, virtualServiceLister, destinationRuleLister dynamiclister.Lister) *Reconciler {
@@ -765,7 +764,7 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	}
 
 	patches := virtualServiceRoutePatches{}
-	headerRouteExist := hasHeaderRoute(httpRoutes)
+	headerRouteExist := hasHeaderRoute(headerRouting.Name, httpRoutes)
 
 	if headerRouteExist {
 		if headerRouting == nil || headerRouting.Match == nil {
@@ -780,9 +779,9 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	return patches
 }
 
-func hasHeaderRoute(httpRoutes []VirtualServiceHTTPRoute) bool {
+func hasHeaderRoute(name string, httpRoutes []VirtualServiceHTTPRoute) bool {
 	for _, route := range httpRoutes {
-		if route.Name == HeaderRouteName {
+		if route.Name == name {
 			return true
 		}
 	}
@@ -814,7 +813,7 @@ func createHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, patch virtualSe
 	}
 	canaryDestination := routeDestination(patch.host, patch.subset, 100)
 	return map[string]interface{}{
-		"name":  HeaderRouteName,
+		"name":  headerRouting.Name,
 		"match": routeMatches,
 		"route": []interface{}{canaryDestination},
 	}
@@ -867,6 +866,7 @@ func getHttpRouteIndexesToPatch(routeNames []string, httpRoutes []VirtualService
 		if routeIndex > -1 {
 			routeIndexesToPatch = append(routeIndexesToPatch, routeIndex)
 		} else {
+			//continue
 			return nil, fmt.Errorf("HTTP Route '%s' is not found in the defined Virtual Service.", routeName)
 		}
 	}
@@ -1031,5 +1031,24 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 }
 
 func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+	//mirror.Match == nil is the turn off check
+	ctx := context.TODO()
+	virtualServices := r.getVirtualServices()
+	for _, virtualService := range virtualServices {
+		name := virtualService.Name
+		namespace, vsvcName := istioutil.GetVirtualServiceNamespaceName(name)
+		if namespace == "" {
+			namespace = r.rollout.Namespace
+		}
+
+		client := r.client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(namespace)
+		vsvc, err := r.getVirtualService(namespace, vsvcName, client, ctx)
+		if err != nil {
+			return err
+		}
+		r.log.Info(vsvc)
+		r.log.Info(mirror)
+
+	}
 	return nil
 }

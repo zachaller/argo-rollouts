@@ -339,6 +339,8 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		return analysisExistsAndCompleted && currentStepAr.Status.Phase == v1alpha1.AnalysisPhaseSuccessful
 	case currentStep.SetHeaderRouting != nil:
 		return true
+	case currentStep.SetMirror != nil:
+		return true
 	}
 	return false
 }
