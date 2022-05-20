@@ -825,9 +825,12 @@
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting",
           "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
         },
-        "setMirror": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirror",
-          "title": "SetMirror Mirrors traffic that matches rules to a particular destination\n+optional"
+        "setMirrorRoutes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute"
+          },
+          "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
         }
       },
       "description": "CanaryStep defines a step of a canary deployment."
@@ -1609,33 +1612,9 @@
       },
       "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
     },
-    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirror": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name this is the name of the route to use for the mirroring of traffic this also needs\nto be included in the `trafficRouting.istio.virtualService.routes` spec"
-        },
-        "match": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
-          },
-          "title": "Match Contains a list of rules that if mated will mirror the traffic to the services\n+optional"
-        }
-      }
-    },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "title": "Name The name of the matching structure"
-        },
-        "service": {
-          "type": "string",
-          "title": "Services The list of services to mirror the traffic to if the method, path, headers match"
-        },
         "method": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
           "title": "Method What http methods should be mirrored\n+optional"
@@ -1650,6 +1629,26 @@
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
           },
           "title": "Header What request with matching headers should be mirrored\n+optional"
+        }
+      }
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name this is the name of the route to use for the mirroring of traffic this also needs\nto be included in the `trafficRouting.istio.virtualService.routes` spec"
+        },
+        "match": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
+          },
+          "title": "Match Contains a list of rules that if mated will mirror the traffic to the services\n+optional"
+        },
+        "service": {
+          "type": "string",
+          "title": "Services The list of services to mirror the traffic to if the method, path, headers match"
         },
         "percentage": {
           "type": "integer",

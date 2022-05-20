@@ -764,7 +764,7 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	}
 
 	patches := virtualServiceRoutePatches{}
-	headerRouteExist := hasHeaderRoute(headerRouting.Name, httpRoutes)
+	headerRouteExist := hasHeaderRoute(headerRouting, httpRoutes)
 
 	if headerRouteExist {
 		if headerRouting == nil || headerRouting.Match == nil {
@@ -779,9 +779,12 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	return patches
 }
 
-func hasHeaderRoute(name string, httpRoutes []VirtualServiceHTTPRoute) bool {
+func hasHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, httpRoutes []VirtualServiceHTTPRoute) bool {
+	if headerRouting == nil {
+		return false
+	}
 	for _, route := range httpRoutes {
-		if route.Name == name {
+		if route.Name == headerRouting.Name {
 			return true
 		}
 	}
@@ -1030,7 +1033,7 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 	return nil
 }
 
-func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
 	//mirror.Match == nil is the turn off check
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()

@@ -139,6 +139,8 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 		if rolloututil.IsFullyPromoted(c.rollout) {
 			// when we are fully promoted. desired canary weight should be 0
 		} else if c.pauseContext.IsAborted() {
+			//TODO(zachaller): We need to cleanup header based routing and mirroring when we abort
+
 			// when aborted, desired canary weight should immediately be 0 (100% to stable), *unless*
 			// we are using dynamic stable scaling. In that case, we are dynamically decreasing the
 			// weight to the canary according to the availability of the stable (whatever it can support).

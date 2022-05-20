@@ -9,6 +9,7 @@ API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,AnalysisTemplateSpec,MeasurementRetention
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,AnalysisTemplateSpec,Metrics
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,AppMeshVirtualService,Routes
+API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,CanaryStep,SetMirrorRoutes
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,CanaryStrategy,Steps
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,CloudWatchMetric,MetricDataQueries
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,CloudWatchMetricStatMetric,Dimensions
@@ -36,7 +37,7 @@ API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,RolloutStatus,Conditions
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,RolloutStatus,PauseConditions
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,SetHeaderRouting,Match
-API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,SetMirror,Match
+API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,SetMirrorRoute,Match
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,TLSRoute,SNIHosts
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,TrafficWeights,Additional
 API rule violation: list_type_missing,github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1,WebMetric,Headers

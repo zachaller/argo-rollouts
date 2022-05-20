@@ -406,9 +406,9 @@ message CanaryStep {
   // SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
   optional SetHeaderRouting setHeaderRouting = 6;
 
-  // SetMirror Mirrors traffic that matches rules to a particular destination
+  // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
-  optional SetMirror setMirror = 7;
+  repeated SetMirrorRoute setMirrorRoutes = 7;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -1492,7 +1492,21 @@ message SetHeaderRouting {
   repeated HeaderRoutingMatch match = 2;
 }
 
-message SetMirror {
+message SetMirrorMatch {
+  // Method What http methods should be mirrored
+  // +optional
+  optional StringMatch method = 1;
+
+  // Path What url paths should be mirrored
+  // +optional
+  optional StringMatch path = 2;
+
+  // Header What request with matching headers should be mirrored
+  // +optional
+  map<string, StringMatch> header = 3;
+}
+
+message SetMirrorRoute {
   // Name this is the name of the route to use for the mirroring of traffic this also needs
   // to be included in the `trafficRouting.istio.virtualService.routes` spec
   optional string name = 1;
@@ -1500,29 +1514,12 @@ message SetMirror {
   // Match Contains a list of rules that if mated will mirror the traffic to the services
   // +optional
   repeated SetMirrorMatch match = 2;
-}
-
-message SetMirrorMatch {
-  // Name The name of the matching structure
-  optional string name = 1;
 
   // Services The list of services to mirror the traffic to if the method, path, headers match
-  optional string service = 2;
-
-  // Method What http methods should be mirrored
-  // +optional
-  optional StringMatch method = 3;
-
-  // Path What url paths should be mirrored
-  // +optional
-  optional StringMatch path = 4;
-
-  // Header What request with matching headers should be mirrored
-  // +optional
-  map<string, StringMatch> header = 5;
+  optional string service = 3;
 
   // Percentage What percent of the traffic that matched the rules should be mirrored
-  optional int32 percentage = 6;
+  optional int32 percentage = 4;
 }
 
 message StickinessConfig {

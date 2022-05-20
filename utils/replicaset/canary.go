@@ -487,14 +487,14 @@ func GetCurrentSetHeaderRouting(rollout *v1alpha1.Rollout, index int32) *v1alpha
 	return nil
 }
 
-func GetCurrentSetMirror(rollout *v1alpha1.Rollout, index int32) *v1alpha1.SetMirror {
+func GetCurrentSetMirror(rollout *v1alpha1.Rollout, index int32) []v1alpha1.SetMirrorRoute {
 	if int32(len(rollout.Spec.Strategy.Canary.Steps)) == index {
 		index--
 	}
 	for i := index; i >= 0; i-- {
 		step := rollout.Spec.Strategy.Canary.Steps[i]
-		if step.SetMirror != nil {
-			return step.SetMirror
+		if step.SetMirrorRoutes != nil {
+			return step.SetMirrorRoutes
 		}
 	}
 	return nil

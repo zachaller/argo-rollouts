@@ -280,9 +280,9 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 	for i, step := range canary.Steps {
 		stepFldPath := fldPath.Child("steps").Index(i)
 		allErrs = append(allErrs, hasMultipleStepsType(step, stepFldPath)...)
-		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil && step.SetHeaderRouting == nil && step.SetMirror == nil {
-			errVal := fmt.Sprintf("step.Experiment: %t step.Pause: %t step.SetWeight: %t step.Analysis: %t step.SetCanaryScale: %t step.SetHeaderRouting: %t step.SetMirror: %t",
-				step.Experiment == nil, step.Pause == nil, step.SetWeight == nil, step.Analysis == nil, step.SetCanaryScale == nil, step.SetHeaderRouting == nil, step.SetMirror == nil)
+		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil && step.SetHeaderRouting == nil && step.SetMirrorRoutes == nil {
+			errVal := fmt.Sprintf("step.Experiment: %t step.Pause: %t step.SetWeight: %t step.Analysis: %t step.SetCanaryScale: %t step.SetHeaderRouting: %t step.SetMirrorRoutes: %t",
+				step.Experiment == nil, step.Pause == nil, step.SetWeight == nil, step.Analysis == nil, step.SetCanaryScale == nil, step.SetHeaderRouting == nil, step.SetMirrorRoutes == nil)
 			allErrs = append(allErrs, field.Invalid(stepFldPath, errVal, InvalidStepMessage))
 		}
 		if step.SetWeight != nil && (*step.SetWeight < 0 || *step.SetWeight > 100) {
@@ -306,10 +306,10 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 				}
 			}
 		}
-		if step.SetMirror != nil {
+		if step.SetMirrorRoutes != nil {
 			trafficRouting := rollout.Spec.Strategy.Canary.TrafficRouting
 			if trafficRouting == nil || trafficRouting.Istio == nil {
-				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setMirror"), step.SetMirror, "SetMirror requires TrafficRouting, supports Istio only"))
+				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setMirror"), step.SetMirrorRoutes, "SetMirrorRoutes requires TrafficRouting, supports Istio only"))
 			}
 		}
 
@@ -421,12 +421,6 @@ func hasMultipleStepsType(s v1alpha1.CanaryStep, fldPath *field.Path) field.Erro
 
 func hasMultipleMatchValues(match *v1alpha1.StringMatch, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	if match == nil {
-		e := field.Invalid(fldPath, match, InvalidSetHeaderRoutingMissedValuePolicy)
-		allErrs = append(allErrs, e)
-		return allErrs
-	}
-
 	oneOf := make([]bool, 3)
 	oneOf = append(oneOf, match.Exact != "")
 	oneOf = append(oneOf, match.Regex != "")

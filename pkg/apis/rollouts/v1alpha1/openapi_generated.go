@@ -116,8 +116,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SecretKeyRef":                                    schema_pkg_apis_rollouts_v1alpha1_SecretKeyRef(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale":                                  schema_pkg_apis_rollouts_v1alpha1_SetCanaryScale(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetHeaderRouting":                                schema_pkg_apis_rollouts_v1alpha1_SetHeaderRouting(ref),
-		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror":                                       schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch":                                  schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref),
+		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorRoute":                                  schema_pkg_apis_rollouts_v1alpha1_SetMirrorRoute(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StickinessConfig":                                schema_pkg_apis_rollouts_v1alpha1_StickinessConfig(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch":                                     schema_pkg_apis_rollouts_v1alpha1_StringMatch(ref),
 		"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TLSRoute":                                        schema_pkg_apis_rollouts_v1alpha1_TLSRoute(ref),
@@ -1241,17 +1241,25 @@ func schema_pkg_apis_rollouts_v1alpha1_CanaryStep(ref common.ReferenceCallback) 
 							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetHeaderRouting"),
 						},
 					},
-					"setMirror": {
+					"setMirrorRoutes": {
 						SchemaProps: spec.SchemaProps{
-							Description: "SetMirror Mirrors traffic that matches rules to a particular destination",
-							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror"),
+							Description: "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorRoute"),
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutAnalysis", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutExperimentStep", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutPause", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetHeaderRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirror"},
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutAnalysis", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutExperimentStep", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.RolloutPause", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetCanaryScale", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetHeaderRouting", "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorRoute"},
 	}
 }
 
@@ -2362,6 +2370,21 @@ func schema_pkg_apis_rollouts_v1alpha1_IstioVirtualService(ref common.ReferenceC
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
 										Ref:     ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.TLSRoute"),
+									},
+								},
+							},
+						},
+					},
+					"managedRoutes": {
+						SchemaProps: spec.SchemaProps{
+							Description: "A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
 									},
 								},
 							},
@@ -4394,63 +4417,12 @@ func schema_pkg_apis_rollouts_v1alpha1_SetHeaderRouting(ref common.ReferenceCall
 	}
 }
 
-func schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Name this is the name of the route to use for the mirroring of traffic this also needs to be included in the `trafficRouting.istio.virtualService.routes` spec",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"match": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Match Contains a list of rules that if mated will mirror the traffic to the services",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"},
-	}
-}
-
 func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Name The name of the matching structure",
-							Default:     "",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"service": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Services The list of services to mirror the traffic to if the method, path, headers match",
-							Default:     "",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"method": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Method What http methods should be mirrored",
@@ -4478,6 +4450,50 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 							},
 						},
 					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"},
+	}
+}
+
+func schema_pkg_apis_rollouts_v1alpha1_SetMirrorRoute(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name this is the name of the route to use for the mirroring of traffic this also needs to be included in the `trafficRouting.istio.virtualService.routes` spec",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"match": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Match Contains a list of rules that if mated will mirror the traffic to the services",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"),
+									},
+								},
+							},
+						},
+					},
+					"service": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Services The list of services to mirror the traffic to if the method, path, headers match",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"percentage": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Percentage What percent of the traffic that matched the rules should be mirrored",
@@ -4490,7 +4506,7 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirrorMatch(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"},
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.SetMirrorMatch"},
 	}
 }
 

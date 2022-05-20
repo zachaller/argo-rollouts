@@ -168,6 +168,6 @@ func (r *Reconciler) Type() string {
 	return Type
 }
 
-func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
 	return nil
 }

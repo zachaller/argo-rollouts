@@ -558,36 +558,35 @@ type CanaryStep struct {
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
 	// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
 	SetHeaderRouting *SetHeaderRouting `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
-	// SetMirror Mirrors traffic that matches rules to a particular destination
+	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
-	SetMirror *SetMirror `json:"setMirror,omitempty" protobuf:"bytes,7,opt,name=setMirror"`
+	SetMirrorRoutes []SetMirrorRoute `json:"setMirrorRoutes,omitempty" protobuf:"bytes,7,opt,name=setMirrorRoutes"`
 }
 
-type SetMirror struct {
+type SetMirrorRoute struct {
 	// Name this is the name of the route to use for the mirroring of traffic this also needs
 	// to be included in the `trafficRouting.istio.virtualService.routes` spec
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Match Contains a list of rules that if mated will mirror the traffic to the services
 	// +optional
 	Match []SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,2,opt,name=match"`
+
+	// Services The list of services to mirror the traffic to if the method, path, headers match
+	Service string `json:"service" protobuf:"bytes,3,opt,name=service"`
+	// Percentage What percent of the traffic that matched the rules should be mirrored
+	Percentage *int32 `json:"percentage,omitempty" protobuf:"varint,4,opt,name=percentage"`
 }
 
 type SetMirrorMatch struct {
-	// Name The name of the matching structure
-	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
-	// Services The list of services to mirror the traffic to if the method, path, headers match
-	Service string `json:"service" protobuf:"bytes,2,opt,name=service"`
 	// Method What http methods should be mirrored
 	// +optional
-	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,3,opt,name=method"`
+	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,1,opt,name=method"`
 	// Path What url paths should be mirrored
 	// +optional
-	Path *StringMatch `json:"path,omitempty" protobuf:"bytes,4,opt,name=path"`
+	Path *StringMatch `json:"path,omitempty" protobuf:"bytes,2,opt,name=path"`
 	// Header What request with matching headers should be mirrored
 	// +optional
-	Header map[string]StringMatch `json:"header,omitempty" protobuf:"bytes,5,opt,name=header"`
-	// Percentage What percent of the traffic that matched the rules should be mirrored
-	Percentage *int32 `json:"percentage,omitempty" protobuf:"varint,6,opt,name=percentage"`
+	Header map[string]StringMatch `json:"header,omitempty" protobuf:"bytes,3,opt,name=header"`
 }
 
 // StringMatch Used to define what type of matching we will use exact, prefix, or regular expression

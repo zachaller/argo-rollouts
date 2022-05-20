@@ -28,11 +28,11 @@ func (_m *TrafficRoutingReconciler) SetHeaderRouting(headerRouting *v1alpha1.Set
 }
 
 // SetMirror provides a mock function with given fields: mirror
-func (_m *TrafficRoutingReconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+func (_m *TrafficRoutingReconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
 	ret := _m.Called(mirror)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*v1alpha1.SetMirror) error); ok {
+	if rf, ok := ret.Get(0).(func([]v1alpha1.SetMirrorRoute) error); ok {
 		r0 = rf(mirror)
 	} else {
 		r0 = ret.Error(0)

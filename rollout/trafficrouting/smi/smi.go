@@ -352,6 +352,6 @@ func (r *Reconciler) UpdateHash(canaryHash, stableHash string, additionalDestina
 	return nil
 }
 
-func (r *Reconciler) SetMirror(mirror *v1alpha1.SetMirror) error {
+func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
 	return nil
 }

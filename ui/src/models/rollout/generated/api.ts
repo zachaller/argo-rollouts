@@ -532,10 +532,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep 
     setHeaderRouting?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting;
     /**
      * 
-     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror}
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
-    setMirror?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror;
+    setMirrorRoutes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>;
 }
 /**
  * 
@@ -1556,40 +1556,9 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRo
 /**
  * 
  * @export
- * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror
- */
-export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror {
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror
-     */
-    name?: string;
-    /**
-     * 
-     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirror
-     */
-    match?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>;
-}
-/**
- * 
- * @export
  * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
  */
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch {
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
-     */
-    name?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
-     */
-    service?: string;
     /**
      * 
      * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
@@ -1608,10 +1577,35 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMa
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
      */
     header?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; };
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute {
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
+     */
+    name?: string;
+    /**
+     * 
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
+     */
+    match?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>;
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
+     */
+    service?: string;
     /**
      * 
      * @type {number}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
      */
     percentage?: number;
 }
