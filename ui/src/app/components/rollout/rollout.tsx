@@ -5,6 +5,7 @@ import {Key, KeybindingContext} from 'react-keyhooks';
 import {useHistory, useParams} from 'react-router-dom';
 import {
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep,
+    GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch,
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutExperimentTemplate,
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch,
     RolloutReplicaSetInfo,
@@ -314,6 +315,9 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
     }
     if (props.step.setHeaderRouting) {
         content = `Set Header`;
+        if (!props.step.setHeaderRouting.match) {
+            content = 'Set Header Off';
+        }
     }
 
     return (
@@ -326,7 +330,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
-                    {props.step.setHeaderRouting && (
+                    {props.step.setHeaderRouting && props.step.setHeaderRouting.match && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
@@ -345,7 +349,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                     </div>
                 )}
                 {props.step?.setCanaryScale && open && <WidgetItem values={props.step.setCanaryScale} />}
-                {props.step?.setHeaderRouting && open && <WidgetItem values={props.step.setHeaderRouting.match} />}
+                {props.step?.setHeaderRouting && open && <WidgetItemSetHeader values={props.step.setHeaderRouting.match} />}
                 {props.step?.setMirror && open && <WidgetItemSetMirror values={props.step.setMirror.match} />}
             </EffectDiv>
             {!props.last && <ThemeDiv className='steps__connector' />}
@@ -409,7 +413,41 @@ const WidgetItemSetMirror = ({values}: {values: GithubComArgoprojArgoRolloutsPkg
                         </Fragment>
                     );
             })}
-            <EffectDiv></EffectDiv>
+        </EffectDiv>
+    );
+};
+
+const WidgetItemSetHeader = ({values}: {values: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch[]}) => {
+    if (!values) return null;
+    return (
+        <EffectDiv>
+            {values.map((record) => {
+                if (!record.headerName) return null;
+                if (!record.headerValue) return null;
+
+                let headerValue = ""
+                let headerValueType = ""
+                if (record.headerValue.regex) {
+                    headerValue = record.headerValue.regex
+                    headerValueType = "Regex"
+                }
+                if (record.headerValue.prefix) {
+                    headerValue = record.headerValue.prefix
+                    headerValueType = "Prefix"
+                }
+                if (record.headerValue.exact) {
+                    headerValue = record.headerValue.exact
+                    headerValueType = "Exact"
+                }
+                return (
+                    <Fragment key={record.headerName}>
+                        <div className='steps__step__content-title'>Name</div>
+                        <div className='steps__step__content-value'>{record.headerName}</div>
+                        <div className='steps__step__content-title'>{headerValueType}</div>
+                        <div className='steps__step__content-value'>{headerValue}</div>
+                    </Fragment>
+                );
+            })}
         </EffectDiv>
     );
 };

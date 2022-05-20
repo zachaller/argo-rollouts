@@ -2231,22 +2231,16 @@ func schema_pkg_apis_rollouts_v1alpha1_HeaderRoutingMatch(ref common.ReferenceCa
 					},
 					"headerValue": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HeaderValue the exact value of the header",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"headerRegex": {
-						SchemaProps: spec.SchemaProps{
-							Description: "HeaderValue the regex value of the header",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "HeaderValue the value of the header",
+							Ref:         ref("github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"),
 						},
 					},
 				},
-				Required: []string{"headerName"},
+				Required: []string{"headerName", "headerValue"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1.StringMatch"},
 	}
 }
 

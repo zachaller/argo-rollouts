@@ -604,7 +604,7 @@ type HeaderRoutingMatch struct {
 	// HeaderName the name of the request header
 	HeaderName string `json:"headerName" protobuf:"bytes,1,opt,name=headerName"`
 	// HeaderValue the value of the header
-	HeaderValue StringMatch `json:"headerValue" protobuf:"bytes,2,opt,name=headerValue"`
+	HeaderValue *StringMatch `json:"headerValue" protobuf:"bytes,2,opt,name=headerValue"`
 }
 
 // SetCanaryScale defines how to scale the newRS without changing traffic weight

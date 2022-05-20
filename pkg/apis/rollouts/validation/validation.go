@@ -419,7 +419,7 @@ func hasMultipleStepsType(s v1alpha1.CanaryStep, fldPath *field.Path) field.Erro
 	return allErrs
 }
 
-func hasMultipleMatchValues(match v1alpha1.StringMatch, fldPath *field.Path) field.ErrorList {
+func hasMultipleMatchValues(match *v1alpha1.StringMatch, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 	oneOf := make([]bool, 3)
 	oneOf = append(oneOf, match.Exact != "")
