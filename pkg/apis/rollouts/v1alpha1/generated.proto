@@ -787,6 +787,9 @@ message IstioVirtualService {
 
   // A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
   repeated TLSRoute tlsRoutes = 3;
+
+  // A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+  repeated string managedRoutes = 4;
 }
 
 // JobMetric defines a job to run which acts as a metric
@@ -1484,13 +1487,19 @@ message SetCanaryScale {
 
 // SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
 message SetHeaderRouting {
-  repeated HeaderRoutingMatch match = 1;
+  optional string name = 1;
+
+  repeated HeaderRoutingMatch match = 2;
 }
 
 message SetMirror {
+  // Name this is the name of the route to use for the mirroring of traffic this also needs
+  // to be included in the `trafficRouting.istio.virtualService.routes` spec
+  optional string name = 1;
+
   // Match Contains a list of rules that if mated will mirror the traffic to the services
   // +optional
-  repeated SetMirrorMatch match = 1;
+  repeated SetMirrorMatch match = 2;
 }
 
 message SetMirrorMatch {

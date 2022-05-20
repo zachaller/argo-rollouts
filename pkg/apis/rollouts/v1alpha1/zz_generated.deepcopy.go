@@ -1349,6 +1349,11 @@ func (in *IstioVirtualService) DeepCopyInto(out *IstioVirtualService) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.ManagedRoutes != nil {
+		in, out := &in.ManagedRoutes, &out.ManagedRoutes
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

@@ -418,6 +418,8 @@ type IstioVirtualService struct {
 	Routes []string `json:"routes,omitempty" protobuf:"bytes,2,rep,name=routes"`
 	// A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
 	TLSRoutes []TLSRoute `json:"tlsRoutes,omitempty" protobuf:"bytes,3,rep,name=tlsRoutes"`
+	// A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+	ManagedRoutes []string `json:"managedRoutes,omitempty" protobuf:"bytes,4,rep,name=managedRoutes"`
 }
 
 // TLSRoute holds the information on the virtual service's TLS/HTTPS routes that are desired to be matched for changing weights.
@@ -562,9 +564,12 @@ type CanaryStep struct {
 }
 
 type SetMirror struct {
+	// Name this is the name of the route to use for the mirroring of traffic this also needs
+	// to be included in the `trafficRouting.istio.virtualService.routes` spec
+	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	// Match Contains a list of rules that if mated will mirror the traffic to the services
 	// +optional
-	Match []SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,1,opt,name=match"`
+	Match []SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,2,opt,name=match"`
 }
 
 type SetMirrorMatch struct {
@@ -597,7 +602,8 @@ type StringMatch struct {
 
 // SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
 type SetHeaderRouting struct {
-	Match []HeaderRoutingMatch `json:"match,omitempty" protobuf:"bytes,1,rep,name=match"`
+	Name  string               `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	Match []HeaderRoutingMatch `json:"match,omitempty" protobuf:"bytes,2,rep,name=match"`
 }
 
 type HeaderRoutingMatch struct {

@@ -4367,6 +4367,12 @@ func schema_pkg_apis_rollouts_v1alpha1_SetHeaderRouting(ref common.ReferenceCall
 				Description: "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"match": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -4394,6 +4400,13 @@ func schema_pkg_apis_rollouts_v1alpha1_SetMirror(ref common.ReferenceCallback) c
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Name this is the name of the route to use for the mirroring of traffic this also needs to be included in the `trafficRouting.istio.virtualService.routes` spec",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"match": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Match Contains a list of rules that if mated will mirror the traffic to the services",
