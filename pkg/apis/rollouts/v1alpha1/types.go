@@ -560,7 +560,11 @@ type CanaryStep struct {
 	SetHeaderRouting *SetHeaderRouting `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
-	SetMirrorRoutes []SetMirrorRoute `json:"setMirrorRoutes,omitempty" protobuf:"bytes,7,opt,name=setMirrorRoutes"`
+	SetMirrorRoutes *SetMirrorRoutes `json:"setMirrorRoutes,omitempty" protobuf:"bytes,7,opt,name=setMirrorRoutes"`
+}
+
+type SetMirrorRoutes struct {
+	Routes []SetMirrorRoute `json:"routes,omitempty" protobuf:"bytes,1,opt,name=routes"`
 }
 
 type SetMirrorRoute struct {

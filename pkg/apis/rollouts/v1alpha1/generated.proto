@@ -408,7 +408,7 @@ message CanaryStep {
 
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
-  repeated SetMirrorRoute setMirrorRoutes = 7;
+  optional SetMirrorRoutes setMirrorRoutes = 7;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -1520,6 +1520,10 @@ message SetMirrorRoute {
 
   // Percentage What percent of the traffic that matched the rules should be mirrored
   optional int32 percentage = 4;
+}
+
+message SetMirrorRoutes {
+  repeated SetMirrorRoute routes = 1;
 }
 
 message StickinessConfig {

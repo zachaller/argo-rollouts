@@ -7,7 +7,7 @@ import {
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep,
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch,
     GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutExperimentTemplate,
-    GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch,
+    GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute,
     RolloutReplicaSetInfo,
     RolloutRolloutInfo,
     RolloutServiceApi,
@@ -307,9 +307,9 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
         content = 'Experiment';
         icon = 'fa-flask';
     }
-    if (props.step.setMirror) {
+    if (props.step.setMirrorRoutes) {
         content = 'Set Mirror';
-        if (!props.step.setMirror.match) {
+        if(!props.step.setMirrorRoutes.routes) {
             content = 'Set Mirror Off';
         }
     }
@@ -323,7 +323,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
     return (
         <React.Fragment>
             <EffectDiv className={`steps__step ${props.complete ? 'steps__step--complete' : ''} ${props.current ? 'steps__step--current' : ''}`}>
-                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirror && open) || (props.step.setHeaderRouting && open) ? 'steps__step-title--experiment' : ''}`}>
+                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirrorRoutes && open) || (props.step.setHeaderRouting && open) ? 'steps__step-title--experiment' : ''}`}>
                     {icon && <i className={`fa ${icon}`} />} {content}{unit}
                     {props.step.setCanaryScale && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
@@ -335,7 +335,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
-                    {props.step.setMirror && props.step.setMirror.match && (
+                    {props.step.setMirrorRoutes && props.step.setMirrorRoutes.routes && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
@@ -350,7 +350,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                 )}
                 {props.step?.setCanaryScale && open && <WidgetItem values={props.step.setCanaryScale} />}
                 {props.step?.setHeaderRouting && open && <WidgetItemSetHeader values={props.step.setHeaderRouting.match} />}
-                {props.step?.setMirror && open && <WidgetItemSetMirror values={props.step.setMirror.match} />}
+                {props.step?.setMirrorRoutes && open && <WidgetItemSetMirror values={props.step.setMirrorRoutes.routes} />}
             </EffectDiv>
             {!props.last && <ThemeDiv className='steps__connector' />}
         </React.Fragment>
@@ -396,7 +396,7 @@ const WidgetItem = ({values}: {values: Record<string, any>}) => {
     );
 };
 
-const WidgetItemSetMirror = ({values}: {values: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch[]}) => {
+const WidgetItemSetMirror = ({values}: {values: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute[]}) => {
     if (!values) return null;
     return (
         <EffectDiv>

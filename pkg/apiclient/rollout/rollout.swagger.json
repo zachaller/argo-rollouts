@@ -826,10 +826,7 @@
           "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
         },
         "setMirrorRoutes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute"
-          },
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoutes",
           "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
         }
       },
@@ -1654,6 +1651,17 @@
           "type": "integer",
           "format": "int32",
           "title": "Percentage What percent of the traffic that matched the rules should be mirrored"
+        }
+      }
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoutes": {
+      "type": "object",
+      "properties": {
+        "routes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute"
+          }
         }
       }
     },

@@ -278,6 +278,11 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 	}
 
 	for i, step := range canary.Steps {
+		//This needs to be set becuase an e
+		//if step.SetMirrorRoutes == nil {
+		//	step.SetMirrorRoutes = make([]v1alpha1.SetMirrorRoute, 0)
+		//}
+
 		stepFldPath := fldPath.Child("steps").Index(i)
 		allErrs = append(allErrs, hasMultipleStepsType(step, stepFldPath)...)
 		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil && step.SetHeaderRouting == nil && step.SetMirrorRoutes == nil {
@@ -306,10 +311,11 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 				}
 			}
 		}
+
 		if step.SetMirrorRoutes != nil {
 			trafficRouting := rollout.Spec.Strategy.Canary.TrafficRouting
 			if trafficRouting == nil || trafficRouting.Istio == nil {
-				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setMirror"), step.SetMirrorRoutes, "SetMirrorRoutes requires TrafficRouting, supports Istio only"))
+				allErrs = append(allErrs, field.Invalid(stepFldPath.Child("setMirrorRoutes"), step.SetMirrorRoutes, "SetMirrorRoutes requires TrafficRouting, supports Istio only"))
 			}
 		}
 

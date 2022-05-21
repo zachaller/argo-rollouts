@@ -532,10 +532,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep 
     setHeaderRouting?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting;
     /**
      * 
-     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>}
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoutes}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
-    setMirrorRoutes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>;
+    setMirrorRoutes?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoutes;
 }
 /**
  * 
@@ -1608,6 +1608,19 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRo
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
      */
     percentage?: number;
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoutes
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoutes {
+    /**
+     * 
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoutes
+     */
+    routes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute>;
 }
 /**
  * 

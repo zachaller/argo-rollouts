@@ -494,7 +494,7 @@ func GetCurrentSetMirror(rollout *v1alpha1.Rollout, index int32) []v1alpha1.SetM
 	for i := index; i >= 0; i-- {
 		step := rollout.Spec.Strategy.Canary.Steps[i]
 		if step.SetMirrorRoutes != nil {
-			return step.SetMirrorRoutes
+			return step.SetMirrorRoutes.Routes
 		}
 	}
 	return nil
