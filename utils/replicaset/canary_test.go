@@ -1035,10 +1035,10 @@ func TestGetCurrentSetHeaderRouting(t *testing.T) {
 	rollout.Spec.Strategy.Canary.Steps = []v1alpha1.CanaryStep{
 		{SetWeight: ptr.Int32(20)},
 		{Pause: &v1alpha1.RolloutPause{}},
-		{SetHeaderRouting: &setHeaderRoutingStep},
+		{SetHeaderRoute: &setHeaderRoutingStep},
 		{SetWeight: ptr.Int32(40)},
 		{Pause: &v1alpha1.RolloutPause{}},
-		{SetHeaderRouting: &v1alpha1.SetHeaderRouting{}},
+		{SetHeaderRoute: &v1alpha1.SetHeaderRouting{}},
 	}
 
 	assert.Nil(t, GetCurrentSetHeaderRouting(rollout, 0))

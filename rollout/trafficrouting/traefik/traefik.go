@@ -156,7 +156,7 @@ func getService(serviceName string, services []interface{}) (map[string]interfac
 	return selectedService, nil
 }
 
-func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) error {
+func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) error {
 	return nil
 }
 
@@ -168,6 +168,6 @@ func (r *Reconciler) Type() string {
 	return Type
 }
 
-func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
+func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute, removeMirrorRoute *v1alpha1.RemoveMirrorRoute) error {
 	return nil
 }

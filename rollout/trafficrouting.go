@@ -185,19 +185,17 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 			} else {
 				desiredWeight = 100
 			}
+		}
 
-			setHeaderRouting := replicasetutil.GetCurrentSetHeaderRouting(c.rollout, *index)
-			if setHeaderRouting != nil {
-				if err = reconciler.SetHeaderRouting(setHeaderRouting); err != nil {
-					return err
-				}
+		if currentStep != nil && (currentStep.SetHeaderRoute != nil || currentStep.RemoveHeaderRoute != nil) {
+			if err = reconciler.SetHeaderRouting(currentStep.SetHeaderRoute, currentStep.RemoveHeaderRoute); err != nil {
+				return err
 			}
+		}
 
-			setMirror := replicasetutil.GetCurrentSetMirror(c.rollout, *index)
-			if setMirror != nil {
-				if err = reconciler.SetMirror(setMirror); err != nil {
-					return err
-				}
+		if currentStep != nil && (currentStep.SetMirrorRoute != nil || currentStep.RemoveMirrorRoute != nil) {
+			if err = reconciler.SetMirror(currentStep.SetMirrorRoute, currentStep.RemoveMirrorRoute); err != nil {
+				return err
 			}
 		}
 

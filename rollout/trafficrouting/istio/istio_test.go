@@ -494,14 +494,15 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 	// Test for both the HTTP VS & Mixed VS
 	vsObj := unstructuredutil.StrToUnstructuredUnsafe(regularVsvc)
 	hr := &v1alpha1.SetHeaderRouting{
+		Name: "test-header-route",
 		Match: []v1alpha1.HeaderRoutingMatch{
 			{
 				HeaderName:  "agent",
-				HeaderValue: v1alpha1.StringMatch{Exact: "firefox"},
+				HeaderValue: &v1alpha1.StringMatch{Exact: "firefox"},
 			},
 		},
 	}
-	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr)
+	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 
@@ -509,7 +510,7 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 	httpRoutes := extractHttpRoutes(t, modifiedVsObj)
 
 	// Assertions
-	assert.Equal(t, httpRoutes[0].Name, HeaderRouteName)
+	assert.Equal(t, httpRoutes[0].Name, "test-header-route")
 	checkDestination(t, httpRoutes[0].Route, "canary", 100)
 	assert.Equal(t, len(httpRoutes[0].Route), 1)
 	assert.Equal(t, httpRoutes[1].Name, "primary")
@@ -517,8 +518,8 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 	assert.Equal(t, httpRoutes[2].Name, "secondary")
 
 	// Reset header routing, expecting removing of the header route
-
-	modifiedVsObj, _, err = r.reconcileVirtualServiceRoutes(vsObj, nil)
+	var deleteHeader v1alpha1.RemoveHeaderRoute = "test-header-route"
+	modifiedVsObj, _, err = r.reconcileVirtualServiceRoutes(vsObj, nil, &deleteHeader)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 	// HTTP Routes
@@ -550,16 +551,17 @@ spec:
 	// Test for both the HTTP VS & Mixed VS
 	vsObj := unstructuredutil.StrToUnstructuredUnsafe(singleRouteSubsetVsvc)
 	hr := &v1alpha1.SetHeaderRouting{
+		Name: "test-header-route",
 		Match: []v1alpha1.HeaderRoutingMatch{
 			{
 				HeaderName: "agent",
-				HeaderValue: v1alpha1.StringMatch{
+				HeaderValue: &v1alpha1.StringMatch{
 					Regex: "firefox",
 				},
 			},
 		},
 	}
-	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr)
+	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 
@@ -567,7 +569,7 @@ spec:
 	httpRoutes := extractHttpRoutes(t, modifiedVsObj)
 
 	// Assertions
-	assert.Equal(t, httpRoutes[0].Name, HeaderRouteName)
+	assert.Equal(t, httpRoutes[0].Name, "test-header-route")
 	assert.Equal(t, httpRoutes[0].Route[0].Destination.Host, "root-service")
 	assert.Equal(t, httpRoutes[0].Route[0].Destination.Subset, "canary")
 }

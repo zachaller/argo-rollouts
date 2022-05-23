@@ -823,11 +823,17 @@
         },
         "setHeaderRouting": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting",
-          "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
+          "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service"
         },
-        "setMirrorRoutes": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoutes",
+        "removeHeaderRoute": {
+          "type": "string"
+        },
+        "setMirrorRoute": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute",
           "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
+        },
+        "removeMirrorRoute": {
+          "type": "string"
         }
       },
       "description": "CanaryStep defines a step of a canary deployment."
@@ -1651,17 +1657,6 @@
           "type": "integer",
           "format": "int32",
           "title": "Percentage What percent of the traffic that matched the rules should be mirrored"
-        }
-      }
-    },
-    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoutes": {
-      "type": "object",
-      "properties": {
-        "routes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute"
-          }
         }
       }
     },

@@ -403,12 +403,16 @@ message CanaryStep {
   // +optional
   optional SetCanaryScale setCanaryScale = 5;
 
-  // SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
+  // SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
   optional SetHeaderRouting setHeaderRouting = 6;
+
+  optional string removeHeaderRoute = 7;
 
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
-  optional SetMirrorRoutes setMirrorRoutes = 7;
+  optional SetMirrorRoute setMirrorRoute = 8;
+
+  optional string removeMirrorRoute = 9;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -1520,10 +1524,6 @@ message SetMirrorRoute {
 
   // Percentage What percent of the traffic that matched the rules should be mirrored
   optional int32 percentage = 4;
-}
-
-message SetMirrorRoutes {
-  repeated SetMirrorRoute routes = 1;
 }
 
 message StickinessConfig {

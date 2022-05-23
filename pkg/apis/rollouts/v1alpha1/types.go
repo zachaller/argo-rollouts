@@ -541,6 +541,9 @@ const (
 	StableSpecRef ReplicaSetSpecRef = "stable"
 )
 
+type RemoveHeaderRoute string
+type RemoveMirrorRoute string
+
 // CanaryStep defines a step of a canary deployment.
 type CanaryStep struct {
 	// SetWeight sets what percentage of the newRS should receive
@@ -556,16 +559,20 @@ type CanaryStep struct {
 	// SetCanaryScale defines how to scale the newRS without changing traffic weight
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
-	// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
-	SetHeaderRouting *SetHeaderRouting `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
+	// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
+	SetHeaderRoute    *SetHeaderRouting  `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
+	RemoveHeaderRoute *RemoveHeaderRoute `json:"removeHeaderRoute,omitempty" protobuf:"bytes,7,opt,name=removeHeaderRoute"`
+
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
-	SetMirrorRoutes *SetMirrorRoutes `json:"setMirrorRoutes,omitempty" protobuf:"bytes,7,opt,name=setMirrorRoutes"`
+	SetMirrorRoute    *SetMirrorRoute    `json:"setMirrorRoute,omitempty" protobuf:"bytes,8,opt,name=setMirrorRoute"`
+	RemoveMirrorRoute *RemoveMirrorRoute `json:"removeMirrorRoute,omitempty" protobuf:"bytes,9,opt,name=removeMirrorRoute"`
 }
 
-type SetMirrorRoutes struct {
-	Routes []SetMirrorRoute `json:"routes,omitempty" protobuf:"bytes,1,opt,name=routes"`
-}
+//type SetMirrorRoutes struct {
+//	Name   *string        `json:"name" protobuf:"bytes,1,opt,name=name"`
+//	Routes SetMirrorRoute `json:"routes,omitempty" protobuf:"bytes,1,opt,name=routes"`
+//}
 
 type SetMirrorRoute struct {
 	// Name this is the name of the route to use for the mirroring of traffic this also needs

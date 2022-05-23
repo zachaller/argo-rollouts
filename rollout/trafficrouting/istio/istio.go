@@ -648,7 +648,7 @@ func (r *Reconciler) getVirtualService(namespace string, vsvcName string, client
 	return vsvc, err
 }
 
-func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructured, headerRouting *v1alpha1.SetHeaderRouting) (*unstructured.Unstructured, bool, error) {
+func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructured, headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) (*unstructured.Unstructured, bool, error) {
 	newObj := obj.DeepCopy()
 
 	// HTTP Routes
@@ -666,7 +666,7 @@ func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructure
 	}
 
 	// Generate Patches
-	patches := r.generateHeaderBasedPatches(httpRoutes, headerRouting, destRuleHost)
+	patches := r.generateHeaderBasedPatches(httpRoutes, headerRouting, removeHeaderRoute, destRuleHost)
 	for _, patch := range patches {
 		if patch.patchAction == InsertHeaderRoute {
 			httpRoutesI = append(httpRoutesI[:patch.routeIndex+1], httpRoutesI[patch.routeIndex:]...)
@@ -686,7 +686,7 @@ func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructure
 	return newObj, len(patches) > 0, err
 }
 
-func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) error {
+func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) error {
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
 	for _, virtualService := range virtualServices {
@@ -701,7 +701,7 @@ func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) 
 		if err != nil {
 			return err
 		}
-		modifiedVirtualService, modified, err := r.reconcileVirtualServiceRoutes(vsvc, headerRouting)
+		modifiedVirtualService, modified, err := r.reconcileVirtualServiceRoutes(vsvc, headerRouting, removeHeaderRoute)
 		if err != nil {
 			return err
 		}
@@ -753,7 +753,7 @@ func (r *Reconciler) getDestinationRule(dRuleSpec *v1alpha1.IstioDestinationRule
 	return origBytes, dRule, dRuleNew, nil
 }
 
-func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPRoute, headerRouting *v1alpha1.SetHeaderRouting, destRuleHost string) virtualServiceRoutePatches {
+func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPRoute, headerRouting *v1alpha1.SetHeaderRouting, removeRouting *v1alpha1.RemoveHeaderRoute, destRuleHost string) virtualServiceRoutePatches {
 	canarySvc := r.rollout.Spec.Strategy.Canary.CanaryService
 	if destRuleHost != "" {
 		canarySvc = destRuleHost
@@ -764,13 +764,13 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	}
 
 	patches := virtualServiceRoutePatches{}
-	headerRouteExist := hasHeaderRoute(headerRouting, httpRoutes)
+	headerRouteExist, index := hasHeaderRoute(headerRouting, removeRouting, httpRoutes)
 
 	if headerRouteExist {
 		if headerRouting == nil || headerRouting.Match == nil {
-			deleteHeaderRoute(&patches)
+			deleteHeaderRoute(index, &patches)
 		} else {
-			deleteHeaderRoute(&patches)
+			deleteHeaderRoute(index, &patches)
 			insertHeaderRoute(&patches, canarySvc, canarySubset)
 		}
 	} else if headerRouting != nil && headerRouting.Match != nil {
@@ -779,21 +779,21 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	return patches
 }
 
-func hasHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, httpRoutes []VirtualServiceHTTPRoute) bool {
-	if headerRouting == nil {
-		return false
-	}
-	for _, route := range httpRoutes {
-		if route.Name == headerRouting.Name {
-			return true
+func hasHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, removeRouting *v1alpha1.RemoveHeaderRoute, httpRoutes []VirtualServiceHTTPRoute) (bool, int) {
+	for i, route := range httpRoutes {
+		if headerRouting != nil && route.Name == headerRouting.Name {
+			return true, i
+		}
+		if removeRouting != nil && route.Name == string(*removeRouting) {
+			return true, i
 		}
 	}
-	return false
+	return false, -1
 }
 
-func deleteHeaderRoute(patches *virtualServiceRoutePatches) {
+func deleteHeaderRoute(index int, patches *virtualServiceRoutePatches) {
 	patch := virtualServiceRoutePatch{
-		routeIndex:  0,
+		routeIndex:  index,
 		patchAction: DeleteRoute,
 	}
 	*patches = append(*patches, patch)
@@ -869,7 +869,6 @@ func getHttpRouteIndexesToPatch(routeNames []string, httpRoutes []VirtualService
 		if routeIndex > -1 {
 			routeIndexesToPatch = append(routeIndexesToPatch, routeIndex)
 		} else {
-			//continue
 			return nil, fmt.Errorf("HTTP Route '%s' is not found in the defined Virtual Service.", routeName)
 		}
 	}
@@ -1033,7 +1032,7 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 	return nil
 }
 
-func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
+func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute, removeMirrorRoute *v1alpha1.RemoveMirrorRoute) error {
 	//mirror.Match == nil is the turn off check
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
@@ -1050,7 +1049,7 @@ func (r *Reconciler) SetMirror(mirror []v1alpha1.SetMirrorRoute) error {
 			return err
 		}
 		r.log.Info(vsvc)
-		r.log.Info(mirror)
+		r.log.Info(setMirrorRoute)
 
 	}
 	return nil

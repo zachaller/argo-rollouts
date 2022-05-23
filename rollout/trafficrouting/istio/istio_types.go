@@ -17,7 +17,9 @@ type VirtualServiceSpec struct {
 
 // VirtualServiceHTTPRoute is a HTTP route in a VirtualService
 type VirtualServiceHTTPRoute struct {
-	Name  string                           `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
+	//TODO(zachaller): do we need to add match
+	//Match string
 	Route []VirtualServiceRouteDestination `json:"route,omitempty"`
 }
 
