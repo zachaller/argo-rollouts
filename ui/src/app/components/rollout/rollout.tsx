@@ -309,33 +309,34 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
     }
     if (props.step.setMirrorRoute) {
         content = `Set Mirror: ${props.step.setMirrorRoute.name}`;
+        if(!props.step.setMirrorRoute.match) {
+            content = `Remove Mirror: ${props.step.setMirrorRoute.name}`;
+        }
     }
-    if(props.step.removeMirrorRoute) {
-        content = `Remove Mirror: ${props.step.removeMirrorRoute}`;
-    }
-    if (props.step.setHeaderRouting) {
-        content = `Set Header: ${props.step.setHeaderRouting.name}`;
-    }
-    if (props.step.removeHeaderRoute) {
-        content = `Remove Header: ${props.step.removeHeaderRoute}`;
+
+    if (props.step.setHeaderRoute) {
+        content = `Set Header: ${props.step.setHeaderRoute.name}`;
+        if (!props.step.setHeaderRoute.match) {
+            content = `Remove Header: ${props.step.setHeaderRoute.name}`;
+        }
     }
 
     return (
         <React.Fragment>
             <EffectDiv className={`steps__step ${props.complete ? 'steps__step--complete' : ''} ${props.current ? 'steps__step--current' : ''}`}>
-                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirrorRoute && open) || (props.step.setHeaderRouting && open) ? 'steps__step-title--experiment' : ''}`}>
+                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirrorRoute && open) || (props.step.setHeaderRoute && open) ? 'steps__step-title--experiment' : ''}`}>
                     {icon && <i className={`fa ${icon}`} />} {content}{unit}
                     {props.step.setCanaryScale && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
-                    {props.step.setHeaderRouting && props.step.setHeaderRouting.match && (
+                    {props.step.setHeaderRoute && props.step.setHeaderRoute.match && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
-                    {props.step.setMirrorRoute && (
+                    {props.step.setMirrorRoute && props.step.setMirrorRoute.match && (
                         <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
                             <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
@@ -349,7 +350,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                     </div>
                 )}
                 {props.step?.setCanaryScale && open && <WidgetItem values={props.step.setCanaryScale} />}
-                {props.step?.setHeaderRouting && open && <WidgetItemSetHeader values={props.step.setHeaderRouting.match} />}
+                {props.step?.setHeaderRoute && open && <WidgetItemSetHeader values={props.step.setHeaderRoute.match} />}
                 {props.step?.setMirrorRoute && open && <WidgetItemSetMirror value={props.step.setMirrorRoute} />}
             </EffectDiv>
             {!props.last && <ThemeDiv className='steps__connector' />}
@@ -403,8 +404,8 @@ const WidgetItemSetMirror = ({value}: {value: GithubComArgoprojArgoRolloutsPkgAp
             <Fragment key={value.name}>
                 <div className='steps__step__content-title'>Name</div>
                 <div className='steps__step__content-value'>{value.name}</div>
-                <div className='steps__step__content-title'>Service</div>
-                <div className='steps__step__content-value'>{value.service}</div>
+                {/*<div className='steps__step__content-title'>Service</div>*/}
+                {/*<div className='steps__step__content-value'>{value.service}</div>*/}
                 <div className='steps__step__content-title'>Percentage</div>
                 <div className='steps__step__content-value'>{value.percentage}</div>
             </Fragment>

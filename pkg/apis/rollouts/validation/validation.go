@@ -278,15 +278,10 @@ func ValidateRolloutStrategyCanary(rollout *v1alpha1.Rollout, fldPath *field.Pat
 	}
 
 	for i, step := range canary.Steps {
-		//This needs to be set becuase an e
-		//if step.SetMirrorRoutes == nil {
-		//	step.SetMirrorRoutes = make([]v1alpha1.SetMirrorRoute, 0)
-		//}
-
 		stepFldPath := fldPath.Child("steps").Index(i)
 		allErrs = append(allErrs, hasMultipleStepsType(step, stepFldPath)...)
 		if step.Experiment == nil && step.Pause == nil && step.SetWeight == nil && step.Analysis == nil && step.SetCanaryScale == nil &&
-			step.SetHeaderRoute == nil && step.SetMirrorRoute == nil && step.RemoveHeaderRoute == nil && step.RemoveMirrorRoute == nil {
+			step.SetHeaderRoute == nil && step.SetMirrorRoute == nil {
 			errVal := fmt.Sprintf("step.Experiment: %t step.Pause: %t step.SetWeight: %t step.Analysis: %t step.SetCanaryScale: %t step.SetHeaderRoute: %t step.SetMirrorRoutes: %t",
 				step.Experiment == nil, step.Pause == nil, step.SetWeight == nil, step.Analysis == nil, step.SetCanaryScale == nil, step.SetHeaderRoute == nil, step.SetMirrorRoute == nil)
 			allErrs = append(allErrs, field.Invalid(stepFldPath, errVal, InvalidStepMessage))

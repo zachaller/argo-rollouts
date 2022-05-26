@@ -187,14 +187,14 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 			}
 		}
 
-		if currentStep != nil && (currentStep.SetHeaderRoute != nil || currentStep.RemoveHeaderRoute != nil) {
-			if err = reconciler.SetHeaderRouting(currentStep.SetHeaderRoute, currentStep.RemoveHeaderRoute); err != nil {
+		if currentStep != nil && (currentStep.SetHeaderRoute != nil) {
+			if err = reconciler.SetHeaderRouting(currentStep.SetHeaderRoute); err != nil {
 				return err
 			}
 		}
 
-		if currentStep != nil && (currentStep.SetMirrorRoute != nil || currentStep.RemoveMirrorRoute != nil) {
-			if err = reconciler.SetMirror(currentStep.SetMirrorRoute, currentStep.RemoveMirrorRoute); err != nil {
+		if currentStep != nil && (currentStep.SetMirrorRoute != nil) {
+			if err = reconciler.SetMirror(currentStep.SetMirrorRoute); err != nil {
 				return err
 			}
 		}

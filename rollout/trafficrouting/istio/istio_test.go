@@ -502,7 +502,7 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 			},
 		},
 	}
-	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr, nil)
+	modifiedVsObj, _, err := r.reconcileVirtualServiceHeaderRoutes(vsObj, hr, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 
@@ -519,7 +519,7 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 
 	// Reset header routing, expecting removing of the header route
 	var deleteHeader v1alpha1.RemoveHeaderRoute = "test-header-route"
-	modifiedVsObj, _, err = r.reconcileVirtualServiceRoutes(vsObj, nil, &deleteHeader)
+	modifiedVsObj, _, err = r.reconcileVirtualServiceHeaderRoutes(vsObj, nil, &deleteHeader)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 	// HTTP Routes
@@ -561,7 +561,7 @@ spec:
 			},
 		},
 	}
-	modifiedVsObj, _, err := r.reconcileVirtualServiceRoutes(vsObj, hr, nil)
+	modifiedVsObj, _, err := r.reconcileVirtualServiceHeaderRoutes(vsObj, hr, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, modifiedVsObj)
 

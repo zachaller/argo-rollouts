@@ -648,7 +648,7 @@ func (r *Reconciler) getVirtualService(namespace string, vsvcName string, client
 	return vsvc, err
 }
 
-func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructured, headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) (*unstructured.Unstructured, bool, error) {
+func (r *Reconciler) reconcileVirtualServiceHeaderRoutes(obj *unstructured.Unstructured, headerRouting *v1alpha1.SetHeaderRouting) (*unstructured.Unstructured, bool, error) {
 	newObj := obj.DeepCopy()
 
 	// HTTP Routes
@@ -666,7 +666,7 @@ func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructure
 	}
 
 	// Generate Patches
-	patches := r.generateHeaderBasedPatches(httpRoutes, headerRouting, removeHeaderRoute, destRuleHost)
+	patches := r.generateHeaderBasedPatches(httpRoutes, headerRouting, destRuleHost)
 	for _, patch := range patches {
 		if patch.patchAction == InsertHeaderRoute {
 			httpRoutesI = append(httpRoutesI[:patch.routeIndex+1], httpRoutesI[patch.routeIndex:]...)
@@ -686,7 +686,7 @@ func (r *Reconciler) reconcileVirtualServiceRoutes(obj *unstructured.Unstructure
 	return newObj, len(patches) > 0, err
 }
 
-func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) error {
+func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) error {
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
 	for _, virtualService := range virtualServices {
@@ -701,7 +701,7 @@ func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting, 
 		if err != nil {
 			return err
 		}
-		modifiedVirtualService, modified, err := r.reconcileVirtualServiceRoutes(vsvc, headerRouting, removeHeaderRoute)
+		modifiedVirtualService, modified, err := r.reconcileVirtualServiceHeaderRoutes(vsvc, headerRouting)
 		if err != nil {
 			return err
 		}
@@ -753,7 +753,7 @@ func (r *Reconciler) getDestinationRule(dRuleSpec *v1alpha1.IstioDestinationRule
 	return origBytes, dRule, dRuleNew, nil
 }
 
-func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPRoute, headerRouting *v1alpha1.SetHeaderRouting, removeRouting *v1alpha1.RemoveHeaderRoute, destRuleHost string) virtualServiceRoutePatches {
+func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPRoute, headerRouting *v1alpha1.SetHeaderRouting, destRuleHost string) virtualServiceRoutePatches {
 	canarySvc := r.rollout.Spec.Strategy.Canary.CanaryService
 	if destRuleHost != "" {
 		canarySvc = destRuleHost
@@ -764,7 +764,7 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	}
 
 	patches := virtualServiceRoutePatches{}
-	headerRouteExist, index := hasHeaderRoute(headerRouting, removeRouting, httpRoutes)
+	headerRouteExist, index := hasHeaderRoute(headerRouting, httpRoutes)
 
 	if headerRouteExist {
 		if headerRouting == nil || headerRouting.Match == nil {
@@ -779,12 +779,9 @@ func (r *Reconciler) generateHeaderBasedPatches(httpRoutes []VirtualServiceHTTPR
 	return patches
 }
 
-func hasHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, removeRouting *v1alpha1.RemoveHeaderRoute, httpRoutes []VirtualServiceHTTPRoute) (bool, int) {
+func hasHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, httpRoutes []VirtualServiceHTTPRoute) (bool, int) {
 	for i, route := range httpRoutes {
 		if headerRouting != nil && route.Name == headerRouting.Name {
-			return true, i
-		}
-		if removeRouting != nil && route.Name == string(*removeRouting) {
 			return true, i
 		}
 	}
@@ -812,7 +809,7 @@ func insertHeaderRoute(patches *virtualServiceRoutePatches, host, subset string)
 func createHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, patch virtualServiceRoutePatch) map[string]interface{} {
 	var routeMatches []interface{}
 	for _, hrm := range headerRouting.Match {
-		routeMatches = append(routeMatches, createRouteMatch(hrm))
+		routeMatches = append(routeMatches, createHeaderRouteMatch(hrm))
 	}
 	canaryDestination := routeDestination(patch.host, patch.subset, 100)
 	return map[string]interface{}{
@@ -822,7 +819,7 @@ func createHeaderRoute(headerRouting *v1alpha1.SetHeaderRouting, patch virtualSe
 	}
 }
 
-func createRouteMatch(hrm v1alpha1.HeaderRoutingMatch) interface{} {
+func createHeaderRouteMatch(hrm v1alpha1.HeaderRoutingMatch) interface{} {
 	res := map[string]interface{}{}
 	value := hrm.HeaderValue
 	setMapValueIfNotEmpty(res, "exact", value.Exact)
@@ -1032,7 +1029,10 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 	return nil
 }
 
-func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute, removeMirrorRoute *v1alpha1.RemoveMirrorRoute) error {
+func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
+	if setMirrorRoute == nil || setMirrorRoute.Match == nil {
+		return nil
+	}
 	//mirror.Match == nil is the turn off check
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
@@ -1048,9 +1048,84 @@ func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute, removeMi
 		if err != nil {
 			return err
 		}
-		r.log.Info(vsvc)
-		r.log.Info(setMirrorRoute)
+
+		modifiedVirtualService, modified, err := r.reconcileVirtualServiceMirror(vsvc, setMirrorRoute)
+		if err != nil {
+			return err
+		}
+		if !modified {
+			continue
+		}
+
+		//r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes
+
+		_, err = client.Update(ctx, modifiedVirtualService, metav1.UpdateOptions{})
+		if err == nil {
+			r.log.Debugf("Updated VirtualService: %s", vsvc)
+			r.recorder.Eventf(r.rollout, record.EventOptions{EventReason: "Updated VirtualService"}, "VirtualService `%s` set mirrorRoute '%v'", vsvcName, setMirrorRoute)
+		} else {
+			return err
+		}
 
 	}
 	return nil
+}
+
+func createMirrorRoute(mirrorRouting *v1alpha1.SetMirrorRoute, subset string) (map[string]interface{}, error) {
+	var percent int32
+	if mirrorRouting.Percentage == nil {
+		percent = 0
+	} else {
+		percent = *mirrorRouting.Percentage
+	}
+
+	mirrorRoute := map[string]interface{}{
+		"name":  mirrorRouting.Name,
+		"match": mirrorRouting.Match,
+		"route": []VirtualServiceRouteDestination{{
+			Destination: VirtualServiceDestination{
+				Host:   "blahc.com",
+				Subset: "",
+			},
+			Weight: int64(percent),
+		}}, //This actually needs to be the primary canary route
+		"mirror": VirtualServiceDestination{
+			Host:   "blahc.com",
+			Subset: "",
+		},
+		"mirrorPercentage": map[string]interface{}{"value": float64(percent)},
+	}
+
+	mirrorRouteBytes, err := json.Marshal(mirrorRoute)
+	if err != nil {
+		return nil, err
+	}
+
+	var mirrorRouteI map[string]interface{}
+	err = json.Unmarshal(mirrorRouteBytes, &mirrorRouteI)
+	if err != nil {
+		return nil, err
+	}
+
+	return mirrorRouteI, nil
+}
+
+func (r *Reconciler) reconcileVirtualServiceMirror(vsvc *unstructured.Unstructured, mirrorRoute *v1alpha1.SetMirrorRoute) (*unstructured.Unstructured, bool, error) {
+	var canarySubset string
+	if r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule != nil {
+		canarySubset = r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule.CanarySubsetName
+	}
+
+	mR, _ := createMirrorRoute(mirrorRoute, canarySubset)
+
+	vsRoutes, _, _ := unstructured.NestedSlice(vsvc.Object, "spec", Http)
+	vsRoutes = append([]interface{}{mR}, vsRoutes...)
+
+	unstructured.SetNestedSlice(vsvc.Object, vsRoutes, "spec", Http)
+
+	return vsvc, true, nil
+}
+
+func (r *Reconciler) orderRoutes() {
+
 }

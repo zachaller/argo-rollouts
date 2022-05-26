@@ -529,25 +529,13 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep 
      * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
-    setHeaderRouting?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting;
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
-     */
-    removeHeaderRoute?: string;
+    setHeaderRoute?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting;
     /**
      * 
      * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
     setMirrorRoute?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute;
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
-     */
-    removeMirrorRoute?: string;
 }
 /**
  * 
@@ -765,12 +753,19 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtua
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtualService
      */
     tlsRoutes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1TLSRoute>;
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1MangedRoutes
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1MangedRoutes {
     /**
-     * A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
-     * @type {Array<string>}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1IstioVirtualService
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1MangedRoutes
      */
-    managedRoutes?: Array<string>;
+    name?: string;
 }
 /**
  * MeasurementRetention defines the settings for retaining the number of measurements during the analysis.
@@ -1501,6 +1496,37 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutTraf
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutTrafficRouting
      */
     traefik?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1TraefikTrafficRouting;
+    /**
+     * A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1MangedRoutes>}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutTrafficRouting
+     */
+    managedRoutes?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1MangedRoutes>;
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch {
+    /**
+     * 
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch
+     */
+    method?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch;
+    /**
+     * 
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch
+     */
+    path?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch;
+    /**
+     * 
+     * @type {{ [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; }}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch
+     */
+    header?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; };
 }
 /**
  * 
@@ -1568,31 +1594,6 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRo
 /**
  * 
  * @export
- * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
- */
-export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch {
-    /**
-     * 
-     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
-     */
-    method?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch;
-    /**
-     * 
-     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
-     */
-    path?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch;
-    /**
-     * 
-     * @type {{ [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; }}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch
-     */
-    header?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; };
-}
-/**
- * 
- * @export
  * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
  */
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute {
@@ -1604,16 +1605,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRo
     name?: string;
     /**
      * 
-     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>}
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch>}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
      */
-    match?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorMatch>;
-    /**
-     * 
-     * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute
-     */
-    service?: string;
+    match?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch>;
     /**
      * 
      * @type {number}

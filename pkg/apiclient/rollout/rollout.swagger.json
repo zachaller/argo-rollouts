@@ -821,19 +821,13 @@
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetCanaryScale",
           "title": "SetCanaryScale defines how to scale the newRS without changing traffic weight\n+optional"
         },
-        "setHeaderRouting": {
+        "setHeaderRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting",
           "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service"
-        },
-        "removeHeaderRoute": {
-          "type": "string"
         },
         "setMirrorRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute",
           "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
-        },
-        "removeMirrorRoute": {
-          "type": "string"
         }
       },
       "description": "CanaryStep defines a step of a canary deployment."
@@ -1001,16 +995,17 @@
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.TLSRoute"
           },
           "description": "A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type."
-        },
-        "managedRoutes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type."
         }
       },
       "title": "IstioVirtualService holds information on the virtual service the rollout needs to modify"
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.MangedRoutes": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
     },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.MeasurementRetention": {
       "type": "object",
@@ -1562,9 +1557,36 @@
         "traefik": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.TraefikTrafficRouting",
           "title": "Traefik holds specific configuration to use Traefik to route traffic"
+        },
+        "managedRoutes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.MangedRoutes"
+          },
+          "description": "A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type."
         }
       },
       "title": "RolloutTrafficRouting hosts all the different configuration for supported service meshes to enable more fine-grained traffic routing"
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.RouteMatch": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
+          "title": "Method What http methods should be mirrored\n+optional"
+        },
+        "path": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
+          "title": "Path What url paths should be mirrored\n+optional"
+        },
+        "header": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
+          },
+          "title": "Header What request with matching headers should be mirrored\n+optional"
+        }
+      }
     },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SMITrafficRouting": {
       "type": "object",
@@ -1615,26 +1637,6 @@
       },
       "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
     },
-    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch": {
-      "type": "object",
-      "properties": {
-        "method": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
-          "title": "Method What http methods should be mirrored\n+optional"
-        },
-        "path": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
-          "title": "Path What url paths should be mirrored\n+optional"
-        },
-        "header": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
-          },
-          "title": "Header What request with matching headers should be mirrored\n+optional"
-        }
-      }
-    },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute": {
       "type": "object",
       "properties": {
@@ -1645,18 +1647,14 @@
         "match": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorMatch"
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.RouteMatch"
           },
           "title": "Match Contains a list of rules that if mated will mirror the traffic to the services\n+optional"
-        },
-        "service": {
-          "type": "string",
-          "title": "Services The list of services to mirror the traffic to if the method, path, headers match"
         },
         "percentage": {
           "type": "integer",
           "format": "int32",
-          "title": "Percentage What percent of the traffic that matched the rules should be mirrored"
+          "title": "Services The list of services to mirror the traffic to if the method, path, headers match\nService string `json:\"service\" protobuf:\"bytes,3,opt,name=service\"`\nPercentage What percent of the traffic that matched the rules should be mirrored"
         }
       }
     },

@@ -404,15 +404,11 @@ message CanaryStep {
   optional SetCanaryScale setCanaryScale = 5;
 
   // SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
-  optional SetHeaderRouting setHeaderRouting = 6;
-
-  optional string removeHeaderRoute = 7;
+  optional SetHeaderRouting setHeaderRoute = 6;
 
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
   optional SetMirrorRoute setMirrorRoute = 8;
-
-  optional string removeMirrorRoute = 9;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -791,9 +787,6 @@ message IstioVirtualService {
 
   // A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
   repeated TLSRoute tlsRoutes = 3;
-
-  // A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
-  repeated string managedRoutes = 4;
 }
 
 // JobMetric defines a job to run which acts as a metric
@@ -833,6 +826,10 @@ message KayentaThreshold {
   optional int64 pass = 1;
 
   optional int64 marginal = 2;
+}
+
+message MangedRoutes {
+  optional string name = 1;
 }
 
 // Measurement is a point in time result value of a single metric, and the time it was measured
@@ -1423,6 +1420,23 @@ message RolloutTrafficRouting {
 
   // Traefik holds specific configuration to use Traefik to route traffic
   optional TraefikTrafficRouting traefik = 7;
+
+  // A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+  repeated MangedRoutes managedRoutes = 8;
+}
+
+message RouteMatch {
+  // Method What http methods should be mirrored
+  // +optional
+  optional StringMatch method = 1;
+
+  // Path What url paths should be mirrored
+  // +optional
+  optional StringMatch path = 2;
+
+  // Header What request with matching headers should be mirrored
+  // +optional
+  map<string, StringMatch> header = 3;
 }
 
 // RunSummary contains the final results from the metric executions
@@ -1496,20 +1510,6 @@ message SetHeaderRouting {
   repeated HeaderRoutingMatch match = 2;
 }
 
-message SetMirrorMatch {
-  // Method What http methods should be mirrored
-  // +optional
-  optional StringMatch method = 1;
-
-  // Path What url paths should be mirrored
-  // +optional
-  optional StringMatch path = 2;
-
-  // Header What request with matching headers should be mirrored
-  // +optional
-  map<string, StringMatch> header = 3;
-}
-
 message SetMirrorRoute {
   // Name this is the name of the route to use for the mirroring of traffic this also needs
   // to be included in the `trafficRouting.istio.virtualService.routes` spec
@@ -1517,11 +1517,10 @@ message SetMirrorRoute {
 
   // Match Contains a list of rules that if mated will mirror the traffic to the services
   // +optional
-  repeated SetMirrorMatch match = 2;
+  repeated RouteMatch match = 2;
 
   // Services The list of services to mirror the traffic to if the method, path, headers match
-  optional string service = 3;
-
+  // Service string `json:"service" protobuf:"bytes,3,opt,name=service"`
   // Percentage What percent of the traffic that matched the rules should be mirrored
   optional int32 percentage = 4;
 }

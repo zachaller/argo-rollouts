@@ -307,7 +307,7 @@ func (r *Reconciler) SetWeight(desiredWeight int32, additionalDestinations ...v1
 	return nil
 }
 
-func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting, removeHeaderRoute *v1alpha1.RemoveHeaderRoute) error {
+func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) error {
 	return nil
 }
 
@@ -320,6 +320,6 @@ func (r *Reconciler) UpdateHash(canaryHash, stableHash string, additionalDestina
 	return nil
 }
 
-func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute, removeMirrorRoute *v1alpha1.RemoveMirrorRoute) error {
+func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
 	return nil
 }

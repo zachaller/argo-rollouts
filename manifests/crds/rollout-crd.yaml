@@ -582,10 +582,6 @@ spec:
                                   - type: string
                                   x-kubernetes-int-or-string: true
                               type: object
-                            removeHeaderRoute:
-                              type: string
-                            removeMirrorRoute:
-                              type: string
                             setCanaryScale:
                               properties:
                                 matchTrafficWeight:
@@ -597,7 +593,7 @@ spec:
                                   format: int32
                                   type: integer
                               type: object
-                            setHeaderRouting:
+                            setHeaderRoute:
                               properties:
                                 match:
                                   items:
@@ -662,11 +658,8 @@ spec:
                                 percentage:
                                   format: int32
                                   type: integer
-                                service:
-                                  type: string
                               required:
                               - name
-                              - service
                               type: object
                             setWeight:
                               format: int32
@@ -761,10 +754,6 @@ spec:
                                 type: object
                               virtualService:
                                 properties:
-                                  managedRoutes:
-                                    items:
-                                      type: string
-                                    type: array
                                   name:
                                     type: string
                                   routes:
@@ -789,10 +778,6 @@ spec:
                               virtualServices:
                                 items:
                                   properties:
-                                    managedRoutes:
-                                      items:
-                                        type: string
-                                      type: array
                                     name:
                                       type: string
                                     routes:
@@ -816,6 +801,15 @@ spec:
                                   type: object
                                 type: array
                             type: object
+                          managedRoutes:
+                            items:
+                              properties:
+                                name:
+                                  type: string
+                              required:
+                              - name
+                              type: object
+                            type: array
                           nginx:
                             properties:
                               additionalIngressAnnotations:

@@ -363,6 +363,14 @@ type RolloutTrafficRouting struct {
 	AppMesh *AppMeshTrafficRouting `json:"appMesh,omitempty" protobuf:"bytes,6,opt,name=appMesh"`
 	// Traefik holds specific configuration to use Traefik to route traffic
 	Traefik *TraefikTrafficRouting `json:"traefik,omitempty" protobuf:"bytes,7,opt,name=traefik"`
+
+	// A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
+	ManagedRoutes []MangedRoutes `json:"managedRoutes,omitempty" protobuf:"bytes,8,rep,name=managedRoutes"`
+}
+
+type MangedRoutes struct {
+	Name string `json:"name"`
+	//CanaryRoute *bool  `json:"canaryRoute,omitempty""`
 }
 
 // TraefikTrafficRouting defines the configuration required to use Traefik as traffic router
@@ -418,8 +426,6 @@ type IstioVirtualService struct {
 	Routes []string `json:"routes,omitempty" protobuf:"bytes,2,rep,name=routes"`
 	// A list of TLS/HTTPS routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
 	TLSRoutes []TLSRoute `json:"tlsRoutes,omitempty" protobuf:"bytes,3,rep,name=tlsRoutes"`
-	// A list of HTTP routes within VirtualService to edit. If omitted, VirtualService must have a single route of this type.
-	ManagedRoutes []string `json:"managedRoutes,omitempty" protobuf:"bytes,4,rep,name=managedRoutes"`
 }
 
 // TLSRoute holds the information on the virtual service's TLS/HTTPS routes that are desired to be matched for changing weights.
@@ -541,8 +547,8 @@ const (
 	StableSpecRef ReplicaSetSpecRef = "stable"
 )
 
-type RemoveHeaderRoute string
-type RemoveMirrorRoute string
+//type RemoveHeaderRoute string
+//type RemoveMirrorRoute string
 
 // CanaryStep defines a step of a canary deployment.
 type CanaryStep struct {
@@ -560,19 +566,14 @@ type CanaryStep struct {
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
 	// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
-	SetHeaderRoute    *SetHeaderRouting  `json:"setHeaderRouting,omitempty" protobuf:"bytes,6,opt,name=setHeaderRouting"`
-	RemoveHeaderRoute *RemoveHeaderRoute `json:"removeHeaderRoute,omitempty" protobuf:"bytes,7,opt,name=removeHeaderRoute"`
+	SetHeaderRoute *SetHeaderRouting `json:"setHeaderRoute,omitempty" protobuf:"bytes,6,opt,name=setHeaderRoute"`
+	//RemoveHeaderRoute *RemoveHeaderRoute `json:"removeHeaderRoute,omitempty" protobuf:"bytes,7,opt,name=removeHeaderRoute"`
 
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
-	SetMirrorRoute    *SetMirrorRoute    `json:"setMirrorRoute,omitempty" protobuf:"bytes,8,opt,name=setMirrorRoute"`
-	RemoveMirrorRoute *RemoveMirrorRoute `json:"removeMirrorRoute,omitempty" protobuf:"bytes,9,opt,name=removeMirrorRoute"`
+	SetMirrorRoute *SetMirrorRoute `json:"setMirrorRoute,omitempty" protobuf:"bytes,8,opt,name=setMirrorRoute"`
+	//RemoveMirrorRoute *RemoveMirrorRoute `json:"removeMirrorRoute,omitempty" protobuf:"bytes,9,opt,name=removeMirrorRoute"`
 }
-
-//type SetMirrorRoutes struct {
-//	Name   *string        `json:"name" protobuf:"bytes,1,opt,name=name"`
-//	Routes SetMirrorRoute `json:"routes,omitempty" protobuf:"bytes,1,opt,name=routes"`
-//}
 
 type SetMirrorRoute struct {
 	// Name this is the name of the route to use for the mirroring of traffic this also needs
@@ -580,15 +581,15 @@ type SetMirrorRoute struct {
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 	// Match Contains a list of rules that if mated will mirror the traffic to the services
 	// +optional
-	Match []SetMirrorMatch `json:"match,omitempty" protobuf:"bytes,2,opt,name=match"`
+	Match []RouteMatch `json:"match,omitempty" protobuf:"bytes,2,opt,name=match"`
 
 	// Services The list of services to mirror the traffic to if the method, path, headers match
-	Service string `json:"service" protobuf:"bytes,3,opt,name=service"`
+	//Service string `json:"service" protobuf:"bytes,3,opt,name=service"`
 	// Percentage What percent of the traffic that matched the rules should be mirrored
 	Percentage *int32 `json:"percentage,omitempty" protobuf:"varint,4,opt,name=percentage"`
 }
 
-type SetMirrorMatch struct {
+type RouteMatch struct {
 	// Method What http methods should be mirrored
 	// +optional
 	Method *StringMatch `json:"method,omitempty" protobuf:"bytes,1,opt,name=method"`
