@@ -319,3 +319,7 @@ func (r *Reconciler) VerifyWeight(desiredWeight int32, additionalDestinations ..
 func (r *Reconciler) UpdateHash(canaryHash, stableHash string, additionalDestinations ...v1alpha1.WeightDestination) error {
 	return nil
 }
+
+func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
+	return nil
+}

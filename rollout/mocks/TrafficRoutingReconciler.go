@@ -27,6 +27,20 @@ func (_m *TrafficRoutingReconciler) SetHeaderRouting(headerRouting *v1alpha1.Set
 	return r0
 }
 
+// SetMirror provides a mock function with given fields: setMirrorRoute
+func (_m *TrafficRoutingReconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
+	ret := _m.Called(setMirrorRoute)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*v1alpha1.SetMirrorRoute) error); ok {
+		r0 = rf(setMirrorRoute)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SetWeight provides a mock function with given fields: desiredWeight, additionalDestinations
 func (_m *TrafficRoutingReconciler) SetWeight(desiredWeight int32, additionalDestinations ...v1alpha1.WeightDestination) error {
 	_va := make([]interface{}, len(additionalDestinations))

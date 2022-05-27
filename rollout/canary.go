@@ -337,7 +337,12 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		currentStepAr := c.currentArs.CanaryStep
 		analysisExistsAndCompleted := currentStepAr != nil && currentStepAr.Status.Phase.Completed()
 		return analysisExistsAndCompleted && currentStepAr.Status.Phase == v1alpha1.AnalysisPhaseSuccessful
-	case currentStep.SetHeaderRouting != nil:
+	case currentStep.SetHeaderRoute != nil:
+		//TODO(zachaller): need to actually test something because if we do not then we do not actually set this step at a pause
+		// aka if we set headers and then pause right away we do not actually set the header config in the virtual service
+		return true
+	case currentStep.SetMirrorRoute != nil:
+		//TODO(zachaller): need to actually test something because if we do not then we do not actually set this step at a pause
 		return true
 	}
 	return false
