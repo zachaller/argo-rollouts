@@ -4519,8 +4519,8 @@
           "type": "string"
         },
         "revision": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         },
         "status": {
           "type": "string"
@@ -4546,6 +4546,18 @@
           "items": {
             "$ref": "#/definitions/rollout.JobInfo"
           }
+        },
+        "nonJobInfo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rollout.NonJobInfo"
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rollout.Metrics"
+          }
         }
       }
     },
@@ -4570,8 +4582,8 @@
           "type": "string"
         },
         "revision": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         },
         "status": {
           "type": "string"
@@ -4604,6 +4616,35 @@
         },
         "icon": {
           "type": "string"
+        },
+        "metricName": {
+          "type": "string"
+        },
+        "startedAt": {
+          "$ref": "#/definitions/k8s.io.apimachinery.pkg.apis.meta.v1.Time"
+        }
+      }
+    },
+    "rollout.Metrics": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "successCondition": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "inconclusiveLimit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "failureLimit": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -4618,6 +4659,23 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "rollout.NonJobInfo": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "metricName": {
+          "type": "string"
+        },
+        "startedAt": {
+          "$ref": "#/definitions/k8s.io.apimachinery.pkg.apis.meta.v1.Time"
         }
       }
     },
@@ -4669,8 +4727,8 @@
           "type": "string"
         },
         "revision": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string",
+          "format": "int64"
         },
         "stable": {
           "type": "boolean"

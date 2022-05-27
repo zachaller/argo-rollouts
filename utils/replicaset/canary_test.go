@@ -1024,11 +1024,11 @@ func TestGetCurrentSetHeaderRouting(t *testing.T) {
 			},
 			{
 				HeaderName:  "agent2",
-				HeaderValue: v1alpha1.StringMatch{Exact: "value"},
+				HeaderValue: &v1alpha1.StringMatch{Exact: "value"},
 			},
 			{
 				HeaderName:  "agent3",
-				HeaderValue: v1alpha1.StringMatch{Regex: "regexValue(.*)"},
+				HeaderValue: &v1alpha1.StringMatch{Regex: "regexValue(.*)"},
 			},
 		},
 	}

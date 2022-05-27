@@ -423,6 +423,13 @@ func hasMultipleStepsType(s v1alpha1.CanaryStep, fldPath *field.Path) field.Erro
 
 func hasMultipleMatchValues(match *v1alpha1.StringMatch, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
+
+	if match == nil {
+		e := field.Invalid(fldPath, match, InvalidSetHeaderRoutingMissedValuePolicy)
+		allErrs = append(allErrs, e)
+		return allErrs
+	}
+
 	oneOf := make([]bool, 3)
 	oneOf = append(oneOf, match.Exact != "")
 	oneOf = append(oneOf, match.Regex != "")

@@ -301,7 +301,7 @@ func TestValidateRolloutStrategyCanary_SetHeaderRoutingIstio(t *testing.T) {
 				Match: []v1alpha1.HeaderRoutingMatch{
 					{
 						HeaderName:  "agent",
-						HeaderValue: v1alpha1.StringMatch{Exact: "chrome"},
+						HeaderValue: &v1alpha1.StringMatch{Exact: "chrome"},
 					},
 				},
 			},
@@ -317,7 +317,7 @@ func TestValidateRolloutStrategyCanary_SetHeaderRoutingIstio(t *testing.T) {
 				Match: []v1alpha1.HeaderRoutingMatch{
 					{
 						HeaderName: "agent",
-						HeaderValue: v1alpha1.StringMatch{
+						HeaderValue: &v1alpha1.StringMatch{
 							Exact: "chrome",
 							Regex: "chrome(.*)",
 						},

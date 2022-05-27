@@ -25,6 +25,7 @@ import (
 const Http = "http"
 const Tls = "tls"
 const Type = "Istio"
+const HeaderRouteName = "argo-rollouts-header-based-route"
 
 // NewReconciler returns a reconciler struct that brings the Virtual Service into the desired state
 func NewReconciler(r *v1alpha1.Rollout, client dynamic.Interface, recorder record.EventRecorder, virtualServiceLister, destinationRuleLister dynamiclister.Lister) *Reconciler {

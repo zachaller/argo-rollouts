@@ -130,11 +130,11 @@ export const RolloutWidget = (props: {rollout: RolloutRolloutInfo; interactive?:
                         interactive={
                             interactive
                                 ? {
-                                      editState: interactive.editState,
-                                      setImage: (container, image, tag) => {
-                                          interactive.api.rolloutServiceSetRolloutImage({}, interactive.namespace, rollout.objectMeta?.name, container, image, tag);
-                                      },
-                                  }
+                                    editState: interactive.editState,
+                                    setImage: (container, image, tag) => {
+                                        interactive.api.rolloutServiceSetRolloutImage({}, interactive.namespace, rollout.objectMeta?.name, container, image, tag);
+                                    },
+                                }
                                 : null
                         }
                     />
@@ -153,6 +153,7 @@ export const RolloutWidget = (props: {rollout: RolloutRolloutInfo; interactive?:
                                     initCollapsed={false}
                                     rollback={interactive ? (r) => interactive.api.rolloutServiceUndoRollout({}, interactive.namespace, rollout.objectMeta.name, `${r}`) : null}
                                     current={i === 0}
+                                    message={rollout.message}
                                 />
                             ))}
                         </div>
@@ -232,7 +233,7 @@ const ProcessRevisions = (ri: RolloutInfo): Revision[] => {
     if (!ri) {
         return;
     }
-    const map: {[key: number]: Revision} = {};
+    const map: {[key: string]: Revision} = {};
 
     const emptyRevision = {replicaSets: [], experiments: [], analysisRuns: []} as Revision;
 
@@ -278,7 +279,10 @@ const parseDuration = (duration: string): string => {
 
 const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep; complete?: boolean; current?: boolean; last?: boolean}) => {
     const [openedTemplate, setOpenedTemplate] = React.useState('');
-    const [open, setOpen] = React.useState(false);
+    const [openCanary, setOpenCanary] = React.useState(false);
+    const [openAnalysis, setOpenAnalysis] = React.useState(false);
+    const [openHeader, setOpenHeader] = React.useState(false);
+    const [openMirror, setOpenMirror] = React.useState(false);
 
     let icon: string;
     let content = '';
@@ -307,6 +311,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
         content = 'Experiment';
         icon = 'fa-flask';
     }
+
     if (props.step.setMirrorRoute) {
         content = `Set Mirror: ${props.step.setMirrorRoute.name}`;
         if(!props.step.setMirrorRoute.match) {
@@ -324,21 +329,31 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
     return (
         <React.Fragment>
             <EffectDiv className={`steps__step ${props.complete ? 'steps__step--complete' : ''} ${props.current ? 'steps__step--current' : ''}`}>
-                <div className={`steps__step-title ${props.step.experiment || (props.step.setCanaryScale && open) || (props.step.setMirrorRoute && open) || (props.step.setHeaderRoute && open) ? 'steps__step-title--experiment' : ''}`}>
-                    {icon && <i className={`fa ${icon}`} />} {content}{unit}
+                <div
+                    className={`steps__step-title ${
+                        props.step.experiment || (props.step.setCanaryScale && openCanary) || (props.step.analysis && openAnalysis) ? 'steps__step-title--experiment' : ''
+                    }`}>
+                    {icon && <i className={`fa ${icon}`} />} {content}
+                    {unit}
                     {props.step.setCanaryScale && (
-                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
-                            <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpenCanary(!openCanary)}>
+                            <i className={`fa ${openCanary ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
-                    {props.step.setHeaderRoute && props.step.setHeaderRoute.match && (
-                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
-                            <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                    {props.step.analysis && (
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpenAnalysis(!openAnalysis)}>
+                            <i className={`fa ${openAnalysis ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                        </ThemeDiv>
+                    )}
+
+                    {props.step.setHeaderRoute && props.step.setHeaderRoute.match &&(
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpenHeader(!openHeader)}>
+                            <i className={`fa ${openCanary ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
                     {props.step.setMirrorRoute && props.step.setMirrorRoute.match && (
-                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpen(!open)}>
-                            <i className={`fa ${open ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
+                        <ThemeDiv style={{marginLeft: 'auto'}} onClick={() => setOpenMirror(!openMirror)}>
+                            <i className={`fa ${openCanary ? 'fa-chevron-circle-up' : 'fa-chevron-circle-down'}`} />
                         </ThemeDiv>
                     )}
                 </div>
@@ -349,9 +364,24 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
                         })}
                     </div>
                 )}
-                {props.step?.setCanaryScale && open && <WidgetItem values={props.step.setCanaryScale} />}
-                {props.step?.setHeaderRoute && open && <WidgetItemSetHeader values={props.step.setHeaderRoute.match} />}
-                {props.step?.setMirrorRoute && open && <WidgetItemSetMirror value={props.step.setMirrorRoute} />}
+
+                {props.step.analysis?.templates && openAnalysis && (
+                    <div className='steps__step__content'>
+                        <div style={{paddingLeft: 15, marginTop: 12, marginBottom: 8, color: 'rgba(0,0,0, 0.5)'}}>Templates</div>
+                        <ul>
+                            {props.step.analysis?.templates.map((template) => {
+                                return (
+                                    <div style={{paddingLeft: 15, fontWeight: 600}} key={template.templateName}>
+                                        <li>{template.templateName}</li>
+                                    </div>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+                {props.step?.setCanaryScale && openCanary && <WidgetItem values={props.step.setCanaryScale} />}
+                {props.step?.setHeaderRoute && openHeader && <WidgetItemSetHeader values={props.step.setHeaderRoute.match} />}
+                {props.step?.setMirrorRoute && openMirror && <WidgetItemSetMirror value={props.step.setMirrorRoute} />}
             </EffectDiv>
             {!props.last && <ThemeDiv className='steps__connector' />}
         </React.Fragment>
@@ -359,10 +389,10 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
 };
 
 const ExperimentWidget = ({
-    template,
-    opened,
-    onToggle,
-}: {
+                              template,
+                              opened,
+                              onToggle,
+                          }: {
     template: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutExperimentTemplate;
     opened: boolean;
     onToggle: (name: string) => void;
