@@ -388,11 +388,7 @@ const Step = (props: {step: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1
     );
 };
 
-const ExperimentWidget = ({
-                              template,
-                              opened,
-                              onToggle,
-                          }: {
+const ExperimentWidget = ({template, opened, onToggle}: {
     template: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutExperimentTemplate;
     opened: boolean;
     onToggle: (name: string) => void;
