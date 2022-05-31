@@ -613,6 +613,8 @@ func (r *Reconciler) SetWeight(desiredWeight int32, additionalDestinations ...v1
 		if !modified {
 			continue
 		}
+
+		r.orderRoutes(modifiedVirtualService)
 		_, err = client.Update(ctx, modifiedVirtualService, metav1.UpdateOptions{})
 		if err == nil {
 			r.log.Debugf("Updated VirtualService: %s", modifiedVirtualService)
@@ -702,6 +704,7 @@ func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) 
 		if err != nil {
 			return err
 		}
+
 		modifiedVirtualService, modified, err := r.reconcileVirtualServiceHeaderRoutes(vsvc, headerRouting)
 		if err != nil {
 			return err
@@ -709,6 +712,8 @@ func (r *Reconciler) SetHeaderRouting(headerRouting *v1alpha1.SetHeaderRouting) 
 		if !modified {
 			continue
 		}
+
+		r.orderRoutes(modifiedVirtualService)
 		_, err = client.Update(ctx, modifiedVirtualService, metav1.UpdateOptions{})
 		if err == nil {
 			r.log.Debugf("Updated VirtualService: %s", modifiedVirtualService)
@@ -1031,12 +1036,14 @@ func validateDestinationRule(dRule *v1alpha1.IstioDestinationRule, hasCanarySubs
 }
 
 func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
-	if setMirrorRoute == nil || setMirrorRoute.Match == nil {
-		return nil
-	}
-	//mirror.Match == nil is the turn off check
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
+
+	if setMirrorRoute.Match == nil {
+		//Remove mirror route
+		return nil
+	}
+
 	for _, virtualService := range virtualServices {
 		name := virtualService.Name
 		namespace, vsvcName := istioutil.GetVirtualServiceNamespaceName(name)
@@ -1045,12 +1052,12 @@ func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
 		}
 
 		client := r.client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(namespace)
-		vsvc, err := r.getVirtualService(namespace, vsvcName, client, ctx)
+		istioVirtualSvc, err := r.getVirtualService(namespace, vsvcName, client, ctx)
 		if err != nil {
 			return err
 		}
 
-		modifiedVirtualService, modified, err := r.reconcileVirtualServiceMirror(vsvc, setMirrorRoute)
+		modifiedIstioVirtualService, modified, err := r.reconcileVirtualServiceMirror(istioVirtualSvc, setMirrorRoute)
 		if err != nil {
 			return err
 		}
@@ -1058,11 +1065,10 @@ func (r *Reconciler) SetMirror(setMirrorRoute *v1alpha1.SetMirrorRoute) error {
 			continue
 		}
 
-		//r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes
-
-		_, err = client.Update(ctx, modifiedVirtualService, metav1.UpdateOptions{})
+		r.orderRoutes(modifiedIstioVirtualService)
+		_, err = client.Update(ctx, modifiedIstioVirtualService, metav1.UpdateOptions{})
 		if err == nil {
-			r.log.Debugf("Updated VirtualService: %s", vsvc)
+			r.log.Debugf("Updated VirtualService: %s", istioVirtualSvc)
 			r.recorder.Eventf(r.rollout, record.EventOptions{EventReason: "Updated VirtualService"}, "VirtualService `%s` set mirrorRoute '%v'", vsvcName, setMirrorRoute)
 		} else {
 			return err
@@ -1111,22 +1117,106 @@ func createMirrorRoute(mirrorRouting *v1alpha1.SetMirrorRoute, subset string) (m
 	return mirrorRouteI, nil
 }
 
-func (r *Reconciler) reconcileVirtualServiceMirror(vsvc *unstructured.Unstructured, mirrorRoute *v1alpha1.SetMirrorRoute) (*unstructured.Unstructured, bool, error) {
+func (r *Reconciler) reconcileVirtualServiceMirror(istioVirtualService *unstructured.Unstructured, mirrorRoute *v1alpha1.SetMirrorRoute) (*unstructured.Unstructured, bool, error) {
 	var canarySubset string
 	if r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule != nil {
 		canarySubset = r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule.CanarySubsetName
 	}
 
 	mR, _ := createMirrorRoute(mirrorRoute, canarySubset)
-
-	vsRoutes, _, _ := unstructured.NestedSlice(vsvc.Object, "spec", Http)
+	vsRoutes, _, _ := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
 	vsRoutes = append([]interface{}{mR}, vsRoutes...)
+	unstructured.SetNestedSlice(istioVirtualService.Object, vsRoutes, "spec", Http)
 
-	unstructured.SetNestedSlice(vsvc.Object, vsRoutes, "spec", Http)
-
-	return vsvc, true, nil
+	return istioVirtualService, true, nil
 }
 
-func (r *Reconciler) orderRoutes() {
+func (r *Reconciler) orderRoutes(istioVirtualService *unstructured.Unstructured) error {
+	httpRouteI, found, err := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return fmt.Errorf("spec.Http not found")
+	}
 
+	if r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes == nil {
+		return nil //Not really and error there is just nothing to sort on
+	}
+
+	managedRoutes := r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes
+	httpRoutesWithinManagedRoutes, httpRoutesNotWithinManagedRoutes, err := splitManagedRoutesAndNonManagedRoutes(managedRoutes, httpRouteI)
+	if err != nil {
+		return err
+	}
+
+	finalRoutes, err := getOrderedVirtualServiceRoutes(managedRoutes, httpRoutesWithinManagedRoutes, httpRoutesNotWithinManagedRoutes)
+	if err != nil {
+		return err
+	}
+
+	unstructured.SetNestedSlice(istioVirtualService.Object, finalRoutes, "spec", Http)
+
+	return nil
+}
+
+// splitManagedRoutesAndNonManagedRoutes This splits the routes from an istio virtual service into two slices
+// one slice contains all the routes that are also in the rollouts managedRoutes object and one that contains routes
+// that where only in the virtual service (aka routes that where manually added by user)
+func splitManagedRoutesAndNonManagedRoutes(managedRoutes []v1alpha1.MangedRoutes, httpRouteI []interface{}) (httpRoutesWithinManagedRoutes []VirtualServiceHTTPRoute, httpRoutesNotWithinManagedRoutes []VirtualServiceHTTPRoute, err error) {
+	var httpRoutes []VirtualServiceHTTPRoute
+
+	jsonHttpRoutes, err := json.Marshal(httpRouteI)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = json.Unmarshal(jsonHttpRoutes, &httpRoutes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, route := range httpRoutes {
+		var found bool = false
+		for _, managedRoute := range managedRoutes {
+			if route.Name == managedRoute.Name {
+				httpRoutesWithinManagedRoutes = append(httpRoutesWithinManagedRoutes, route)
+				found = true
+				break
+			}
+		}
+		if !found {
+			httpRoutesNotWithinManagedRoutes = append(httpRoutesNotWithinManagedRoutes, route)
+		}
+	}
+
+	return httpRoutesWithinManagedRoutes, httpRoutesNotWithinManagedRoutes, nil
+}
+
+// getOrderedVirtualServiceRoutes This returns an []interface{} of istio virtual routes where the routes are ordered based
+// on the rollouts managedRoutes field. We take the routes from the rollouts managedRoutes field order them and place them ontop
+// of routes that are manually defined within the virtual service (aka. routes that users have defined manually)
+func getOrderedVirtualServiceRoutes(managedRoutes []v1alpha1.MangedRoutes, httpRoutesWithinManagedRoutes []VirtualServiceHTTPRoute, httpRoutesNotWithinManagedRoutes []VirtualServiceHTTPRoute) ([]interface{}, error) {
+	var orderedManagedRoutes []VirtualServiceHTTPRoute
+	for _, route := range managedRoutes {
+		for _, managedRoute := range httpRoutesWithinManagedRoutes {
+			if route.Name == managedRoute.Name {
+				orderedManagedRoutes = append(orderedManagedRoutes, managedRoute)
+			}
+		}
+	}
+
+	allIstioRoutes := append(orderedManagedRoutes, httpRoutesNotWithinManagedRoutes...)
+
+	jsonAllIstioRoutes, err := json.Marshal(allIstioRoutes)
+	if err != nil {
+		return nil, err
+	}
+	var orderedRoutes []interface{}
+	err = json.Unmarshal(jsonAllIstioRoutes, &orderedRoutes)
+	if err != nil {
+		return nil, err
+	}
+
+	return orderedRoutes, nil
 }
