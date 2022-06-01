@@ -1017,7 +1017,7 @@ func TestGetCurrentSetWeight(t *testing.T) {
 
 func TestGetCurrentSetHeaderRouting(t *testing.T) {
 	rollout := newRollout(10, 10, intstr.FromInt(0), intstr.FromInt(1), "", "", nil, nil)
-	setHeaderRoutingStep := v1alpha1.SetHeaderRouting{
+	setHeaderRoutingStep := v1alpha1.SetHeaderRoute{
 		Match: []v1alpha1.HeaderRoutingMatch{
 			{
 				HeaderName: "agent",
@@ -1038,7 +1038,7 @@ func TestGetCurrentSetHeaderRouting(t *testing.T) {
 		{SetHeaderRoute: &setHeaderRoutingStep},
 		{SetWeight: ptr.Int32(40)},
 		{Pause: &v1alpha1.RolloutPause{}},
-		{SetHeaderRoute: &v1alpha1.SetHeaderRouting{}},
+		{SetHeaderRoute: &v1alpha1.SetHeaderRoute{}},
 	}
 
 	assert.Nil(t, GetCurrentSetHeaderRouting(rollout, 0))

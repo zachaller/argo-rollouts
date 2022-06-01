@@ -474,7 +474,7 @@ func GetCurrentSetWeight(rollout *v1alpha1.Rollout) int32 {
 	return 0
 }
 
-func GetCurrentSetHeaderRouting(rollout *v1alpha1.Rollout, index int32) *v1alpha1.SetHeaderRouting {
+func GetCurrentSetHeaderRouting(rollout *v1alpha1.Rollout, index int32) *v1alpha1.SetHeaderRoute {
 	if int32(len(rollout.Spec.Strategy.Canary.Steps)) == index {
 		index--
 	}

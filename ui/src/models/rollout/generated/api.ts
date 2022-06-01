@@ -526,10 +526,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep 
     setCanaryScale?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetCanaryScale;
     /**
      * 
-     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting}
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
-    setHeaderRoute?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting;
+    setHeaderRoute?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute;
     /**
      * 
      * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute}
@@ -1526,7 +1526,7 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch 
      * @type {{ [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; }}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RouteMatch
      */
-    header?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; };
+    headers?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StringMatch; };
 }
 /**
  * 
@@ -1575,19 +1575,19 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetCanarySc
 /**
  * 
  * @export
- * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute
  */
-export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting {
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute {
     /**
      * 
      * @type {string}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute
      */
     name?: string;
     /**
      * 
      * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch>}
-     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRouting
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetHeaderRoute
      */
     match?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1HeaderRoutingMatch>;
 }

@@ -139,8 +139,6 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 		if rolloututil.IsFullyPromoted(c.rollout) {
 			// when we are fully promoted. desired canary weight should be 0
 		} else if c.pauseContext.IsAborted() {
-			//TODO(zachaller): We need to cleanup header based routing and mirroring when we abort
-
 			// when aborted, desired canary weight should immediately be 0 (100% to stable), *unless*
 			// we are using dynamic stable scaling. In that case, we are dynamically decreasing the
 			// weight to the canary according to the availability of the stable (whatever it can support).
@@ -152,6 +150,11 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 					desiredWeight = minInt(desiredWeight, c.rollout.Status.Canary.Weights.Canary.Weight)
 				}
 			}
+			err := reconciler.RemoveManagedRoutes()
+			if err != nil {
+				return err
+			}
+
 		} else if c.newRS == nil || c.newRS.Status.AvailableReplicas == 0 {
 			// when newRS is not available or replicas num is 0. never weight to canary
 			weightDestinations = append(weightDestinations, c.calculateWeightDestinationsFromExperiment()...)
@@ -163,6 +166,11 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 				desiredWeight = (100 * c.newRS.Status.AvailableReplicas) / *c.rollout.Spec.Replicas
 			} else if c.rollout.Status.Canary.Weights != nil {
 				desiredWeight = c.rollout.Status.Canary.Weights.Canary.Weight
+			}
+
+			err := reconciler.RemoveManagedRoutes()
+			if err != nil {
+				return err
 			}
 		} else if index != nil {
 			atDesiredReplicaCount := replicasetutil.AtDesiredReplicaCountsForCanary(c.rollout, c.newRS, c.stableRS, c.otherRSs, nil)
@@ -187,14 +195,16 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
 			}
 		}
 
-		if currentStep != nil && currentStep.SetHeaderRoute != nil && index != nil {
-			if err = reconciler.SetHeaderRouting(currentStep.SetHeaderRoute); err != nil {
+		// We need to check for Generation > 1 because when we first install the rollout we run step 0 this prevents that.
+		if currentStep != nil && currentStep.SetHeaderRoute != nil && c.rollout.ObjectMeta.Generation > 1 {
+			if err = reconciler.SetHeaderRoute(currentStep.SetHeaderRoute); err != nil {
 				return err
 			}
 		}
 
-		if currentStep != nil && currentStep.SetMirrorRoute != nil && index != nil {
-			if err = reconciler.SetMirror(currentStep.SetMirrorRoute); err != nil {
+		// We need to check for Generation > 1 because when we first install the rollout we run step 0 this prevents that.
+		if currentStep != nil && currentStep.SetMirrorRoute != nil && c.rollout.ObjectMeta.Generation > 1 {
+			if err = reconciler.SetMirrorRoute(currentStep.SetMirrorRoute); err != nil {
 				return err
 			}
 		}

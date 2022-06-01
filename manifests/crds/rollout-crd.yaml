@@ -622,7 +622,7 @@ spec:
                                 match:
                                   items:
                                     properties:
-                                      header:
+                                      headers:
                                         additionalProperties:
                                           properties:
                                             exact:

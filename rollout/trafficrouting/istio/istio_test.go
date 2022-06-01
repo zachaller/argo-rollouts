@@ -493,7 +493,7 @@ func TestHttpReconcileHeaderRoute_HostBased(t *testing.T) {
 
 	// Test for both the HTTP VS & Mixed VS
 	vsObj := unstructuredutil.StrToUnstructuredUnsafe(regularVsvc)
-	hr := &v1alpha1.SetHeaderRouting{
+	hr := &v1alpha1.SetHeaderRoute{
 		Name: "test-header-route",
 		Match: []v1alpha1.HeaderRoutingMatch{
 			{
@@ -549,7 +549,7 @@ spec:
 
 	// Test for both the HTTP VS & Mixed VS
 	vsObj := unstructuredutil.StrToUnstructuredUnsafe(singleRouteSubsetVsvc)
-	hr := &v1alpha1.SetHeaderRouting{
+	hr := &v1alpha1.SetHeaderRoute{
 		Name: "test-header-route",
 		Match: []v1alpha1.HeaderRoutingMatch{
 			{

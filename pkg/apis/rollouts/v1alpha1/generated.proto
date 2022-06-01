@@ -404,7 +404,7 @@ message CanaryStep {
   optional SetCanaryScale setCanaryScale = 5;
 
   // SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
-  optional SetHeaderRouting setHeaderRoute = 6;
+  optional SetHeaderRoute setHeaderRoute = 6;
 
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
@@ -1434,9 +1434,9 @@ message RouteMatch {
   // +optional
   optional StringMatch path = 2;
 
-  // Header What request with matching headers should be mirrored
+  // Headers What request with matching headers should be mirrored
   // +optional
-  map<string, StringMatch> header = 3;
+  map<string, StringMatch> headers = 3;
 }
 
 // RunSummary contains the final results from the metric executions
@@ -1503,8 +1503,8 @@ message SetCanaryScale {
   optional bool matchTrafficWeight = 3;
 }
 
-// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
-message SetHeaderRouting {
+// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
+message SetHeaderRoute {
   optional string name = 1;
 
   repeated HeaderRoutingMatch match = 2;

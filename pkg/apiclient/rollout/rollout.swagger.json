@@ -822,7 +822,7 @@
           "title": "SetCanaryScale defines how to scale the newRS without changing traffic weight\n+optional"
         },
         "setHeaderRoute": {
-          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting",
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRoute",
           "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service"
         },
         "setMirrorRoute": {
@@ -1579,12 +1579,12 @@
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch",
           "title": "Path What url paths should be mirrored\n+optional"
         },
-        "header": {
+        "headers": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StringMatch"
           },
-          "title": "Header What request with matching headers should be mirrored\n+optional"
+          "title": "Headers What request with matching headers should be mirrored\n+optional"
         }
       }
     },
@@ -1622,7 +1622,7 @@
       },
       "title": "SetCanaryScale defines how to scale the newRS without changing traffic weight"
     },
-    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRouting": {
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRoute": {
       "type": "object",
       "properties": {
         "name": {
@@ -1635,7 +1635,7 @@
           }
         }
       },
-      "title": "SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service"
+      "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service"
     },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute": {
       "type": "object",

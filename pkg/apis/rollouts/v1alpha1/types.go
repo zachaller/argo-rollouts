@@ -566,7 +566,7 @@ type CanaryStep struct {
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
 	// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
-	SetHeaderRoute *SetHeaderRouting `json:"setHeaderRoute,omitempty" protobuf:"bytes,6,opt,name=setHeaderRoute"`
+	SetHeaderRoute *SetHeaderRoute `json:"setHeaderRoute,omitempty" protobuf:"bytes,6,opt,name=setHeaderRoute"`
 	//RemoveHeaderRoute *RemoveHeaderRoute `json:"removeHeaderRoute,omitempty" protobuf:"bytes,7,opt,name=removeHeaderRoute"`
 
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
@@ -596,9 +596,9 @@ type RouteMatch struct {
 	// Path What url paths should be mirrored
 	// +optional
 	Path *StringMatch `json:"path,omitempty" protobuf:"bytes,2,opt,name=path"`
-	// Header What request with matching headers should be mirrored
+	// Headers What request with matching headers should be mirrored
 	// +optional
-	Header map[string]StringMatch `json:"header,omitempty" protobuf:"bytes,3,opt,name=header"`
+	Headers map[string]StringMatch `json:"headers,omitempty" protobuf:"bytes,3,opt,name=headers"`
 }
 
 // StringMatch Used to define what type of matching we will use exact, prefix, or regular expression
@@ -611,8 +611,8 @@ type StringMatch struct {
 	Regex string `json:"regex,omitempty" protobuf:"bytes,3,opt,name=regex"`
 }
 
-// SetHeaderRouting defines the route with specified header name to send 100% of traffic to the canary service
-type SetHeaderRouting struct {
+// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
+type SetHeaderRoute struct {
 	Name  string               `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 	Match []HeaderRoutingMatch `json:"match,omitempty" protobuf:"bytes,2,rep,name=match"`
 }

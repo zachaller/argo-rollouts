@@ -297,7 +297,7 @@ func TestValidateRolloutStrategyCanary_SetHeaderRoutingIstio(t *testing.T) {
 		invalidRo := ro.DeepCopy()
 		invalidRo.Spec.Strategy.Canary.TrafficRouting = nil
 		invalidRo.Spec.Strategy.Canary.Steps = []v1alpha1.CanaryStep{{
-			SetHeaderRoute: &v1alpha1.SetHeaderRouting{
+			SetHeaderRoute: &v1alpha1.SetHeaderRoute{
 				Match: []v1alpha1.HeaderRoutingMatch{
 					{
 						HeaderName:  "agent",
@@ -313,7 +313,7 @@ func TestValidateRolloutStrategyCanary_SetHeaderRoutingIstio(t *testing.T) {
 	t.Run("using SetHeaderRoute step with multiple values", func(t *testing.T) {
 		invalidRo := ro.DeepCopy()
 		invalidRo.Spec.Strategy.Canary.Steps = []v1alpha1.CanaryStep{{
-			SetHeaderRoute: &v1alpha1.SetHeaderRouting{
+			SetHeaderRoute: &v1alpha1.SetHeaderRoute{
 				Match: []v1alpha1.HeaderRoutingMatch{
 					{
 						HeaderName: "agent",
@@ -332,7 +332,7 @@ func TestValidateRolloutStrategyCanary_SetHeaderRoutingIstio(t *testing.T) {
 	t.Run("using SetHeaderRoute step with missed values", func(t *testing.T) {
 		invalidRo := ro.DeepCopy()
 		invalidRo.Spec.Strategy.Canary.Steps = []v1alpha1.CanaryStep{{
-			SetHeaderRoute: &v1alpha1.SetHeaderRouting{
+			SetHeaderRoute: &v1alpha1.SetHeaderRoute{
 				Match: []v1alpha1.HeaderRoutingMatch{
 					{
 						HeaderName: "agent",
