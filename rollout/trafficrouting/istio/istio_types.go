@@ -21,8 +21,8 @@ type VirtualServiceHTTPRoute struct {
 	Name             string                           `json:"name,omitempty"`
 	Match            []v1alpha1.RouteMatch            `json:"match,omitempty"`
 	Route            []VirtualServiceRouteDestination `json:"route,omitempty"`
-	Mirror           VirtualServiceDestination        `json:"mirrorPercentage,omitempty"`
-	MirrorPercentage Percent                          `json:"mirrorPercentage,omitempty"`
+	Mirror           *VirtualServiceDestination       `json:"mirror,omitempty"`
+	MirrorPercentage *Percent                         `json:"mirrorPercentage,omitempty"`
 }
 
 type Percent struct {

@@ -142,6 +142,13 @@ func (r *Reconciler) generateVirtualServicePatches(rolloutVsvcRouteNames []strin
 		stableSubset = r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule.StableSubsetName
 	}
 
+	//We get the routes from managedRoutes field so that we can also update the destination on setWeight calls
+	for _, httpRoute := range httpRoutes {
+		//Make sure we only add mirror routes from the managedRoutes field to the list of routes to update for setWeight
+		if httpRoute.Mirror != nil {
+			rolloutVsvcRouteNames = append(rolloutVsvcRouteNames, httpRoute.Name)
+		}
+	}
 	// err can be ignored because we already called ValidateHTTPRoutes earlier
 	httpRouteIndexesToPatch, _ := getHttpRouteIndexesToPatch(rolloutVsvcRouteNames, httpRoutes)
 	tlsRouteIndexesToPatch, _ := getTlsRouteIndexesToPatch(rolloutVsvcTLSRoutes, tlsRoutes)
@@ -1052,12 +1059,9 @@ func (r *Reconciler) SetMirrorRoute(setMirrorRoute *v1alpha1.SetMirrorRoute) err
 			return err
 		}
 
-		modified, err := r.reconcileVirtualServiceMirror(istioVirtualSvc, setMirrorRoute)
+		err = r.reconcileVirtualServiceMirror(virtualService, istioVirtualSvc, setMirrorRoute)
 		if err != nil {
 			return err
-		}
-		if !modified {
-			continue
 		}
 
 		r.orderRoutes(istioVirtualSvc)
@@ -1073,27 +1077,88 @@ func (r *Reconciler) SetMirrorRoute(setMirrorRoute *v1alpha1.SetMirrorRoute) err
 	return nil
 }
 
-func createMirrorRoute(mirrorRouting *v1alpha1.SetMirrorRoute, subset string) (map[string]interface{}, error) {
+func (r *Reconciler) reconcileVirtualServiceMirror(virtualService v1alpha1.IstioVirtualService, istioVirtualService *unstructured.Unstructured, mirrorRoute *v1alpha1.SetMirrorRoute) error {
+	destRuleHost, err := r.getDestinationRuleHost()
+	if err != nil {
+		return err
+	}
+	canarySvc := r.rollout.Spec.Strategy.Canary.CanaryService
+	if destRuleHost != "" {
+		canarySvc = destRuleHost
+	}
+	var canarySubset string
+	if r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule != nil {
+		canarySubset = r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule.CanarySubsetName
+	}
+
+	//Remove mirror route when there is no match rules we require a match on routes for safety so a none listed match
+	//acts like a removal of the route instead of say routing all traffic
+	if mirrorRoute.Match == nil {
+		//Remove mirror route
+		removeRoute(istioVirtualService, mirrorRoute.Name)
+		return nil
+	}
+
+	//Remove route first to avoid duplicates
+	err = removeRoute(istioVirtualService, mirrorRoute.Name)
+	if err != nil {
+		return err
+	}
+
+	httpRoutes, _, err := getVirtualServiceHttpRoutes(istioVirtualService)
+	if err != nil {
+		return err
+	}
+
+	mR, err := createMirrorRoute(virtualService, httpRoutes, mirrorRoute, canarySvc, canarySubset)
+	if err != nil {
+		return err
+	}
+
+	vsRoutes, _, _ := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
+	vsRoutes = append([]interface{}{mR}, vsRoutes...)
+	unstructured.SetNestedSlice(istioVirtualService.Object, vsRoutes, "spec", Http)
+
+	return nil
+}
+
+func getVirtualServiceHttpRoutes(obj *unstructured.Unstructured) ([]VirtualServiceHTTPRoute, []interface{}, error) {
+	var httpRoutes []VirtualServiceHTTPRoute
+	httpRoutesI, err := GetHttpRoutesI(obj)
+	if err != nil && err.Error() != ".spec.http is not defined" {
+		return nil, nil, err
+	}
+	if err == nil {
+		routes, err := GetHttpRoutes(httpRoutesI)
+		httpRoutes = routes
+		if err != nil {
+			return nil, httpRoutesI, err
+		}
+		return httpRoutes, httpRoutesI, nil
+	}
+	return []VirtualServiceHTTPRoute{}, make([]interface{}, 0), nil
+}
+
+func createMirrorRoute(virtualService v1alpha1.IstioVirtualService, httpRoutes []VirtualServiceHTTPRoute, mirrorRouting *v1alpha1.SetMirrorRoute, canarySvc string, subset string) (map[string]interface{}, error) {
 	var percent int32
 	if mirrorRouting.Percentage == nil {
-		percent = 0
+		percent = 100
 	} else {
 		percent = *mirrorRouting.Percentage
+	}
+
+	route, err := getVirtualServiceSetWeightRoute(virtualService.Routes, httpRoutes)
+	if err != nil {
+		return nil, err
 	}
 
 	mirrorRoute := map[string]interface{}{
 		"name":  mirrorRouting.Name,
 		"match": mirrorRouting.Match,
-		"route": []VirtualServiceRouteDestination{{
-			Destination: VirtualServiceDestination{
-				Host:   "istio-host-split-canary",
-				Subset: "",
-			},
-			Weight: int64(percent),
-		}}, //This actually needs to be the primary canary route
+		"route": route, //This actually needs to be the primary canary route
 		"mirror": VirtualServiceDestination{
-			Host:   "istio-host-split-canary",
-			Subset: "",
+			Host:   canarySvc,
+			Subset: subset,
 		},
 		"mirrorPercentage": map[string]interface{}{"value": float64(percent)},
 	}
@@ -1112,28 +1177,48 @@ func createMirrorRoute(mirrorRouting *v1alpha1.SetMirrorRoute, subset string) (m
 	return mirrorRouteI, nil
 }
 
-func (r *Reconciler) reconcileVirtualServiceMirror(istioVirtualService *unstructured.Unstructured, mirrorRoute *v1alpha1.SetMirrorRoute) (bool, error) {
-	var canarySubset string
-	if r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule != nil {
-		canarySubset = r.rollout.Spec.Strategy.Canary.TrafficRouting.Istio.DestinationRule.CanarySubsetName
+func getVirtualServiceSetWeightRoute(rolloutVsvcRouteNames []string, httpRoutes []VirtualServiceHTTPRoute) ([]VirtualServiceRouteDestination, error) {
+	routeIndexesToPatch, err := getHttpRouteIndexesToPatch(rolloutVsvcRouteNames, httpRoutes)
+	if err != nil {
+		return nil, nil
 	}
-
-	if mirrorRoute.Match == nil {
-		//Remove mirror route
-		removeRoute(istioVirtualService, mirrorRoute.Name)
-		return true, nil
+	for _, routeIndex := range routeIndexesToPatch {
+		route := httpRoutes[routeIndex]
+		return route.Route, nil
 	}
-
-	//Remove route first to avoid duplicates
-	removeRoute(istioVirtualService, mirrorRoute.Name)
-	mR, _ := createMirrorRoute(mirrorRoute, canarySubset)
-	vsRoutes, _, _ := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
-	vsRoutes = append([]interface{}{mR}, vsRoutes...)
-	unstructured.SetNestedSlice(istioVirtualService.Object, vsRoutes, "spec", Http)
-
-	return true, nil
+	return nil, nil
 }
 
+// removeRoute This functions removes the `mirrorName` route from the Istio Virtual Service
+func removeRoute(istioVirtualService *unstructured.Unstructured, routeName string) error {
+	vsRoutes, found, err := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return fmt.Errorf("Could not find spec.http to remove mirror route")
+	}
+
+	var newVsRoutes []interface{}
+	for _, route := range vsRoutes {
+		routeMap, ok := route.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("Could not cast type to map[string]interface{} to find route name in Istio Virtual Service")
+		}
+		routeNameIstioSvc, ok := routeMap["name"].(string)
+		if !ok {
+			return fmt.Errorf("Could not cast type to string to find route name in Istio Virtual Service")
+		}
+		if routeName != routeNameIstioSvc {
+			newVsRoutes = append(newVsRoutes, route)
+		}
+	}
+	unstructured.SetNestedSlice(istioVirtualService.Object, newVsRoutes, "spec", Http)
+	return nil
+}
+
+// orderRoutes Is a function that orders the routes based on the managedRoute field in the rollout spec. It then places
+// the sorted routes ontop of any other route that is already defined on the Istio Virtual Service.
 func (r *Reconciler) orderRoutes(istioVirtualService *unstructured.Unstructured) error {
 	httpRouteI, found, err := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
 	if err != nil {
@@ -1224,34 +1309,6 @@ func getOrderedVirtualServiceRoutes(managedRoutes []v1alpha1.MangedRoutes, httpR
 	return orderedRoutes, nil
 }
 
-// removeRoute This functions removes the `mirrorName` route from the Istio Virtual Service
-func removeRoute(istioVirtualService *unstructured.Unstructured, routeName string) error {
-	vsRoutes, found, err := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
-	if err != nil {
-		return err
-	}
-	if !found {
-		return fmt.Errorf("Could not find spec.http to remove mirror route")
-	}
-
-	var newVsRoutes []interface{}
-	for _, route := range vsRoutes {
-		routeMap, ok := route.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("Could not cast type to map[string]interface{} to find route name in Istio Virtual Service")
-		}
-		routeNameIstioSvc, ok := routeMap["name"].(string)
-		if !ok {
-			return fmt.Errorf("Could not cast type to string to find route name in Istio Virtual Service")
-		}
-		if routeName != routeNameIstioSvc {
-			newVsRoutes = append(newVsRoutes, route)
-		}
-	}
-	unstructured.SetNestedSlice(istioVirtualService.Object, newVsRoutes, "spec", Http)
-	return nil
-}
-
 func (r *Reconciler) RemoveManagedRoutes() error {
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
@@ -1282,6 +1339,9 @@ func (r *Reconciler) RemoveManagedRoutes() error {
 		}
 
 		managedRoutes := r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes
+		if len(managedRoutes) == 0 {
+			return nil
+		}
 		httpRoutesWithinManagedRoutes, httpRoutesNotWithinManagedRoutes, err := splitManagedRoutesAndNonManagedRoutes(managedRoutes, httpRouteI)
 
 		if len(httpRoutesWithinManagedRoutes) == 0 {
