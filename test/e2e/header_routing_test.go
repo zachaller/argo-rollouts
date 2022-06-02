@@ -48,7 +48,7 @@ func (s *HeaderRoutingSuite) TestIstioHostHeaderRoute() {
 		Then().
 		Assert(func(t *fixtures.Then) {
 			vsvc := t.GetVirtualService()
-			assert.Equal(s.T(), istio.HeaderRouteName, vsvc.Spec.HTTP[0].Name)
+			assert.Equal(s.T(), "set-header-1", vsvc.Spec.HTTP[0].Name)
 			assertDestination(s, vsvc.Spec.HTTP[0], "canary-service", int64(100))
 			assertDestination(s, vsvc.Spec.HTTP[1], "stable-service", int64(80))
 			assertDestination(s, vsvc.Spec.HTTP[1], "canary-service", int64(20))
