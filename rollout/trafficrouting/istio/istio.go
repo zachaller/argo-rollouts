@@ -1114,7 +1114,13 @@ func (r *Reconciler) reconcileVirtualServiceMirror(virtualService v1alpha1.Istio
 		return err
 	}
 
-	vsRoutes, _, _ := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
+	vsRoutes, found, err := unstructured.NestedSlice(istioVirtualService.Object, "spec", Http)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return fmt.Errorf(".spec.http is not defined")
+	}
 	vsRoutes = append([]interface{}{mR}, vsRoutes...)
 	unstructured.SetNestedSlice(istioVirtualService.Object, vsRoutes, "spec", Http)
 
@@ -1154,7 +1160,7 @@ func createMirrorRoute(virtualService v1alpha1.IstioVirtualService, httpRoutes [
 	mirrorRoute := map[string]interface{}{
 		"name":  mirrorRouting.Name,
 		"match": mirrorRouting.Match,
-		"route": route, //This actually needs to be the primary canary route
+		"route": route,
 		"mirror": VirtualServiceDestination{
 			Host:   canarySvc,
 			Subset: subset,
@@ -1212,7 +1218,10 @@ func removeRoute(istioVirtualService *unstructured.Unstructured, routeName strin
 			newVsRoutes = append(newVsRoutes, route)
 		}
 	}
-	unstructured.SetNestedSlice(istioVirtualService.Object, newVsRoutes, "spec", Http)
+	err = unstructured.SetNestedSlice(istioVirtualService.Object, newVsRoutes, "spec", Http)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -1242,7 +1251,10 @@ func (r *Reconciler) orderRoutes(istioVirtualService *unstructured.Unstructured)
 		return err
 	}
 
-	unstructured.SetNestedSlice(istioVirtualService.Object, finalRoutes, "spec", Http)
+	err = unstructured.SetNestedSlice(istioVirtualService.Object, finalRoutes, "spec", Http)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -1281,7 +1293,7 @@ func splitManagedRoutesAndNonManagedRoutes(managedRoutes []v1alpha1.MangedRoutes
 }
 
 // getOrderedVirtualServiceRoutes This returns an []interface{} of istio virtual routes where the routes are ordered based
-// on the rollouts managedRoutes field. We take the routes from the rollouts managedRoutes field order them and place them ontop
+// on the rollouts managedRoutes field. We take the routes from the rollouts managedRoutes field order them and place them on top
 // of routes that are manually defined within the virtual service (aka. routes that users have defined manually)
 func getOrderedVirtualServiceRoutes(managedRoutes []v1alpha1.MangedRoutes, httpRoutesWithinManagedRoutes []VirtualServiceHTTPRoute, httpRoutesNotWithinManagedRoutes []VirtualServiceHTTPRoute) ([]interface{}, error) {
 	var orderedManagedRoutes []VirtualServiceHTTPRoute
@@ -1308,6 +1320,9 @@ func getOrderedVirtualServiceRoutes(managedRoutes []v1alpha1.MangedRoutes, httpR
 	return orderedRoutes, nil
 }
 
+// RemoveManagedRoutes this removes all the routes in all the istio virtual services rollouts is managing by getting two slices
+// from the splitManagedRoutesAndNonManagedRoutes function and setting the Istio Virtual Service routes to just the ones not managed
+// by rollouts
 func (r *Reconciler) RemoveManagedRoutes() error {
 	ctx := context.TODO()
 	virtualServices := r.getVirtualServices()
@@ -1358,7 +1373,10 @@ func (r *Reconciler) RemoveManagedRoutes() error {
 			return err
 		}
 
-		unstructured.SetNestedSlice(istioVirtualService.Object, nonManagedRoutesI, "spec", Http)
+		err = unstructured.SetNestedSlice(istioVirtualService.Object, nonManagedRoutesI, "spec", Http)
+		if err != nil {
+			return err
+		}
 
 		_, err = client.Update(ctx, istioVirtualService, metav1.UpdateOptions{})
 		if err == nil {

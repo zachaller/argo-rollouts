@@ -404,6 +404,7 @@ message CanaryStep {
   optional SetCanaryScale setCanaryScale = 5;
 
   // SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
+  // +optional
   optional SetHeaderRoute setHeaderRoute = 6;
 
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
@@ -830,6 +831,8 @@ message KayentaThreshold {
 
 message MangedRoutes {
   optional string name = 1;
+
+  optional bool canaryRoute = 2;
 }
 
 // Measurement is a point in time result value of a single metric, and the time it was measured

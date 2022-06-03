@@ -369,8 +369,8 @@ type RolloutTrafficRouting struct {
 }
 
 type MangedRoutes struct {
-	Name string `json:"name"`
-	//CanaryRoute *bool  `json:"canaryRoute,omitempty""`
+	Name        string `json:"name" protobuf:"bytes,1,opt,name=name"`
+	CanaryRoute bool   `json:"canaryRoute,omitempty" protobuf:"varint,2,opt,name=canaryRoute"`
 }
 
 // TraefikTrafficRouting defines the configuration required to use Traefik as traffic router
@@ -547,9 +547,6 @@ const (
 	StableSpecRef ReplicaSetSpecRef = "stable"
 )
 
-//type RemoveHeaderRoute string
-//type RemoveMirrorRoute string
-
 // CanaryStep defines a step of a canary deployment.
 type CanaryStep struct {
 	// SetWeight sets what percentage of the newRS should receive
@@ -566,13 +563,11 @@ type CanaryStep struct {
 	// +optional
 	SetCanaryScale *SetCanaryScale `json:"setCanaryScale,omitempty" protobuf:"bytes,5,opt,name=setCanaryScale"`
 	// SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service
+	// +optional
 	SetHeaderRoute *SetHeaderRoute `json:"setHeaderRoute,omitempty" protobuf:"bytes,6,opt,name=setHeaderRoute"`
-	//RemoveHeaderRoute *RemoveHeaderRoute `json:"removeHeaderRoute,omitempty" protobuf:"bytes,7,opt,name=removeHeaderRoute"`
-
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
 	SetMirrorRoute *SetMirrorRoute `json:"setMirrorRoute,omitempty" protobuf:"bytes,8,opt,name=setMirrorRoute"`
-	//RemoveMirrorRoute *RemoveMirrorRoute `json:"removeMirrorRoute,omitempty" protobuf:"bytes,9,opt,name=removeMirrorRoute"`
 }
 
 type SetMirrorRoute struct {

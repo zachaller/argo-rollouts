@@ -2555,6 +2555,12 @@ func schema_pkg_apis_rollouts_v1alpha1_MangedRoutes(ref common.ReferenceCallback
 							Format:  "",
 						},
 					},
+					"canaryRoute": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"name"},
 			},

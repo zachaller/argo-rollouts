@@ -1720,3 +1720,71 @@ func TestMultipleVirtualServiceReconcileInferredSingleRoute(t *testing.T) {
 		assertHttpRouteWeightChanges(t, httpRoutes[0], "", 10, 90)
 	}
 }
+
+func TestHttpReconcileMirrorRoute(t *testing.T) {
+	r := &Reconciler{
+		rollout: rolloutWithHttpRoutes("stable", "canary", "vsvc", []string{"primary"}),
+	}
+
+	// Test for both the HTTP VS & Mixed VS
+	vsObj := unstructuredutil.StrToUnstructuredUnsafe(regularVsvc)
+	setMirror := &v1alpha1.SetMirrorRoute{
+		Name: "test-mirror-1",
+		Match: []v1alpha1.RouteMatch{{
+			Method: &v1alpha1.StringMatch{
+				Exact: "GET",
+			},
+		}},
+	}
+
+	rolloutVirtualSvc := r.getVirtualServices()
+	err := r.reconcileVirtualServiceMirror(rolloutVirtualSvc[0], vsObj, setMirror)
+	assert.Nil(t, err)
+
+	// HTTP Routes
+	httpRoutes := extractHttpRoutes(t, vsObj)
+
+	// Assertions
+	assert.Equal(t, httpRoutes[0].Name, "test-mirror-1")
+	checkDestination(t, httpRoutes[0].Route, "canary", 0)
+	assert.Equal(t, httpRoutes[0].Mirror.Host, "canary")
+	assert.Equal(t, httpRoutes[0].Mirror.Subset, "")
+	assert.Equal(t, httpRoutes[0].MirrorPercentage.Value, float64(100))
+
+	assert.Equal(t, len(httpRoutes[0].Route), 2)
+	assert.Equal(t, httpRoutes[1].Name, "primary")
+	checkDestination(t, httpRoutes[1].Route, "stable", 100)
+	assert.Equal(t, httpRoutes[2].Name, "secondary")
+	checkDestination(t, httpRoutes[2].Route, "stable", 100)
+}
+
+func TestReconcileUpdateMirror(t *testing.T) {
+	ro := rolloutWithHttpRoutes("stable", "canary", "vsvc", []string{"primary"})
+	ro.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes = append(ro.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes, v1alpha1.MangedRoutes{
+		Name: "test-mirror-1",
+	})
+	AssertReconcileUpdateMirror(t, regularVsvc, ro)
+}
+func AssertReconcileUpdateMirror(t *testing.T, vsvc string, ro *v1alpha1.Rollout) *dynamicfake.FakeDynamicClient {
+	obj := unstructuredutil.StrToUnstructuredUnsafe(vsvc)
+	client := testutil.NewFakeDynamicClient(obj)
+	vsvcLister, druleLister := getIstioListers(client)
+	r := NewReconciler(ro, client, record.NewFakeEventRecorder(), vsvcLister, druleLister)
+	client.ClearActions()
+
+	setMirror := &v1alpha1.SetMirrorRoute{
+		Name: "test-mirror-1",
+		Match: []v1alpha1.RouteMatch{{
+			Method: &v1alpha1.StringMatch{
+				Exact: "GET",
+			},
+		}},
+	}
+	err := r.SetMirrorRoute(setMirror)
+	assert.Nil(t, err)
+
+	actions := client.Actions()
+	assert.Len(t, actions, 1)
+	assert.Equal(t, "update", actions[0].GetVerb())
+	return client
+}

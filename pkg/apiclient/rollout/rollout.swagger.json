@@ -823,7 +823,7 @@
         },
         "setHeaderRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetHeaderRoute",
-          "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service"
+          "title": "SetHeaderRoute defines the route with specified header name to send 100% of traffic to the canary service\n+optional"
         },
         "setMirrorRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute",
@@ -1004,6 +1004,9 @@
       "properties": {
         "name": {
           "type": "string"
+        },
+        "canaryRoute": {
+          "type": "boolean"
         }
       }
     },
