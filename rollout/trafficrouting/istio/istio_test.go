@@ -1743,6 +1743,7 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 
 	// HTTP Routes
 	httpRoutes := extractHttpRoutes(t, vsObj)
+	assert.Equal(t, len(httpRoutes), 3)
 
 	// Assertions
 	assert.Equal(t, httpRoutes[0].Name, "test-mirror-1")
@@ -1750,12 +1751,25 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 	assert.Equal(t, httpRoutes[0].Mirror.Host, "canary")
 	assert.Equal(t, httpRoutes[0].Mirror.Subset, "")
 	assert.Equal(t, httpRoutes[0].MirrorPercentage.Value, float64(100))
-
 	assert.Equal(t, len(httpRoutes[0].Route), 2)
 	assert.Equal(t, httpRoutes[1].Name, "primary")
 	checkDestination(t, httpRoutes[1].Route, "stable", 100)
 	assert.Equal(t, httpRoutes[2].Name, "secondary")
 	checkDestination(t, httpRoutes[2].Route, "stable", 100)
+
+	//Delete mirror route
+	deleteSetMirror := &v1alpha1.SetMirrorRoute{
+		Name: "test-mirror-1",
+	}
+	rolloutVirtualSvc = r.getVirtualServices()
+	err = r.reconcileVirtualServiceMirror(rolloutVirtualSvc[0], vsObj, deleteSetMirror)
+	assert.Nil(t, err)
+
+	httpRoutes = extractHttpRoutes(t, vsObj)
+	assert.Equal(t, len(httpRoutes), 2)
+	assert.Equal(t, httpRoutes[0].Name, "primary")
+	assert.Equal(t, httpRoutes[1].Name, "secondary")
+
 }
 
 func TestReconcileUpdateMirror(t *testing.T) {
