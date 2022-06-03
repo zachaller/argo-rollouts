@@ -1722,13 +1722,16 @@ func TestMultipleVirtualServiceReconcileInferredSingleRoute(t *testing.T) {
 }
 
 func TestHttpReconcileMirrorRoute(t *testing.T) {
-	r := &Reconciler{
-		rollout: rolloutWithHttpRoutes("stable", "canary", "vsvc", []string{"primary"}),
-	}
+	ro := rolloutWithHttpRoutes("stable", "canary", "vsvc", []string{"primary"})
+	obj := unstructuredutil.StrToUnstructuredUnsafe(regularVsvc)
+	client := testutil.NewFakeDynamicClient(obj)
+	vsvcLister, druleLister := getIstioListers(client)
+	r := NewReconciler(ro, client, record.NewFakeEventRecorder(), vsvcLister, druleLister)
+	client.ClearActions()
 
 	// Test for both the HTTP VS & Mixed VS
 	vsObj := unstructuredutil.StrToUnstructuredUnsafe(regularVsvc)
-	setMirror := &v1alpha1.SetMirrorRoute{
+	setMirror1 := &v1alpha1.SetMirrorRoute{
 		Name: "test-mirror-1",
 		Match: []v1alpha1.RouteMatch{{
 			Method: &v1alpha1.StringMatch{
@@ -1736,9 +1739,23 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 			},
 		}},
 	}
+	setMirror2 := &v1alpha1.SetMirrorRoute{
+		Name: "test-mirror-2",
+		Match: []v1alpha1.RouteMatch{{
+			Method: &v1alpha1.StringMatch{
+				Exact: "GET",
+			},
+		}},
+	}
+	r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes = append(r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes, []v1alpha1.MangedRoutes{{
+		Name: "test-mirror-1",
+	}, {
+		Name: "test-mirror-2",
+	},
+	}...)
 
 	rolloutVirtualSvc := r.getVirtualServices()
-	err := r.reconcileVirtualServiceMirror(rolloutVirtualSvc[0], vsObj, setMirror)
+	err := r.reconcileVirtualServiceMirror(rolloutVirtualSvc[0], vsObj, setMirror1)
 	assert.Nil(t, err)
 
 	// HTTP Routes
@@ -1769,6 +1786,26 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 	assert.Equal(t, len(httpRoutes), 2)
 	assert.Equal(t, httpRoutes[0].Name, "primary")
 	assert.Equal(t, httpRoutes[1].Name, "secondary")
+
+	//Test adding two routes using fake client then cleaning them up with RemoveManagedRoutes
+	rolloutVirtualSvc = r.getVirtualServices()
+	err = r.SetMirrorRoute(setMirror1)
+	assert.Nil(t, err)
+	err = r.SetMirrorRoute(setMirror2)
+	assert.Nil(t, err)
+
+	iVirtualService, err := client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(r.rollout.Namespace).Get(context.TODO(), "vsvc", metav1.GetOptions{})
+	assert.NoError(t, err)
+
+	httpRoutes = extractHttpRoutes(t, iVirtualService)
+	assert.Equal(t, len(httpRoutes), 4)
+
+	r.RemoveManagedRoutes()
+	iVirtualService, err = client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(r.rollout.Namespace).Get(context.TODO(), "vsvc", metav1.GetOptions{})
+	assert.NoError(t, err)
+
+	httpRoutes = extractHttpRoutes(t, iVirtualService)
+	assert.Equal(t, len(httpRoutes), 2)
 
 }
 
