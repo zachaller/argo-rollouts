@@ -1739,6 +1739,7 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 			},
 		}},
 	}
+	var percentage int32 = 90
 	setMirror2 := &v1alpha1.SetMirrorRoute{
 		Name: "test-mirror-2",
 		Match: []v1alpha1.RouteMatch{{
@@ -1746,6 +1747,7 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 				Exact: "GET",
 			},
 		}},
+		Percentage: &percentage,
 	}
 	r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes = append(r.rollout.Spec.Strategy.Canary.TrafficRouting.ManagedRoutes, []v1alpha1.MangedRoutes{{
 		Name: "test-mirror-1",
@@ -1793,12 +1795,12 @@ func TestHttpReconcileMirrorRoute(t *testing.T) {
 	assert.Nil(t, err)
 	err = r.SetMirrorRoute(setMirror2)
 	assert.Nil(t, err)
-
 	iVirtualService, err := client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(r.rollout.Namespace).Get(context.TODO(), "vsvc", metav1.GetOptions{})
 	assert.NoError(t, err)
 
 	httpRoutes = extractHttpRoutes(t, iVirtualService)
 	assert.Equal(t, len(httpRoutes), 4)
+	assert.Equal(t, httpRoutes[1].MirrorPercentage.Value, float64(90))
 
 	r.RemoveManagedRoutes()
 	iVirtualService, err = client.Resource(istioutil.GetIstioVirtualServiceGVR()).Namespace(r.rollout.Namespace).Get(context.TODO(), "vsvc", metav1.GetOptions{})
