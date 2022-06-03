@@ -1182,6 +1182,9 @@ func createMirrorRoute(virtualService v1alpha1.IstioVirtualService, httpRoutes [
 	return mirrorRouteI, nil
 }
 
+// getVirtualServiceSetWeightRoute This functions goes through the list of Istio Virtual service routes and finds the first
+// match from the trafficRouting.istio.virtualService[s].routes field and returns the []VirtualServiceRouteDestination array
+// from the istio virtual service this can be useful to get the last set destination percentages on the canary route.
 func getVirtualServiceSetWeightRoute(rolloutVsvcRouteNames []string, httpRoutes []VirtualServiceHTTPRoute) ([]VirtualServiceRouteDestination, error) {
 	routeIndexesToPatch, err := getHttpRouteIndexesToPatch(rolloutVsvcRouteNames, httpRoutes)
 	if err != nil {
