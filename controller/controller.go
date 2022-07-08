@@ -142,6 +142,8 @@ type Manager struct {
 	kubeClientSet kubernetes.Interface
 
 	namespace string
+
+	instanceID string
 }
 
 // NewManager returns a new manager to manage all the controllers
@@ -321,6 +323,7 @@ func NewManager(
 		refResolver:                   refResolver,
 		namespace:                     namespace,
 		kubeClientSet:                 kubeclientset,
+		instanceID:                    instanceID,
 	}
 
 	return cm
@@ -366,12 +369,17 @@ func (c *Manager) Run(rolloutThreadiness, serviceThreadiness, ingressThreadiness
 			log.Fatalf("Error LeaderElectionNamespace is empty")
 		}
 
+		leaderName := defaultLeaderElectionLeaseLockName
+		if c.instanceID != "" {
+			leaderName = fmt.Sprintf("%s-%s", leaderName, c.instanceID)
+		}
+
 		// add a uniquifier so that two processes on the same host don't accidentally both become active
 		id = id + "_" + string(uuid.NewUUID())
 		log.Infof("Leaderelection get id %s", id)
 		go leaderelection.RunOrDie(ctx, leaderelection.LeaderElectionConfig{
 			Lock: &resourcelock.LeaseLock{
-				LeaseMeta: metav1.ObjectMeta{Name: defaultLeaderElectionLeaseLockName, Namespace: electOpts.LeaderElectionNamespace}, Client: c.kubeClientSet.CoordinationV1(),
+				LeaseMeta: metav1.ObjectMeta{Name: leaderName, Namespace: electOpts.LeaderElectionNamespace}, Client: c.kubeClientSet.CoordinationV1(),
 				LockConfig: resourcelock.ResourceLockConfig{Identity: id},
 			},
 			ReleaseOnCancel: true,
