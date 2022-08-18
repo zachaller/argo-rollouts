@@ -257,9 +257,9 @@ func RolloutProgressing(rollout *v1alpha1.Rollout, newStatus *v1alpha1.RolloutSt
 		strategySpecificProgress
 }
 
-// RolloutComplete considers a rollout to be complete once all of its desired replicas
+// RolloutHealthy considers a rollout to be complete once all of its desired replicas
 // are updated, available, and receiving traffic from the active service, and no old pods are running.
-func RolloutComplete(rollout *v1alpha1.Rollout, newStatus *v1alpha1.RolloutStatus) bool {
+func RolloutHealthy(rollout *v1alpha1.Rollout, newStatus *v1alpha1.RolloutStatus) bool {
 	completedStrategy := true
 	replicas := defaults.GetReplicasOrDefault(rollout.Spec.Replicas)
 
@@ -286,6 +286,13 @@ func RolloutComplete(rollout *v1alpha1.Rollout, newStatus *v1alpha1.RolloutStatu
 		newStatus.AvailableReplicas == replicas &&
 		rollout.Status.ObservedGeneration == strconv.Itoa(int(rollout.Generation)) &&
 		completedStrategy
+}
+
+// RolloutComplete considers a rollout to be complete once the StableRS is equal to the
+// current pod hash.
+func RolloutComplete(rollout *v1alpha1.Rollout, newStatus *v1alpha1.RolloutStatus) bool {
+	//return RolloutHealthy(rollout, newStatus)
+	return newStatus.StableRS == newStatus.CurrentPodHash
 }
 
 // ComputeStepHash returns a hash value calculated from the Rollout's steps. The hash will

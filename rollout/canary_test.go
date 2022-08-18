@@ -379,7 +379,7 @@ func TestCanaryRolloutUpdateStatusWhenAtEndOfSteps(t *testing.T) {
 		}
 	}`
 
-	expectedPatch := fmt.Sprintf(expectedPatchWithoutStableRS, expectedStableRS, generateConditionsPatch(true, conditions.ReplicaSetUpdatedReason, rs2, false, ""))
+	expectedPatch := fmt.Sprintf(expectedPatchWithoutStableRS, expectedStableRS, generateConditionsPatchWithComplete(true, conditions.NewRSAvailableReason, rs2, false, "", true))
 	assert.Equal(t, calculatePatch(r2, expectedPatch), patch)
 }
 
@@ -502,7 +502,7 @@ func TestCanaryRolloutCreateFirstReplicasetNoSteps(t *testing.T) {
 		}
 	}`
 
-	newConditions := generateConditionsPatch(false, conditions.ReplicaSetUpdatedReason, rs, false, "")
+	newConditions := generateConditionsPatchWithComplete(false, conditions.NewRSAvailableReason, rs, false, "", true)
 
 	assert.Equal(t, calculatePatch(r, fmt.Sprintf(expectedPatch, newConditions)), patch)
 }
@@ -542,7 +542,7 @@ func TestCanaryRolloutCreateFirstReplicasetWithSteps(t *testing.T) {
 			"conditions": %s
 		}
 	}`
-	expectedPatch := fmt.Sprintf(expectedPatchWithSub, generateConditionsPatch(false, conditions.ReplicaSetUpdatedReason, rs, false, ""))
+	expectedPatch := fmt.Sprintf(expectedPatchWithSub, generateConditionsPatchWithComplete(false, conditions.NewRSAvailableReason, rs, false, "", true))
 
 	assert.Equal(t, calculatePatch(r, expectedPatch), patch)
 }
@@ -840,7 +840,7 @@ func TestRollBackToStable(t *testing.T) {
 			"conditions": %s
 		}
 	}`
-	newConditions := generateConditionsPatch(true, conditions.ReplicaSetUpdatedReason, rs1, false, "")
+	newConditions := generateConditionsPatchWithComplete(true, conditions.NewRSAvailableReason, rs1, false, "", true)
 	expectedPatch := fmt.Sprintf(expectedPatchWithoutSub, hash.ComputePodTemplateHash(&r2.Spec.Template, r2.Status.CollisionCount), newConditions)
 	patch := f.getPatchedRollout(patchIndex)
 	assert.Equal(t, calculatePatch(r2, expectedPatch), patch)
@@ -931,7 +931,7 @@ func TestRollBackToStableAndStepChange(t *testing.T) {
 	}`
 	newPodHash := hash.ComputePodTemplateHash(&r2.Spec.Template, r2.Status.CollisionCount)
 	newStepHash := conditions.ComputeStepHash(r2)
-	newConditions := generateConditionsPatch(true, conditions.ReplicaSetUpdatedReason, rs1, false, "")
+	newConditions := generateConditionsPatchWithComplete(true, conditions.NewRSAvailableReason, rs1, false, "", true)
 	expectedPatch := fmt.Sprintf(expectedPatchWithoutSub, newPodHash, newStepHash, newConditions)
 	patch := f.getPatchedRollout(patchIndex)
 	assert.Equal(t, calculatePatch(r2, expectedPatch), patch)
@@ -1710,7 +1710,7 @@ func TestHandleCanaryAbort(t *testing.T) {
 			}
 		}`
 		errmsg := fmt.Sprintf(conditions.RolloutAbortedMessage, 1)
-		newConditions := generateConditionsPatch(true, conditions.RolloutAbortedReason, r1, false, "")
+		newConditions := generateConditionsPatchWithComplete(true, conditions.RolloutAbortedReason, r1, false, "", true)
 		assert.Equal(t, calculatePatch(r1, fmt.Sprintf(expectedPatch, newConditions, conditions.RolloutAbortedReason, errmsg)), patch)
 	})
 }
