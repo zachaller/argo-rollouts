@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://argoproj.github.io/argo-rollouts/features/traffic-management/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.3.3">
+      <meta name="generator" content="mkdocs-1.4.0, mkdocs-material-8.5.6">
     
     
       
@@ -19,13 +19,14 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.4a0965b7.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.20d9efc8.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
         
       
       
+
     
     
     
@@ -40,10 +41,23 @@
     
       <link rel="stylesheet" href="../../assets/versions.css">
     
-    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
+  
 
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-5Z1VTPDL73"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-5Z1VTPDL73",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-5Z1VTPDL73",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
     
     
   </head>
@@ -145,7 +159,7 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
@@ -169,7 +183,7 @@
         <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -213,7 +227,7 @@
       <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -735,9 +749,69 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#traffic-routing-with-managed-routes-and-route-precedence" class="md-nav__link">
+    Traffic routing with managed routes and route precedence
+  </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing with managed routes and route precedence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-all-routes-listed-in-managed-routes-will-be-removed-at-the-end-of-a-rollout-or-on-an-abort-do-not-put-any-manually-created-routes-in-the-list" class="md-nav__link">
+    WARNING: All routes listed in managed routes will be removed at the end of a rollout or on an abort. Do not put any manually created routes in the list.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#traffic-routing-based-on-a-header-values-for-canary" class="md-nav__link">
     Traffic routing based on a header values for Canary
   </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing based on a header values for Canary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio_1" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#traffic-routing-mirroring-traffic-to-canary" class="md-nav__link">
+    Traffic routing mirroring traffic to canary
+  </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing mirroring traffic to canary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio_2" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -988,6 +1062,34 @@
     <li class="md-nav__item">
       <a href="../../analysis/cloudwatch/" class="md-nav__link">
         CloudWatch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/graphite/" class="md-nav__link">
+        Graphite
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/influxdb/" class="md-nav__link">
+        InfluxDB
       </a>
     </li>
   
@@ -2086,9 +2188,69 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#traffic-routing-with-managed-routes-and-route-precedence" class="md-nav__link">
+    Traffic routing with managed routes and route precedence
+  </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing with managed routes and route precedence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-all-routes-listed-in-managed-routes-will-be-removed-at-the-end-of-a-rollout-or-on-an-abort-do-not-put-any-manually-created-routes-in-the-list" class="md-nav__link">
+    WARNING: All routes listed in managed routes will be removed at the end of a rollout or on an abort. Do not put any manually created routes in the list.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#traffic-routing-based-on-a-header-values-for-canary" class="md-nav__link">
     Traffic routing based on a header values for Canary
   </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing based on a header values for Canary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio_1" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#traffic-routing-mirroring-traffic-to-canary" class="md-nav__link">
+    Traffic routing mirroring traffic to canary
+  </a>
+  
+    <nav class="md-nav" aria-label="Traffic routing mirroring traffic to canary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#traffic-router-support-istio_2" class="md-nav__link">
+    Traffic router support: (Istio)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2100,14 +2262,16 @@
               </div>
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
+                  
+
   <a href="https://github.com/argoproj/argo-rollouts/edit/master/docs/features/traffic-management/index.md" title="Edit this page" class="md-content__button md-icon">
+    
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
   </a>
-
 
 
 <h1 id="traffic-management">Traffic management<a class="headerlink" href="#traffic-management" title="Permanent link">&para;</a></h1>
@@ -2148,12 +2312,39 @@
 <p>The controller modifies these Services to route traffic to the appropriate canary and stable ReplicaSets as the Rollout progresses. These Services are used by the Service Mesh to define what group of pods should receive the canary and stable traffic.</p>
 <p>Additionally, the Argo Rollouts controller needs to treat the Rollout object differently when using traffic management. In particular, the Stable ReplicaSet owned by the Rollout remains fully scaled up as the Rollout progresses through the Canary steps.</p>
 <p>Since the traffic is controlled independently by the Service Mesh resources, the controller needs to make a best effort to ensure that the Stable and New ReplicaSets are not overwhelmed by the traffic sent to them. By leaving the Stable ReplicaSet scaled up, the controller is ensuring that the Stable ReplicaSet can handle 100% of the traffic at any time<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. The New ReplicaSet follows the same behavior as without traffic management. The new ReplicaSet's replica count is equal to the latest SetWeight step percentage multiple by the total replica count of the Rollout. This calculation ensures that the canary version does not receive more traffic than it can handle.</p>
+<h2 id="traffic-routing-with-managed-routes-and-route-precedence">Traffic routing with managed routes and route precedence<a class="headerlink" href="#traffic-routing-with-managed-routes-and-route-precedence" title="Permanent link">&para;</a></h2>
+<h5 id="traffic-router-support-istio">Traffic router support: (Istio)<a class="headerlink" href="#traffic-router-support-istio" title="Permanent link">&para;</a></h5>
+<p>When traffic routing is enabled, you have the ability to also let argo rollouts add and manage other routes besides just
+controlling the traffic weight to the canary. Two such routing rules are header and mirror based routes. When using these
+routes we also have to set a route precedence with the upstream traffic router. We do this using the <code>spec.strategy.canary.trafficRouting.managedRoutes</code>
+field which is an array the order of the items in the array determine the precedence. This set of routes will also be placed
+in the order specified on top of any other routes defined manually. </p>
+<h4 id="warning-all-routes-listed-in-managed-routes-will-be-removed-at-the-end-of-a-rollout-or-on-an-abort-do-not-put-any-manually-created-routes-in-the-list">WARNING: All routes listed in managed routes will be removed at the end of a rollout or on an abort. Do not put any manually created routes in the list.<a class="headerlink" href="#warning-all-routes-listed-in-managed-routes-will-be-removed-at-the-end-of-a-rollout-or-on-an-abort-do-not-put-any-manually-created-routes-in-the-list" title="Permanent link">&para;</a></h4>
+<p>Here is an example:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span><span class="w"></span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Rollout</span><span class="w"></span>
+<span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">strategy</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">canary</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">trafficRouting</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">managedRoutes</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">priority-route-1</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">priority-route-2</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">priority-route-3</span><span class="w"></span>
+</code></pre></div>
 <h2 id="traffic-routing-based-on-a-header-values-for-canary">Traffic routing based on a header values for Canary<a class="headerlink" href="#traffic-routing-based-on-a-header-values-for-canary" title="Permanent link">&para;</a></h2>
-<p>Argo Rollouts has ability to send all traffic to the canary-service based on a http request header value. Right now it's implemented for the Istio only.
-The step for the header based traffic routing <code>setHeaderRouting</code> has a list of matchers for the header. 
-Should be specified the <code>headerName</code> - name of the header and a value. 
-The value could be one of 3 <code>exact</code> - specify the exact header value, <code>regex</code> - value in a regex format, <code>prefix</code> - the prefix of the value could be provided.</p>
-<p>To disable header based traffic routing just need to specify empty <code>setHeaderRouting</code>.</p>
+<h5 id="traffic-router-support-istio_1">Traffic router support: (Istio)<a class="headerlink" href="#traffic-router-support-istio_1" title="Permanent link">&para;</a></h5>
+<p>Argo Rollouts has ability to send all traffic to the canary-service based on a http request header value.
+The step for the header based traffic routing is <code>setHeaderRoute</code> and has a list of matchers for the header. </p>
+<p><code>name</code> - name of the header route.</p>
+<p><code>match</code> - header matching rules is an array of <code>headerName, headerValue</code> pairs.</p>
+<p><code>headerName</code> - name of the header to match.</p>
+<p><code>headerValue</code>-  contains exactly one of <code>exact</code> - specify the exact header value, 
+<code>regex</code> - value in a regex format, <code>prefix</code> - the prefix of the value could be provided. Not all traffic routers will support
+all match types.</p>
+<p>To disable header based traffic routing just need to specify empty <code>setHeaderRoute</code> with only the name of the route.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span><span class="w"></span>
 <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Rollout</span><span class="w"></span>
@@ -2164,12 +2355,15 @@ The value could be one of 3 <code>exact</code> - specify the exact header value,
 <span class="w">      </span><span class="nt">canaryService</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canary-service</span><span class="w"></span>
 <span class="w">      </span><span class="nt">stableService</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stable-service</span><span class="w"></span>
 <span class="w">      </span><span class="nt">trafficRouting</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">managedRoutes</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">set-header-1</span><span class="w"></span>
 <span class="w">        </span><span class="nt">istio</span><span class="p">:</span><span class="w"></span>
 <span class="w">          </span><span class="nt">virtualService</span><span class="p">:</span><span class="w"></span>
 <span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rollouts-demo-vsvc</span><span class="w"></span>
 <span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setWeight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setHeaderRouting</span><span class="p">:</span><span class="w"> </span><span class="c1"># enable header based traffic routing where</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setHeaderRoute</span><span class="p">:</span><span class="w"> </span><span class="c1"># enable header based traffic routing where</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;set-header-1&quot;</span><span class="w"></span>
 <span class="w">          </span><span class="nt">match</span><span class="p">:</span><span class="w"></span>
 <span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">headerName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Custom-Header1</span><span class="w"> </span><span class="c1"># Custom-Header1=Mozilla</span><span class="w"></span>
 <span class="w">            </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"></span>
@@ -2181,8 +2375,51 @@ The value could be one of 3 <code>exact</code> - specify the exact header value,
 <span class="w">            </span><span class="nt">headerValue</span><span class="p">:</span><span class="w"></span>
 <span class="w">              </span><span class="nt">regex</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Mozilla(.*)</span><span class="w"></span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pause</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w"></span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setHeaderRouting</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w"> </span><span class="c1"># disable header based traffic routing</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setHeaderRoute</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;set-header-1&quot;</span><span class="w"> </span><span class="c1"># disable header based traffic routing</span><span class="w"></span>
 </code></pre></div>
+<h2 id="traffic-routing-mirroring-traffic-to-canary">Traffic routing mirroring traffic to canary<a class="headerlink" href="#traffic-routing-mirroring-traffic-to-canary" title="Permanent link">&para;</a></h2>
+<h5 id="traffic-router-support-istio_2">Traffic router support: (Istio)<a class="headerlink" href="#traffic-router-support-istio_2" title="Permanent link">&para;</a></h5>
+<p>Argo Rollouts has ability to mirror traffic to the canary-service based on a various matching rules.
+The step for the mirror based traffic routing is <code>setMirrorRoute</code> and has a list of matchers for the header.</p>
+<p><code>name</code> - name of the mirror route.</p>
+<p><code>percentage</code> - what percentage of the matched traffic to mirror</p>
+<p><code>match</code> - The matching rules for the header route, if this is missing it acts as a removal of the route.
+All conditions inside a single match block have AND semantics, while the list of match blocks have OR semantics.
+Each type within a match (method, path, headers) must have one and only one match type (exact, regex, prefix)
+Not all match types (exact, regex, prefix) will be supported by all traffic routers.</p>
+<p>To disable mirror based traffic route you just need to specify a <code>setMirrorRoute</code> with only the name of the route.</p>
+<p>This example will mirror 35% of HTTP traffic that matches a <code>GET</code> requests and with the url prefix of <code>/</code>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span><span class="w"></span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Rollout</span><span class="w"></span>
+<span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">strategy</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">canary</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">canaryService</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">canary-service</span><span class="w"></span>
+<span class="w">      </span><span class="nt">stableService</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stable-service</span><span class="w"></span>
+<span class="w">      </span><span class="nt">trafficRouting</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">managedRoutes</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mirror-route</span><span class="w"></span>
+<span class="w">        </span><span class="nt">istio</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">virtualService</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rollouts-demo-vsvc</span><span class="w"></span>
+<span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setCanaryScale</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setMirrorRoute</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mirror-route</span><span class="w"></span>
+<span class="w">          </span><span class="nt">percentage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">35</span><span class="w"></span>
+<span class="w">          </span><span class="nt">match</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">method</span><span class="p">:</span><span class="w"></span>
+<span class="w">                </span><span class="nt">exact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GET</span><span class="w"></span>
+<span class="w">              </span><span class="nt">path</span><span class="p">:</span><span class="w"></span>
+<span class="w">                </span><span class="nt">prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pause</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10m</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">setMirrorRoute</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;mirror-route&quot;</span><span class="w"> </span><span class="c1"># removes mirror based traffic route</span><span class="w"></span>
+</code></pre></div></p>
 <div class="footnote">
 <hr />
 <ol>
@@ -2192,10 +2429,17 @@ The value could be one of 3 <code>exact</code> - specify the exact header value,
 </ol>
 </div>
 
-              
-            </article>
-            
-          </div>
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
         </div>
         
       </main>
@@ -2258,10 +2502,11 @@ The value could be one of 3 <code>exact</code> - specify the exact header value,
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b028fd86.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.5bf1dace.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.f758a944.min.js"></script>
+      <script src="../../assets/javascripts/bundle.078830c0.min.js"></script>
       
         <script src="../../assets/versions.js"></script>
       
