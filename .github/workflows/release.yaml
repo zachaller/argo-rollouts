@@ -67,20 +67,20 @@ jobs:
       #     username: ${{ github.repository_owner }}
       #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Quay.io
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v2
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+#      - name: Login to Quay.io
+#        if: github.event_name != 'pull_request'
+#        uses: docker/login-action@v2
+#        with:
+#          registry: quay.io
+#          username: ${{ secrets.QUAY_USERNAME }}
+#          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Build and push (controller-image)
         uses: docker/build-push-action@v3
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           tags: ${{ steps.controller-meta.outputs.tags }}
 
       - name: Build and push (plugin-image)
@@ -89,7 +89,7 @@ jobs:
           context: .
           target: kubectl-argo-rollouts
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           tags: ${{ steps.plugin-meta.outputs.tags }}
 
 
