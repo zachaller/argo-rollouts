@@ -1,8 +1,8 @@
-
 # Argo Rollouts - Progressive Delivery for Kubernetes
 [![codecov](https://codecov.io/gh/argoproj/argo-rollouts/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj/argo-rollouts)
 [![slack](https://img.shields.io/badge/slack-argoproj-brightgreen.svg?logo=slack)](https://argoproj.github.io/community/join-slack)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3834/badge)](https://bestpractices.coreinfrastructure.org/projects/3834)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fzachaller%2Fargo-rollouts.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fzachaller%2Fargo-rollouts?ref=badge_shield)
 
 ## What is Argo Rollouts?
 Argo Rollouts is a Kubernetes controller and set of CRDs which provide advanced deployment capabilities such as blue-green, canary, canary analysis, experimentation, and progressive delivery features to Kubernetes. 
@@ -74,3 +74,7 @@ You can reach the Argo Rollouts community and developers via the following chann
 * [How Scalable is Argo-Rollouts: A Cloud Operator’s Perspective](https://www.youtube.com/watch?v=rCEhxJ2NSTI)
 
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fzachaller%2Fargo-rollouts.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fzachaller%2Fargo-rollouts?ref=badge_large)
