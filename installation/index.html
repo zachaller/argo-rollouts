@@ -8,10 +8,16 @@
       
       
       
-        <link rel="canonical" href="https://argoproj.github.io/argo-rollouts/installation/">
+        <link rel="canonical" href="https://argo-rollouts.readthedocs.io/installation/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../concepts/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.9">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
@@ -19,11 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.20d9efc8.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ded33207.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.08040f6c.min.css">
-        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -70,7 +75,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="">
   
     
     
@@ -94,7 +99,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="Argo Rollouts - Kubernetes Progressive Delivery Controller" class="md-header__button md-logo" aria-label="Argo Rollouts - Kubernetes Progressive Delivery Controller" data-md-component="logo">
       
@@ -124,9 +131,7 @@
       <form class="md-header__option" data-md-component="palette">
         
           
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
           
             <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
@@ -134,9 +139,7 @@
           
         
           
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
           
             <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
@@ -173,7 +176,7 @@
           <div class="md-search-result__meta">
             Initializing search
           </div>
-          <ol class="md-search-result__list"></ol>
+          <ol class="md-search-result__list" role="presentation"></ol>
         </div>
       </div>
     </div>
@@ -185,7 +188,7 @@
         <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -229,7 +232,7 @@
       <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -265,7 +268,7 @@
   
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
         
@@ -343,6 +346,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#supported-versions" class="md-nav__link">
+    Supported versions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrading-argo-rollouts" class="md-nav__link">
+    Upgrading Argo Rollouts
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -392,17 +409,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_5">
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
           Getting Started
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           Getting Started
@@ -457,6 +475,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../getting-started/appmesh/" class="md-nav__link">
+        AWS App Mesh
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../getting-started/istio/" class="md-nav__link">
         Istio
       </a>
@@ -487,6 +519,20 @@
     <li class="md-nav__item">
       <a href="../getting-started/smi/" class="md-nav__link">
         SMI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/mixed/" class="md-nav__link">
+        Multiple Providers
       </a>
     </li>
   
@@ -525,17 +571,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_7">
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
           Rollout
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Rollout" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_7">
           <span class="md-nav__icon md-icon"></span>
           Rollout
@@ -551,17 +598,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_1" type="checkbox" id="__nav_7_1" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_7_1">
+        <label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
           Deployment Strategies
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Deployment Strategies" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_7_1">
           <span class="md-nav__icon md-icon"></span>
           Deployment Strategies
@@ -693,6 +741,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../features/rollback/" class="md-nav__link">
+        Rollback Window
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../features/anti-affinity/anti-affinity/" class="md-nav__link">
         Anti Affinity
       </a>
@@ -760,17 +822,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_8">
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
           Traffic Management
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Traffic Management" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_8">
           <span class="md-nav__icon md-icon"></span>
           Traffic Management
@@ -799,6 +862,20 @@
     <li class="md-nav__item">
       <a href="../features/traffic-management/ambassador/" class="md-nav__link">
         Ambassador
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/traffic-management/apisix/" class="md-nav__link">
+        APISIX
       </a>
     </li>
   
@@ -853,6 +930,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../traffic-management/plugins.md" class="md-nav__link">
+        Plugins
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../features/traffic-management/smi/" class="md-nav__link">
         SMI
       </a>
@@ -892,17 +983,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_9">
+        <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
           Analysis
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Analysis" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
           Analysis
@@ -917,6 +1009,20 @@
     <li class="md-nav__item">
       <a href="../features/analysis/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/plugins/" class="md-nav__link">
+        Plugins
       </a>
     </li>
   
@@ -1063,6 +1169,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../analysis/skywalking/" class="md-nav__link">
+        Apache SkyWalking
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1095,17 +1215,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_11">
+        <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
           Notifications
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Notifications" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_11">
           <span class="md-nav__icon md-icon"></span>
           Notifications
@@ -1135,17 +1256,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11_2" type="checkbox" id="__nav_11_2" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11_2" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_11_2">
+        <label class="md-nav__link" for="__nav_11_2" id="__nav_11_2_label" tabindex="0">
           Services
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Services" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_11_2">
           <span class="md-nav__icon md-icon"></span>
           Services
@@ -1242,6 +1364,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../generated/notification-services/newrelic/" class="md-nav__link">
+        NewRelic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../generated/notification-services/opsgenie/" class="md-nav__link">
         Opsgenie
       </a>
@@ -1258,6 +1394,20 @@
     <li class="md-nav__item">
       <a href="../generated/notification-services/overview/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generated/notification-services/pagerduty/" class="md-nav__link">
+        Pagerduty
       </a>
     </li>
   
@@ -1340,6 +1490,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../generated/notification-services/webex/" class="md-nav__link">
+        Webex Teams
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../generated/notification-services/webhook/" class="md-nav__link">
         Webhook
       </a>
@@ -1372,17 +1536,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12" type="checkbox" id="__nav_12" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_12">
+        <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
           Kubectl Plugin
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Kubectl Plugin" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_12">
           <span class="md-nav__icon md-icon"></span>
           Kubectl Plugin
@@ -1412,17 +1577,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12_2" type="checkbox" id="__nav_12_2" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_2" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_12_2">
+        <label class="md-nav__link" for="__nav_12_2" id="__nav_12_2_label" tabindex="0">
           Commands
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Commands" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_12_2">
           <span class="md-nav__icon md-icon"></span>
           Commands
@@ -1987,7 +2153,7 @@
   
     <li class="md-nav__item">
       <a href="../roadmap/" class="md-nav__link">
-        Roadmap
+        Roadmap/Release Schedule
       </a>
     </li>
   
@@ -2004,17 +2170,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_18" type="checkbox" id="__nav_18" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_18">
+        <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="0">
           Contributing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Contributing" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_18">
           <span class="md-nav__icon md-icon"></span>
           Contributing
@@ -2057,6 +2224,20 @@
     <li class="md-nav__item">
       <a href="../releasing/" class="md-nav__link">
         Releasing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        Plugins
       </a>
     </li>
   
@@ -2188,6 +2369,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#supported-versions" class="md-nav__link">
+    Supported versions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upgrading-argo-rollouts" class="md-nav__link">
+    Upgrading Argo Rollouts
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2202,21 +2397,23 @@
                 
                   
 
-  <a href="https://github.com/argoproj/argo-rollouts/edit/master/docs/installation.md" title="Edit this page" class="md-content__button md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
-  </a>
+  
+  
 
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <h2 id="controller-installation">Controller Installation<a class="headerlink" href="#controller-installation" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>kubectl create namespace argo-rollouts
-kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
-</code></pre></div>
+<p>Two types of installation:</p>
+<ul>
+<li><a href="https://github.com/argoproj/argo-rollouts/blob/master/manifests/install.yaml">install.yaml</a> - Standard installation method.
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>argo-rollouts
+kubectl<span class="w"> </span>apply<span class="w"> </span>-n<span class="w"> </span>argo-rollouts<span class="w"> </span>-f<span class="w"> </span>https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+</code></pre></div></li>
+</ul>
 <p>This will create a new namespace, <code>argo-rollouts</code>, where Argo Rollouts controller will run.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>If you are using another namspace name, please update <code>install.yaml</code> clusterrolebinding's serviceaccount namespace name.</p>
+<p>If you are using another namespace name, please update <code>install.yaml</code> clusterrolebinding's serviceaccount namespace name.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -2225,22 +2422,34 @@ kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/rele
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>On GKE, you will need grant your account the ability to create new cluster roles:</p>
-<div class="highlight"><pre><span></span><code>kubectl create clusterrolebinding YOURNAME-cluster-admin-binding --clusterrole<span class="o">=</span>cluster-admin --user<span class="o">=</span>YOUREMAIL@gmail.com
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>create<span class="w"> </span>clusterrolebinding<span class="w"> </span>YOURNAME-cluster-admin-binding<span class="w"> </span>--clusterrole<span class="o">=</span>cluster-admin<span class="w"> </span>--user<span class="o">=</span>YOUREMAIL@gmail.com
 </code></pre></div>
 </div>
+<ul>
+<li><a href="https://github.com/argoproj/argo-rollouts/blob/master/manifests/namespace-install.yaml">namespace-install.yaml</a> - Installation of Argo Rollouts which requires
+only namespace level privileges. An example usage of this installation method would be to run several Argo Rollouts controller instances in different namespaces
+on the same cluster.</li>
+</ul>
+<blockquote>
+<p>Note: Argo Rollouts CRDs are not included into <a href="https://github.com/argoproj/argo-rollouts/blob/master/manifests/namespace-install.yaml">namespace-install.yaml</a>.
+and have to be installed separately. The CRD manifests are located in <a href="https://github.com/argoproj/argo-rollouts/blob/master/manifests/crds">manifests/crds</a> directory.
+Use the following command to install them:
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>https://github.com/argoproj/argo-rollouts/manifests/crds<span class="se">\?</span>ref<span class="se">\=</span>stable
+</code></pre></div></p>
+</blockquote>
 <p>You can find released container images of the controller at <a href="https://quay.io/repository/argoproj/argo-rollouts?tab=tags">Quay.io</a>. There are also old releases
 at Dockerhub, but since the introduction of rate limiting, the Argo project has moved to Quay.</p>
 <h2 id="kubectl-plugin-installation">Kubectl Plugin Installation<a class="headerlink" href="#kubectl-plugin-installation" title="Permanent link">&para;</a></h2>
-<p>The kubectl plugin is optional, but is convenient for managing and visualizing rollouts from the 
+<p>The kubectl plugin is optional, but is convenient for managing and visualizing rollouts from the
 command line.</p>
 <h3 id="brew">Brew<a class="headerlink" href="#brew" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>brew install argoproj/tap/kubectl-argo-rollouts
+<div class="highlight"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>argoproj/tap/kubectl-argo-rollouts
 </code></pre></div>
 <h3 id="manual">Manual<a class="headerlink" href="#manual" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
 <p>Install <a href="https://github.com/argoproj/argo-rollouts/releases">Argo Rollouts Kubectl plugin</a> with curl.
-    <div class="highlight"><pre><span></span><code>curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-darwin-amd64
+    <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-LO<span class="w"> </span>https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-darwin-amd64
 </code></pre></div></p>
 <div class="admonition tip">
 <p>For Linux dist, replace <code>darwin</code> with <code>linux</code></p>
@@ -2248,17 +2457,17 @@ command line.</p>
 </li>
 <li>
 <p>Make the kubectl-argo-rollouts binary executable.</p>
-<div class="highlight"><pre><span></span><code>chmod +x ./kubectl-argo-rollouts-darwin-amd64
+<div class="highlight"><pre><span></span><code>chmod<span class="w"> </span>+x<span class="w"> </span>./kubectl-argo-rollouts-darwin-amd64
 </code></pre></div>
 </li>
 <li>
 <p>Move the binary into your PATH.</p>
-<div class="highlight"><pre><span></span><code>sudo mv ./kubectl-argo-rollouts-darwin-amd64 /usr/local/bin/kubectl-argo-rollouts
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>mv<span class="w"> </span>./kubectl-argo-rollouts-darwin-amd64<span class="w"> </span>/usr/local/bin/kubectl-argo-rollouts
 </code></pre></div>
 </li>
 </ol>
 <p>Test to ensure the version you installed is up-to-date:</p>
-<div class="highlight"><pre><span></span><code>kubectl argo rollouts version
+<div class="highlight"><pre><span></span><code>kubectl<span class="w"> </span>argo<span class="w"> </span>rollouts<span class="w"> </span>version
 </code></pre></div>
 <h2 id="shell-auto-completion">Shell auto completion<a class="headerlink" href="#shell-auto-completion" title="Permanent link">&para;</a></h2>
 <p>The CLI can export shell completion code for several shells.</p>
@@ -2268,8 +2477,27 @@ command line.</p>
 <h2 id="using-the-cli-with-docker">Using the CLI  with Docker<a class="headerlink" href="#using-the-cli-with-docker" title="Permanent link">&para;</a></h2>
 <p>The CLI is also available as a container image at <a href="https://quay.io/repository/argoproj/kubectl-argo-rollouts">https://quay.io/repository/argoproj/kubectl-argo-rollouts</a></p>
 <p>You can run it like any other Docker image or use it in any CI platform that supports Docker images.</p>
-<div class="highlight"><pre><span></span><code>docker run quay.io/argoproj/kubectl-argo-rollouts:master version
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>quay.io/argoproj/kubectl-argo-rollouts:master<span class="w"> </span>version
 </code></pre></div>
+<h2 id="supported-versions">Supported versions<a class="headerlink" href="#supported-versions" title="Permanent link">&para;</a></h2>
+<p>At any point in time the officially supported version of Argo Rollouts is the latest released one, on Kubernetes versions N and N-1 (as supported by the Kubernetes project itself).</p>
+<p>For example if the latest minor version of Argo Rollouts is 1.2.1 and supported Kubernetes versions are 1.24, 1.23 and 1.22 then the following combinations are supported:</p>
+<ul>
+<li>Argo Rollouts 1.2.1 on Kubernetes 1.24</li>
+<li>Argo Rollouts 1.2.1 on Kubernetes 1.23</li>
+</ul>
+<h2 id="upgrading-argo-rollouts">Upgrading Argo Rollouts<a class="headerlink" href="#upgrading-argo-rollouts" title="Permanent link">&para;</a></h2>
+<p>Argo Rollouts is a Kubernetes controller that doesn't hold any external state. It is active
+only when deployments are actually happening.</p>
+<p>To upgrade Argo Rollouts:</p>
+<ol>
+<li>Try to find a time period when no deployments are happening</li>
+<li>Delete the previous version of the controller and apply/install the new one</li>
+<li>When a new Rollout takes place the new controller will be activated.</li>
+</ol>
+<p>If deployments are happening while you upgrade the controller, then you shouldn't
+have any downtime. Current Rollouts will be paused and as soon as the new controller becomes
+active it will resume all in-flight deployments.</p>
 
 
   
@@ -2287,42 +2515,6 @@ command line.</p>
       </main>
       
         <footer class="md-footer">
-  
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-        
-        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Overview
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../concepts/" class="md-footer__link md-footer__link--next" aria-label="Next: Concepts" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Concepts
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -2345,10 +2537,10 @@ command line.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d6c3db9e.min.js"></script>
+      <script src="../assets/javascripts/bundle.51198bba.min.js"></script>
       
         <script src="../assets/versions.js"></script>
       

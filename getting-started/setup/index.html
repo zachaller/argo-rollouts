@@ -8,10 +8,16 @@
       
       
       
-        <link rel="canonical" href="https://argoproj.github.io/argo-rollouts/getting-started/setup/">
+        <link rel="canonical" href="https://argo-rollouts.readthedocs.io/getting-started/setup/">
+      
+      
+        <link rel="prev" href="../../CONTRIBUTING/">
+      
+      
+        <link rel="next" href="../../releasing/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.9">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
@@ -19,11 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.20d9efc8.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.08040f6c.min.css">
-        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -70,7 +75,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="">
   
     
     
@@ -94,7 +99,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Argo Rollouts - Kubernetes Progressive Delivery Controller" class="md-header__button md-logo" aria-label="Argo Rollouts - Kubernetes Progressive Delivery Controller" data-md-component="logo">
       
@@ -124,9 +131,7 @@
       <form class="md-header__option" data-md-component="palette">
         
           
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent=""  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
           
             <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6zm0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4zM7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
@@ -134,9 +139,7 @@
           
         
           
-          
-          
-          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent=""  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
           
             <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3Z"/></svg>
@@ -173,7 +176,7 @@
           <div class="md-search-result__meta">
             Initializing search
           </div>
-          <ol class="md-search-result__list"></ol>
+          <ol class="md-search-result__list" role="presentation"></ol>
         </div>
       </div>
     </div>
@@ -185,7 +188,7 @@
         <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -229,7 +232,7 @@
       <a href="https://github.com/argoproj/argo-rollouts" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -310,17 +313,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_5">
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
           Getting Started
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           Getting Started
@@ -375,6 +379,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../appmesh/" class="md-nav__link">
+        AWS App Mesh
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../istio/" class="md-nav__link">
         Istio
       </a>
@@ -405,6 +423,20 @@
     <li class="md-nav__item">
       <a href="../smi/" class="md-nav__link">
         SMI
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed/" class="md-nav__link">
+        Multiple Providers
       </a>
     </li>
   
@@ -443,17 +475,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_7">
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
           Rollout
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Rollout" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_7">
           <span class="md-nav__icon md-icon"></span>
           Rollout
@@ -469,17 +502,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_7_1" type="checkbox" id="__nav_7_1" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_1" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_7_1">
+        <label class="md-nav__link" for="__nav_7_1" id="__nav_7_1_label" tabindex="0">
           Deployment Strategies
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Deployment Strategies" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_7_1">
           <span class="md-nav__icon md-icon"></span>
           Deployment Strategies
@@ -611,6 +645,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../features/rollback/" class="md-nav__link">
+        Rollback Window
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../features/anti-affinity/anti-affinity/" class="md-nav__link">
         Anti Affinity
       </a>
@@ -678,17 +726,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_8">
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
           Traffic Management
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Traffic Management" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_8">
           <span class="md-nav__icon md-icon"></span>
           Traffic Management
@@ -717,6 +766,20 @@
     <li class="md-nav__item">
       <a href="../../features/traffic-management/ambassador/" class="md-nav__link">
         Ambassador
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/traffic-management/apisix/" class="md-nav__link">
+        APISIX
       </a>
     </li>
   
@@ -771,6 +834,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../traffic-management/plugins.md" class="md-nav__link">
+        Plugins
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../features/traffic-management/smi/" class="md-nav__link">
         SMI
       </a>
@@ -810,17 +887,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_9">
+        <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
           Analysis
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Analysis" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
           Analysis
@@ -835,6 +913,20 @@
     <li class="md-nav__item">
       <a href="../../features/analysis/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/plugins/" class="md-nav__link">
+        Plugins
       </a>
     </li>
   
@@ -981,6 +1073,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/skywalking/" class="md-nav__link">
+        Apache SkyWalking
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1013,17 +1119,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_11">
+        <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
           Notifications
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Notifications" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_11">
           <span class="md-nav__icon md-icon"></span>
           Notifications
@@ -1053,17 +1160,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11_2" type="checkbox" id="__nav_11_2" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11_2" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_11_2">
+        <label class="md-nav__link" for="__nav_11_2" id="__nav_11_2_label" tabindex="0">
           Services
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Services" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_11_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_11_2">
           <span class="md-nav__icon md-icon"></span>
           Services
@@ -1160,6 +1268,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../generated/notification-services/newrelic/" class="md-nav__link">
+        NewRelic
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../generated/notification-services/opsgenie/" class="md-nav__link">
         Opsgenie
       </a>
@@ -1176,6 +1298,20 @@
     <li class="md-nav__item">
       <a href="../../generated/notification-services/overview/" class="md-nav__link">
         Overview
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../generated/notification-services/pagerduty/" class="md-nav__link">
+        Pagerduty
       </a>
     </li>
   
@@ -1258,6 +1394,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../../generated/notification-services/webex/" class="md-nav__link">
+        Webex Teams
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../generated/notification-services/webhook/" class="md-nav__link">
         Webhook
       </a>
@@ -1290,17 +1440,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12" type="checkbox" id="__nav_12" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_12">
+        <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
           Kubectl Plugin
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Kubectl Plugin" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_12">
           <span class="md-nav__icon md-icon"></span>
           Kubectl Plugin
@@ -1330,17 +1481,18 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_12_2" type="checkbox" id="__nav_12_2" >
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12_2" >
       
       
       
-      
-        <label class="md-nav__link" for="__nav_12_2">
+        <label class="md-nav__link" for="__nav_12_2" id="__nav_12_2_label" tabindex="0">
           Commands
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Commands" data-md-level="2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_12_2">
           <span class="md-nav__icon md-icon"></span>
           Commands
@@ -1905,7 +2057,7 @@
   
     <li class="md-nav__item">
       <a href="../../roadmap/" class="md-nav__link">
-        Roadmap
+        Roadmap/Release Schedule
       </a>
     </li>
   
@@ -1924,17 +2076,18 @@
     <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_18" type="checkbox" id="__nav_18" checked>
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_18" checked>
       
       
       
-      
-        <label class="md-nav__link" for="__nav_18">
+        <label class="md-nav__link" for="__nav_18" id="__nav_18_label" tabindex="0">
           Contributing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Contributing" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_18_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_18">
           <span class="md-nav__icon md-icon"></span>
           Contributing
@@ -1964,7 +2117,7 @@
   
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
         
@@ -2133,6 +2286,20 @@
     <li class="md-nav__item">
       <a href="../../releasing/" class="md-nav__link">
         Releasing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plugins/" class="md-nav__link">
+        Plugins
       </a>
     </li>
   
@@ -2352,10 +2519,8 @@
                 
                   
 
-  <a href="https://github.com/argoproj/argo-rollouts/edit/master/docs/getting-started/setup/index.md" title="Edit this page" class="md-content__button md-icon">
-    
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
-  </a>
+  
+  
 
 
 <h1 id="environment-set-up">Environment Set Up<a class="headerlink" href="#environment-set-up" title="Permanent link">&para;</a></h1>
@@ -2363,26 +2528,26 @@
 purposes.</p>
 <h2 id="helm">Helm<a class="headerlink" href="#helm" title="Permanent link">&para;</a></h2>
 <p>Some dependencies are installable via the Helm stable repository:</p>
-<div class="highlight"><pre><span></span><code>helm repo add stable https://charts.helm.sh/stable
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>stable<span class="w"> </span>https://charts.helm.sh/stable
+helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>grafana<span class="w"> </span>https://grafana.github.io/helm-charts
+helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>prometheus-community<span class="w"> </span>https://prometheus-community.github.io/helm-charts
+helm<span class="w"> </span>repo<span class="w"> </span>update
 </code></pre></div>
 <h2 id="minikube">Minikube<a class="headerlink" href="#minikube" title="Permanent link">&para;</a></h2>
 <h3 id="nginx-ingress-controller-setup">NGINX Ingress Controller Setup<a class="headerlink" href="#nginx-ingress-controller-setup" title="Permanent link">&para;</a></h3>
 <p>The following instructions describe how to configure NGINX Ingress Controller on minikube. For
 basic ingress support, only the "ingress" addon needs to be enabled:</p>
-<div class="highlight"><pre><span></span><code>minikube addons <span class="nb">enable</span> ingress
+<div class="highlight"><pre><span></span><code>minikube<span class="w"> </span>addons<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>ingress
 </code></pre></div>
 <p>Optionally, Prometheus and Grafana can be installed to utilize progressive delivery functionality:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Install Prometheus</span>
-kubectl create ns monitoring
-helm install prometheus prometheus-community/prometheus -n monitoring -f docs/getting-started/setup/values-prometheus.yaml
+kubectl<span class="w"> </span>create<span class="w"> </span>ns<span class="w"> </span>monitoring
+helm<span class="w"> </span>install<span class="w"> </span>prometheus<span class="w"> </span>prometheus-community/prometheus<span class="w"> </span>-n<span class="w"> </span>monitoring<span class="w"> </span>-f<span class="w"> </span>docs/getting-started/setup/values-prometheus.yaml
 
 <span class="c1"># Patch the ingress-nginx-controller pod so that it has the required</span>
 <span class="c1"># prometheus annotations. This allows the pod to be scraped by the</span>
 <span class="c1"># prometheus server.</span>
-kubectl patch deploy ingress-nginx-controller -n ingress-nginx -p <span class="s2">&quot;</span><span class="k">$(</span>cat docs/getting-started/setup/ingress-nginx-controller-metrics-scrape.yaml<span class="k">)</span><span class="s2">&quot;</span>
+kubectl<span class="w"> </span>patch<span class="w"> </span>deploy<span class="w"> </span>ingress-nginx-controller<span class="w"> </span>-n<span class="w"> </span>ingress-nginx<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>cat<span class="w"> </span>docs/getting-started/setup/ingress-nginx-controller-metrics-scrape.yaml<span class="k">)</span><span class="s2">&quot;</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2390,22 +2555,22 @@ kubectl patch deploy ingress-nginx-controller -n ingress-nginx -p <span class="s
 change the <code>-n</code> parameter value (namespace) to <code>kube-system</code>.</p>
 </div>
 <div class="highlight"><pre><span></span><code><span class="c1"># Install grafana along with nginx ingress dashboards</span>
-helm install grafana grafana/grafana -n monitoring -f docs/getting-started/setup/values-grafana-nginx.yaml
+helm<span class="w"> </span>install<span class="w"> </span>grafana<span class="w"> </span>grafana/grafana<span class="w"> </span>-n<span class="w"> </span>monitoring<span class="w"> </span>-f<span class="w"> </span>docs/getting-started/setup/values-grafana-nginx.yaml
 
 <span class="c1"># Grafana UI can be accessed by running:</span>
-minikube service grafana -n monitoring
+minikube<span class="w"> </span>service<span class="w"> </span>grafana<span class="w"> </span>-n<span class="w"> </span>monitoring
 </code></pre></div>
 <h3 id="istio-setup">Istio Setup<a class="headerlink" href="#istio-setup" title="Permanent link">&para;</a></h3>
 <p>The following instructions describe how to configure Istio on minikube.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Istio on Minikube requires additional memory and CPU</span>
-minikube start --memory<span class="o">=</span>8192mb --cpus<span class="o">=</span><span class="m">4</span>
+minikube<span class="w"> </span>start<span class="w"> </span>--memory<span class="o">=</span>8192mb<span class="w"> </span>--cpus<span class="o">=</span><span class="m">4</span>
 
 <span class="c1"># Install istio</span>
-minikube addons <span class="nb">enable</span> istio-provisioner
-minikube addons <span class="nb">enable</span> istio
+minikube<span class="w"> </span>addons<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>istio-provisioner
+minikube<span class="w"> </span>addons<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>istio
 
 <span class="c1"># Label the default namespace to enable istio sidecar injection for the namespace</span>
-kubectl label namespace default istio-injection<span class="o">=</span>enabled
+kubectl<span class="w"> </span>label<span class="w"> </span>namespace<span class="w"> </span>default<span class="w"> </span>istio-injection<span class="o">=</span>enabled
 </code></pre></div>
 <p>Istio already comes with a Prometheus database ready to use. To visualize metrics about istio
 services, Grafana and Istio dashboards can be installed via Helm to leverage progressive delivery
@@ -2420,13 +2585,13 @@ minikube service grafana -n istio-system
 gateway, which is simply a normal Kubernetes Deployment and Service. One convenient way to reach
 the gateway using minikube, is using the <code>minikube tunnel</code> command, which assigns Services a 
 LoadBalancer. This command should be run in the background, usually in a separate terminal window:</p>
-<div class="highlight"><pre><span></span><code>minikube tunnel
+<div class="highlight"><pre><span></span><code>minikube<span class="w"> </span>tunnel
 </code></pre></div>
 <p>While running <code>minikube tunnel</code>, the <code>istio-ingressgateway</code> Service will now have an external IP
 which can be retrieved via <code>kubectl</code>:</p>
-<div class="highlight"><pre><span></span><code>$ kubectl get svc -n istio-system istio-ingressgateway
-NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP     PORT<span class="o">(</span>S<span class="o">)</span>                            AGE
-istio-ingressgateway   LoadBalancer   <span class="m">10</span>.100.136.45   <span class="m">10</span>.100.136.45   <span class="m">15020</span>:31711/TCP,80:31298/TCP....   7d22h
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>-n<span class="w"> </span>istio-system<span class="w"> </span>istio-ingressgateway
+NAME<span class="w">                   </span>TYPE<span class="w">           </span>CLUSTER-IP<span class="w">      </span>EXTERNAL-IP<span class="w">     </span>PORT<span class="o">(</span>S<span class="o">)</span><span class="w">                            </span>AGE
+istio-ingressgateway<span class="w">   </span>LoadBalancer<span class="w">   </span><span class="m">10</span>.100.136.45<span class="w">   </span><span class="m">10</span>.100.136.45<span class="w">   </span><span class="m">15020</span>:31711/TCP,80:31298/TCP....<span class="w">   </span>7d22h
 </code></pre></div>
 <p>The LoadBalancer external IP (10.100.136.45 in this example) is now reachable to access services in
 the Istio mesh. Istio routes requests to the correct pod based on the Host HTTP header. Follow the
@@ -2461,9 +2626,9 @@ to IP mapping:</p>
 <p>For traffic which is reaching the cluster network via a normal Kubernetes Ingress, the hostname
 should map to the IP of the ingress. We can retrieve the external IP of the ingress from the
 Ingress object itself, using <code>kubectl</code>:</p>
-<div class="highlight"><pre><span></span><code>$ kubectl get ing rollouts-demo-stable
-NAME                   CLASS    HOSTS                 ADDRESS        PORTS   AGE
-rollouts-demo-stable   &lt;none&gt;   rollouts-demo.local   <span class="m">192</span>.168.64.2   <span class="m">80</span>      80m
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>ing<span class="w"> </span>rollouts-demo-stable
+NAME<span class="w">                   </span>CLASS<span class="w">    </span>HOSTS<span class="w">                 </span>ADDRESS<span class="w">        </span>PORTS<span class="w">   </span>AGE
+rollouts-demo-stable<span class="w">   </span>&lt;none&gt;<span class="w">   </span>rollouts-demo.local<span class="w">   </span><span class="m">192</span>.168.64.2<span class="w">   </span><span class="m">80</span><span class="w">      </span>80m
 </code></pre></div>
 <p>In the example above, the hostname <code>rollouts-demo.local</code> should be configured to resolve to the
 IP <code>192.168.64.2</code>. The next section describes various ways to configure your local system to
@@ -2476,9 +2641,9 @@ which simply is a load balancer sitting at the edge of mesh.</p>
 <code>VirtualService</code> and <code>Gateway</code>. If you are following the
 <a href="../istio/">Istio getting started guide</a>, the examples use the "default" istio 
 ingress gateway, which we can obtain from kubectl:</p>
-<div class="highlight"><pre><span></span><code>$ kubectl get svc -n istio-system istio-ingressgateway
-NAME                   TYPE           CLUSTER-IP      EXTERNAL-IP     PORT<span class="o">(</span>S<span class="o">)</span>                            AGE
-istio-ingressgateway   LoadBalancer   <span class="m">10</span>.100.136.45   <span class="m">10</span>.100.136.45   <span class="m">15020</span>:31711/TCP,80:31298/TCP....   7d22h
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>-n<span class="w"> </span>istio-system<span class="w"> </span>istio-ingressgateway
+NAME<span class="w">                   </span>TYPE<span class="w">           </span>CLUSTER-IP<span class="w">      </span>EXTERNAL-IP<span class="w">     </span>PORT<span class="o">(</span>S<span class="o">)</span><span class="w">                            </span>AGE
+istio-ingressgateway<span class="w">   </span>LoadBalancer<span class="w">   </span><span class="m">10</span>.100.136.45<span class="w">   </span><span class="m">10</span>.100.136.45<span class="w">   </span><span class="m">15020</span>:31711/TCP,80:31298/TCP....<span class="w">   </span>7d22h
 </code></pre></div>
 <p>In the above example, the hostname <code>rollouts-demo.local</code> should be configured to resolve to the
 IP <code>10.100.136.45</code>. The next section describes various ways to configure your local system to
@@ -2500,32 +2665,32 @@ of the ingress. For example, the following is an example of an <code>/etc/hosts<
 <span class="c1"># localhost is used to configure the loopback interface</span>
 <span class="c1"># when the system is booting.  Do not change this entry.</span>
 <span class="c1">##</span>
-<span class="m">127</span>.0.0.1       localhost
-<span class="m">255</span>.255.255.255 broadcasthost
-::1             localhost
+<span class="m">127</span>.0.0.1<span class="w">       </span>localhost
+<span class="m">255</span>.255.255.255<span class="w"> </span>broadcasthost
+::1<span class="w">             </span>localhost
 
-<span class="m">10</span>.100.136.45  rollouts-demo.local
+<span class="m">10</span>.100.136.45<span class="w">  </span>rollouts-demo.local
 </code></pre></div>
 <p>The advantages of using a host entry, are that it works for all clients (CLIs, browsers). On the
 other hand, it is harder to maintain if the IP address changes frequently.</p>
 <h4 id="supply-header-in-curl">Supply Header in Curl<a class="headerlink" href="#supply-header-in-curl" title="Permanent link">&para;</a></h4>
 <p>Clients such as curl, have the ability to explicitly set a header (the <code>-H</code> flag in curl).
 For example:</p>
-<div class="highlight"><pre><span></span><code>$ curl -I -H <span class="s1">&#39;Host: rollouts-demo.local&#39;</span> http://10.100.136.45/color
-HTTP/1.1 <span class="m">200</span> OK
-content-type: text/plain<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
-x-content-type-options: nosniff
-date: Wed, <span class="m">24</span> Jun <span class="m">2020</span> <span class="m">08</span>:44:59 GMT
-content-length: <span class="m">6</span>
-x-envoy-upstream-service-time: <span class="m">1</span>
-server: istio-envoy
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span>-I<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Host: rollouts-demo.local&#39;</span><span class="w"> </span>http://10.100.136.45/color
+HTTP/1.1<span class="w"> </span><span class="m">200</span><span class="w"> </span>OK
+content-type:<span class="w"> </span>text/plain<span class="p">;</span><span class="w"> </span><span class="nv">charset</span><span class="o">=</span>utf-8
+x-content-type-options:<span class="w"> </span>nosniff
+date:<span class="w"> </span>Wed,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2020</span><span class="w"> </span><span class="m">08</span>:44:59<span class="w"> </span>GMT
+content-length:<span class="w"> </span><span class="m">6</span>
+x-envoy-upstream-service-time:<span class="w"> </span><span class="m">1</span>
+server:<span class="w"> </span>istio-envoy
 </code></pre></div>
 <p>Notice that the same request made <em>without</em> the header, fails with a <code>404 Not Found</code> error.</p>
-<div class="highlight"><pre><span></span><code>$ curl -I http://10.100.136.45/color
-HTTP/1.1 <span class="m">404</span> Not Found
-date: Wed, <span class="m">24</span> Jun <span class="m">2020</span> <span class="m">08</span>:46:07 GMT
-server: istio-envoy
-transfer-encoding: chunked
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>curl<span class="w"> </span>-I<span class="w"> </span>http://10.100.136.45/color
+HTTP/1.1<span class="w"> </span><span class="m">404</span><span class="w"> </span>Not<span class="w"> </span>Found
+date:<span class="w"> </span>Wed,<span class="w"> </span><span class="m">24</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">2020</span><span class="w"> </span><span class="m">08</span>:46:07<span class="w"> </span>GMT
+server:<span class="w"> </span>istio-envoy
+transfer-encoding:<span class="w"> </span>chunked
 </code></pre></div>
 <h4 id="browser-extension">Browser Extension<a class="headerlink" href="#browser-extension" title="Permanent link">&para;</a></h4>
 <p>Similar to curl's ability to explicitly set a header, browsers can also achieve this via browser
@@ -2549,42 +2714,6 @@ extensions. One example of a browser extension which can do this, is
       
         <footer class="md-footer">
   
-    
-    <nav class="md-footer__inner md-grid" aria-label="Footer" >
-      
-        
-        <a href="../../CONTRIBUTING/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Contribution Guide" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Contribution Guide
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../../releasing/" class="md-footer__link md-footer__link--next" aria-label="Next: Releasing" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Releasing
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
-  
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-copyright">
@@ -2606,10 +2735,10 @@ extensions. One example of a browser extension which can do this, is
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d6c3db9e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
       
         <script src="../../assets/versions.js"></script>
       
