@@ -878,6 +878,14 @@
         "setMirrorRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute",
           "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
+        },
+        "plugins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "byte"
+          },
+          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object\nPlugins holds specific configuration that traffic router plugins can use for routing traffic"
         }
       },
       "description": "CanaryStep defines a step of a canary deployment."

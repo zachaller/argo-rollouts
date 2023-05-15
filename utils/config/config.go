@@ -51,10 +51,18 @@ func InitializeConfig(k8sClientset kubernetes.Interface, configMapName string) (
 		return nil, fmt.Errorf("failed to unmarshal metric provider plugins while initializing: %w", err)
 	}
 
+	var stepPlugins []types.PluginItem
+	if err = yaml.Unmarshal([]byte(configMapCluster.Data["stepPlugins"]), &stepPlugins); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal metric provider plugins while initializing: %w", err)
+	}
+
+	plugins := append(trafficRouterPlugins, metricProviderPlugins...)
+	plugins = append(plugins, stepPlugins...)
+
 	mutex.Lock()
 	configMemoryCache = &Config{
 		configMap: configMapCluster,
-		plugins:   append(trafficRouterPlugins, metricProviderPlugins...),
+		plugins:   plugins,
 	}
 	mutex.Unlock()
 

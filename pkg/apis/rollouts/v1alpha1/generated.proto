@@ -438,6 +438,12 @@ message CanaryStep {
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
   optional SetMirrorRoute setMirrorRoute = 8;
+
+  // +kubebuilder:validation:Schemaless
+  // +kubebuilder:pruning:PreserveUnknownFields
+  // +kubebuilder:validation:Type=object
+  // Plugins holds specific configuration that traffic router plugins can use for routing traffic
+  map<string, bytes> plugins = 9;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
