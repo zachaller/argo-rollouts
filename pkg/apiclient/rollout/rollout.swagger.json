@@ -821,6 +821,23 @@
       },
       "title": "BlueGreenStrategy defines parameters for Blue Green deployment"
     },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.CalledInfo": {
+      "type": "object",
+      "properties": {
+        "calledAt": {
+          "$ref": "#/definitions/k8s.io.apimachinery.pkg.apis.meta.v1.Time"
+        },
+        "called": {
+          "type": "boolean"
+        },
+        "finishedAt": {
+          "$ref": "#/definitions/k8s.io.apimachinery.pkg.apis.meta.v1.Time"
+        },
+        "finished": {
+          "type": "boolean"
+        }
+      }
+    },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.CanaryStatus": {
       "type": "object",
       "properties": {
@@ -1163,6 +1180,23 @@
         }
       },
       "description": "PingPongSpec holds the ping and pong service name."
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.PluginStatus": {
+      "type": "object",
+      "properties": {
+        "stepIndex": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "calledInfo": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.CalledInfo"
+        },
+        "statusRef": {
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.ObjectRef",
+          "title": "StatusRef is a reference to the custom resource created by a plugin, that the plugin can use to store some state"
+        }
+      },
+      "title": "PluginStatus holds specific status for a step plugin"
     },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.PodTemplateMetadata": {
       "type": "object",
@@ -1607,6 +1641,13 @@
         "alb": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.ALBStatus",
           "title": "/ ALB keeps information regarding the ALB and TargetGroups"
+        },
+        "pluginStatuses": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.PluginStatus"
+          },
+          "title": "PluginStatues holds specific status that plugins can use for storing some state"
         }
       },
       "title": "RolloutStatus is the status for a Rollout resource"

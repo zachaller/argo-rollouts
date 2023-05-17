@@ -14755,6 +14755,36 @@ spec:
                 type: array
               phase:
                 type: string
+              pluginStatuses:
+                additionalProperties:
+                  properties:
+                    calledInfo:
+                      properties:
+                        called:
+                          type: boolean
+                        calledAt:
+                          format: date-time
+                          type: string
+                        finished:
+                          type: boolean
+                        finishedAt:
+                          format: date-time
+                          type: string
+                      type: object
+                    statusRef:
+                      properties:
+                        apiVersion:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      type: object
+                    stepIndex:
+                      format: int32
+                      type: integer
+                  type: object
+                type: object
               promoteFull:
                 type: boolean
               readyReplicas:

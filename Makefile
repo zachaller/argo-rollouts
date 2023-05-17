@@ -290,3 +290,13 @@ build-sample-metric-plugin-debug:
 build-sample-traffic-plugin-debug:
 	go build -gcflags="all=-N -l" -o traffic-plugin test/cmd/trafficrouter-plugin-sample/main.go
 
+.PHONY: build-sample-step-plugin-debug
+build-sample-step-plugin-debug:
+	go build -gcflags="all=-N -l" -o step-plugin test/cmd/step-plugin-sample/main.go
+
+.PHONY: build-sample-all-plugin-debug
+build-sample-all-plugin-debug:
+	@rm -rf plugin-bin
+	@make build-sample-metric-plugin-debug build-sample-traffic-plugin-debug build-sample-step-plugin-debug
+
+

@@ -533,11 +533,11 @@ func (c *rolloutContext) patchCondition(r *v1alpha1.Rollout, newStatus *v1alpha1
 	return nil
 }
 
-// isIndefiniteStep returns whether or not the rollout is at an Experiment or Analysis or Pause step which should
+// isIndefiniteStep returns whether or not the rollout is at an Experiment or Analysis or Pause or Plugin step which should
 // not affect the progressDeadlineSeconds
 func isIndefiniteStep(r *v1alpha1.Rollout) bool {
 	currentStep, _ := replicasetutil.GetCurrentCanaryStep(r)
-	if currentStep != nil && (currentStep.Experiment != nil || currentStep.Analysis != nil || currentStep.Pause != nil) {
+	if currentStep != nil && (currentStep.Experiment != nil || currentStep.Analysis != nil || currentStep.Pause != nil || currentStep.Plugins != nil) {
 		return true
 	}
 	return false
@@ -702,6 +702,7 @@ func (c *rolloutContext) persistRolloutStatus(newStatus *v1alpha1.RolloutStatus)
 
 	prevStatus := c.rollout.Status
 	c.pauseContext.CalculatePauseStatus(newStatus)
+	c.stepPluginContext.CalculatePluginCalledStatuses(newStatus)
 	if c.rollout.Spec.TemplateResolvedFromRef {
 		workloadRefObservation, _ := annotations.GetWorkloadGenerationAnnotation(c.rollout)
 		currentWorkloadObservedGeneration, _ := strconv.ParseInt(newStatus.WorkloadObservedGeneration, 10, 32)
@@ -855,6 +856,7 @@ func (c *rolloutContext) resetRolloutStatus(newStatus *v1alpha1.RolloutStatus) {
 	newStatus.Canary.CurrentStepAnalysisRunStatus = nil
 	newStatus.Canary.CurrentBackgroundAnalysisRunStatus = nil
 	newStatus.CurrentStepIndex = replicasetutil.ResetCurrentStepIndex(c.rollout)
+	newStatus.PluginStatuses = nil
 }
 
 func (c *rolloutContext) isRollbackWithinWindow() bool {

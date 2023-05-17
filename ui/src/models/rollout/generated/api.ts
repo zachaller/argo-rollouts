@@ -511,6 +511,37 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1BlueGreenSt
 /**
  * 
  * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo {
+    /**
+     * 
+     * @type {K8sIoApimachineryPkgApisMetaV1Time}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo
+     */
+    calledAt?: K8sIoApimachineryPkgApisMetaV1Time;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo
+     */
+    called?: boolean;
+    /**
+     * 
+     * @type {K8sIoApimachineryPkgApisMetaV1Time}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo
+     */
+    finishedAt?: K8sIoApimachineryPkgApisMetaV1Time;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo
+     */
+    finished?: boolean;
+}
+/**
+ * 
+ * @export
  * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStatus
  */
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStatus {
@@ -954,6 +985,31 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PingPongSpe
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PingPongSpec
      */
     pongService?: string;
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus {
+    /**
+     * 
+     * @type {number}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
+     */
+    stepIndex?: number;
+    /**
+     * 
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
+     */
+    calledInfo?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CalledInfo;
+    /**
+     * 
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ObjectRef}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
+     */
+    statusRef?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ObjectRef;
 }
 /**
  * 
@@ -1540,6 +1596,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStat
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
      */
     alb?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ALBStatus;
+    /**
+     * 
+     * @type {{ [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus; }}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
+     */
+    pluginStatuses?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus; };
 }
 /**
  * 

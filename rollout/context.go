@@ -49,6 +49,9 @@ type rolloutContext struct {
 	// (e.g. a setWeight step, after a blue-green active switch, after stable service switch),
 	// since we do not want to continually verify weight in case it could incur rate-limiting or other expenses.
 	targetsVerified *bool
+
+	// stepPluginContext is used to store the plugin context for the current step
+	stepPluginContext *stepPluginContext
 }
 
 func (c *rolloutContext) reconcile() error {

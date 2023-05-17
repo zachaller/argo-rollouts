@@ -85,6 +85,13 @@ type RpcTrafficRoutingReconciler interface {
 	Type() string
 }
 
+type RpcStepProvider interface {
+	// StepPlugin sets the canary weight to the desired weight
+	StepPlugin(rollout *v1alpha1.Rollout) RpcError
+	// StepPluginCompleted returns true if the step is complete
+	StepPluginCompleted(rollout *v1alpha1.Rollout) (bool, RpcError)
+}
+
 type TrafficRouterPlugins struct {
 	TrafficRouters []PluginItem `json:"trafficRouterPlugins" yaml:"trafficRouterPlugins"`
 }

@@ -393,6 +393,16 @@ message BlueGreenStrategy {
   optional int32 abortScaleDownDelaySeconds = 14;
 }
 
+message CalledInfo {
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time calledAt = 1;
+
+  optional bool called = 2;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time finishedAt = 3;
+
+  optional bool finished = 4;
+}
+
 // CanaryStatus status fields that only pertain to the canary rollout
 message CanaryStatus {
   // CurrentStepAnalysisRunStatus indicates the status of the current step analysis run
@@ -1107,6 +1117,16 @@ message PingPongSpec {
   optional string pongService = 2;
 }
 
+// PluginStatus holds specific status for a step plugin
+message PluginStatus {
+  optional int32 stepIndex = 1;
+
+  optional CalledInfo calledInfo = 2;
+
+  // StatusRef is a reference to the custom resource created by a plugin, that the plugin can use to store some state
+  optional ObjectRef statusRef = 3;
+}
+
 // PodTemplateMetadata extra labels to add to the template
 message PodTemplateMetadata {
   // Labels Additional labels to add to the experiment
@@ -1472,6 +1492,9 @@ message RolloutStatus {
 
   // / ALB keeps information regarding the ALB and TargetGroups
   optional ALBStatus alb = 25;
+
+  // PluginStatues holds specific status that plugins can use for storing some state
+  map<string, PluginStatus> pluginStatuses = 26;
 }
 
 // RolloutStrategy defines strategy to apply during next rollout

@@ -53,6 +53,10 @@ func (c *rolloutContext) rolloutCanary() error {
 		return err
 	}
 
+	if err := c.reconcileStepPlugins(); err != nil {
+		return err
+	}
+
 	if err := c.reconcileTrafficRouting(); err != nil {
 		return err
 	}
@@ -341,6 +345,8 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		return true
 	case currentStep.SetMirrorRoute != nil:
 		return true
+		//case currentStep.Plugins != nil:
+		//	return
 	}
 	return false
 }
