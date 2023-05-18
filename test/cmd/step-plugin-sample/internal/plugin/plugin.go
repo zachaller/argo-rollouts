@@ -23,7 +23,13 @@ func (p *RpcPlugin) StepPlugin(ro *v1alpha1.Rollout) pluginTypes.RpcError {
 	return pluginTypes.RpcError{}
 }
 
+var callCount = 0
+
 func (p *RpcPlugin) StepPluginCompleted(ro *v1alpha1.Rollout) (bool, pluginTypes.RpcError) {
 	p.LogCtx.Println("StepPluginCompleted")
+	callCount++
+	if callCount > 3 {
+		return true, pluginTypes.RpcError{}
+	}
 	return false, pluginTypes.RpcError{}
 }

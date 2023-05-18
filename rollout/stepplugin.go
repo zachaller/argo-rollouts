@@ -4,9 +4,11 @@ import (
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/rollout/steps/client"
 	"github.com/argoproj/argo-rollouts/utils/plugin/step"
+	"github.com/argoproj/argo-rollouts/utils/plugin/step/sync"
 	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type stepPluginContext struct {
@@ -34,8 +36,10 @@ func (pluginContext *stepPluginContext) CalculatePluginCalledStatuses(newStatus 
 		newStatus.PluginStatuses[psk.String()] = v1alpha1.PluginStatus{
 			StepIndex: &psk.StepIndex,
 			CalledInfo: &v1alpha1.CalledInfo{
-				CalledAt: pluginContext.pluginCalled[psk.String()].CalledAt,
-				Called:   pluginContext.pluginCalled[psk.String()].Called,
+				CalledAt:   pluginContext.pluginCalled[psk.String()].CalledAt,
+				Called:     pluginContext.pluginCalled[psk.String()].Called,
+				Finished:   pluginContext.pluginCalled[psk.String()].Finished,
+				FinishedAt: pluginContext.pluginCalled[psk.String()].FinishedAt,
 			},
 		}
 	}
@@ -61,13 +65,32 @@ func (pluginContext *stepPluginContext) CalculatePluginContext() {
 			continue
 		}
 		pluginContext.pluginCalled[psk.String()] = v1alpha1.CalledInfo{
-			Called:   status.CalledInfo.Called,
-			CalledAt: status.CalledInfo.CalledAt,
+			Called:     status.CalledInfo.Called,
+			CalledAt:   status.CalledInfo.CalledAt,
+			Finished:   status.CalledInfo.Finished,
+			FinishedAt: status.CalledInfo.FinishedAt,
 		}
 	}
 }
 
-func (pluginContext *stepPluginContext) CalledStep(pluginName string, stepIndex *int32) {
+func (pluginContext *stepPluginContext) calledStepFinished(pluginName string, stepIndex *int32) {
+	if pluginContext.pluginCalled == nil {
+		pluginContext.pluginCalled = make(map[string]v1alpha1.CalledInfo)
+	}
+	psk := step.PluginStatusKey{
+		PluginName: pluginName,
+		StepIndex:  *stepIndex,
+	}
+	pluginContext.pluginCalled[psk.String()] = v1alpha1.CalledInfo{
+		Called:     pluginContext.pluginCalled[psk.String()].Called,
+		CalledAt:   pluginContext.pluginCalled[psk.String()].CalledAt,
+		Finished:   true,
+		FinishedAt: metav1.Now(),
+	}
+	sync.StoppedRunning(psk.String())
+}
+
+func (pluginContext *stepPluginContext) calledStep(pluginName string, stepIndex *int32) {
 	if pluginContext.pluginCalled == nil {
 		pluginContext.pluginCalled = make(map[string]v1alpha1.CalledInfo)
 	}
@@ -79,6 +102,7 @@ func (pluginContext *stepPluginContext) CalledStep(pluginName string, stepIndex 
 		Called:   true,
 		CalledAt: metav1.Now(),
 	}
+	sync.StartRunning(psk.String())
 }
 
 func (c *rolloutContext) reconcileStepPlugins() error {
@@ -94,12 +118,26 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 			return err
 		}
 
-		if !c.stepPluginContext.pluginCalled[pluginName].Called {
+		psk := step.PluginStatusKey{
+			PluginName: pluginName,
+			StepIndex:  *currentStepIndex,
+		}
+
+		r := sync.IsRunning(psk.String())
+		ca := c.stepPluginContext.pluginCalled[pluginName].Called
+		if (!ca && !r) || (ca && !r) {
 			rpcErr := p.StepPlugin(c.rollout)
 			if rpcErr.HasError() {
 				return err
 			}
-			c.stepPluginContext.CalledStep(pluginName, currentStepIndex)
+			c.stepPluginContext.calledStep(pluginName, currentStepIndex)
+		} else {
+			b, _ := p.StepPluginCompleted(c.rollout)
+			if b {
+				c.stepPluginContext.calledStepFinished(pluginName, currentStepIndex)
+			} else {
+				c.enqueueRolloutAfter(c.rollout, 10*time.Second)
+			}
 		}
 	}
 
