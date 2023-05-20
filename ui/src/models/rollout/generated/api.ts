@@ -994,6 +994,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PingPongSpe
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus {
     /**
      * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
+     */
+    name?: string;
+    /**
+     * 
      * @type {number}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus
      */
@@ -1598,10 +1604,10 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStat
     alb?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ALBStatus;
     /**
      * 
-     * @type {{ [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus; }}
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus>}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
      */
-    pluginStatuses?: { [key: string]: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus; };
+    pluginStatuses?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1PluginStatus>;
 }
 /**
  * 

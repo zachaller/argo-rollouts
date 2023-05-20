@@ -938,24 +938,24 @@ type RolloutStatus struct {
 	// +optional
 	WorkloadObservedGeneration string `json:"workloadObservedGeneration,omitempty" protobuf:"bytes,24,opt,name=workloadObservedGeneration"`
 	/// ALB keeps information regarding the ALB and TargetGroups
-	ALB *ALBStatus `json:"alb,omitempty" protobuf:"bytes,25,opt,name=alb"`
-	// PluginStatues holds specific status that plugins can use for storing some state
-	PluginStatuses map[string]PluginStatus `json:"pluginStatuses,omitempty" protobuf:"bytes,26,opt,name=pluginStatuses"`
+	ALB            *ALBStatus     `json:"alb,omitempty" protobuf:"bytes,25,opt,name=alb"`
+	PluginStatuses []PluginStatus `json:"pluginStatuses,omitempty" protobuf:"bytes,26,opt,name=pluginStatuses"`
 }
 
 // PluginStatus holds specific status for a step plugin
 type PluginStatus struct {
-	StepIndex  *int32      `json:"stepIndex,omitempty" protobuf:"varint,1,opt,name=stepIndex"`
-	CalledInfo *CalledInfo `json:"calledInfo,omitempty" protobuf:"bytes,2,opt,name=calledInfo"`
+	Name       string      `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	StepIndex  *int32      `json:"stepIndex,omitempty" protobuf:"varint,2,opt,name=stepIndex"`
+	CalledInfo *CalledInfo `json:"calledInfo,omitempty" protobuf:"bytes,3,opt,name=calledInfo"`
 	// StatusRef is a reference to the custom resource created by a plugin, that the plugin can use to store some state
-	StatusRef *ObjectRef `json:"statusRef,omitempty" protobuf:"bytes,3,opt,name=statusRef"`
+	StatusRef *ObjectRef `json:"statusRef,omitempty" protobuf:"bytes,4,opt,name=statusRef"`
 }
 
 type CalledInfo struct {
-	CalledAt   metav1.Time `json:"calledAt,omitempty" protobuf:"bytes,1,opt,name=calledAt"`
-	Called     bool        `json:"called,omitempty" protobuf:"varint,2,opt,name=called"`
-	FinishedAt metav1.Time `json:"finishedAt,omitempty" protobuf:"bytes,3,opt,name=finishedAt"`
-	Finished   bool        `json:"finished,omitempty" protobuf:"varint,4,opt,name=finished"`
+	CalledAt   *metav1.Time `json:"calledAt,omitempty" protobuf:"bytes,1,opt,name=calledAt"`
+	Called     bool         `json:"called,omitempty" protobuf:"varint,2,opt,name=called"`
+	FinishedAt *metav1.Time `json:"finishedAt,omitempty" protobuf:"bytes,3,opt,name=finishedAt"`
+	Finished   bool         `json:"finished,omitempty" protobuf:"varint,4,opt,name=finished"`
 }
 
 // BlueGreenStatus status fields that only pertain to the blueGreen rollout

@@ -20112,6 +20112,61 @@
                         }
                     },
                     "type": "object"
+                },
+                "status": {
+                    "properties": {
+                        "pluginStatuses": {
+                            "items": {
+                                "properties": {
+                                    "calledInfo": {
+                                        "properties": {
+                                            "called": {
+                                                "type": "boolean"
+                                            },
+                                            "calledAt": {
+                                                "format": "date-time",
+                                                "type": "string"
+                                            },
+                                            "finished": {
+                                                "type": "boolean"
+                                            },
+                                            "finishedAt": {
+                                                "format": "date-time",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "statusRef": {
+                                        "properties": {
+                                            "apiVersion": {
+                                                "type": "string"
+                                            },
+                                            "kind": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "stepIndex": {
+                                        "format": "int32",
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array",
+                            "x-kubernetes-patch-merge-key": "name",
+                            "x-kubernetes-patch-strategy": "merge"
+                        }
+                    },
+                    "type": "object"
                 }
             },
             "x-kubernetes-group-version-kind": [

@@ -489,7 +489,6 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
 		rollout: rollout,
 		log:     logCtx,
 	}
-	spc.CalculatePluginContext()
 
 	roCtx := rolloutContext{
 		rollout:    rollout,
@@ -516,8 +515,6 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
 	}
 	// carry over existing recorded weights
 	roCtx.newStatus.Canary.Weights = rollout.Status.Canary.Weights
-
-	roCtx.stepPluginContext.CalculatePluginContext()
 
 	return &roCtx, nil
 }

@@ -3522,7 +3522,7 @@ spec:
               phase:
                 type: string
               pluginStatuses:
-                additionalProperties:
+                items:
                   properties:
                     calledInfo:
                       properties:
@@ -3537,6 +3537,8 @@ spec:
                           format: date-time
                           type: string
                       type: object
+                    name:
+                      type: string
                     statusRef:
                       properties:
                         apiVersion:
@@ -3550,7 +3552,7 @@ spec:
                       format: int32
                       type: integer
                   type: object
-                type: object
+                type: array
               promoteFull:
                 type: boolean
               readyReplicas:

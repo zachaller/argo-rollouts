@@ -2,6 +2,7 @@ package step
 
 import (
 	"fmt"
+	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"strconv"
 	"strings"
 )
@@ -23,4 +24,25 @@ func (psk *PluginStatusKey) Parse(s string) error {
 	}
 	psk.StepIndex = int32(stepIdx)
 	return nil
+}
+
+func AddOrUpdatePluginStepStatus(ps []v1alpha1.PluginStatus, status v1alpha1.PluginStatus) []v1alpha1.PluginStatus {
+	pluginStatuses := []v1alpha1.PluginStatus{}
+	for _, pluginStatus := range ps {
+		if pluginStatus.Name == status.Name {
+			pluginStatuses = append(pluginStatuses, status)
+		} else {
+			pluginStatuses = append(pluginStatuses, pluginStatus)
+		}
+	}
+	return pluginStatuses
+}
+
+func GetPluginStepStatus(ps []v1alpha1.PluginStatus, name string) (v1alpha1.PluginStatus, bool) {
+	for _, pluginStatus := range ps {
+		if pluginStatus.Name == name {
+			return pluginStatus, true
+		}
+	}
+	return v1alpha1.PluginStatus{}, false
 }

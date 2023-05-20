@@ -3,6 +3,7 @@ package rollout
 import (
 	"context"
 	"fmt"
+	"github.com/argoproj/argo-rollouts/utils/plugin/step/sync"
 	"sort"
 	"strconv"
 	"time"
@@ -702,7 +703,6 @@ func (c *rolloutContext) persistRolloutStatus(newStatus *v1alpha1.RolloutStatus)
 
 	prevStatus := c.rollout.Status
 	c.pauseContext.CalculatePauseStatus(newStatus)
-	c.stepPluginContext.CalculatePluginCalledStatuses(newStatus)
 	if c.rollout.Spec.TemplateResolvedFromRef {
 		workloadRefObservation, _ := annotations.GetWorkloadGenerationAnnotation(c.rollout)
 		currentWorkloadObservedGeneration, _ := strconv.ParseInt(newStatus.WorkloadObservedGeneration, 10, 32)
@@ -857,6 +857,7 @@ func (c *rolloutContext) resetRolloutStatus(newStatus *v1alpha1.RolloutStatus) {
 	newStatus.Canary.CurrentBackgroundAnalysisRunStatus = nil
 	newStatus.CurrentStepIndex = replicasetutil.ResetCurrentStepIndex(c.rollout)
 	newStatus.PluginStatuses = nil
+	sync.ClearRolloutCache(c.rollout.Name)
 }
 
 func (c *rolloutContext) isRollbackWithinWindow() bool {

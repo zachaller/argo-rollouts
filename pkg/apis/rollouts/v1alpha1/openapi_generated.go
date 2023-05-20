@@ -1278,8 +1278,7 @@ func schema_pkg_apis_rollouts_v1alpha1_CalledInfo(ref common.ReferenceCallback) 
 				Properties: map[string]spec.Schema{
 					"calledAt": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
 						},
 					},
 					"called": {
@@ -1288,16 +1287,15 @@ func schema_pkg_apis_rollouts_v1alpha1_CalledInfo(ref common.ReferenceCallback) 
 							Format: "",
 						},
 					},
+					"finishedAt": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
 					"finished": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},
 							Format: "",
-						},
-					},
-					"finishedAt": {
-						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
 						},
 					},
 				},
@@ -3374,6 +3372,12 @@ func schema_pkg_apis_rollouts_v1alpha1_PluginStatus(ref common.ReferenceCallback
 				Description: "PluginStatus holds specific status for a step plugin",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"stepIndex": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},
@@ -4449,11 +4453,15 @@ func schema_pkg_apis_rollouts_v1alpha1_RolloutStatus(ref common.ReferenceCallbac
 						},
 					},
 					"pluginStatuses": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-patch-merge-key": "name",
+								"x-kubernetes-patch-strategy":  "merge",
+							},
+						},
 						SchemaProps: spec.SchemaProps{
-							Description: "PluginStatues holds specific status that plugins can use for storing some state",
-							Type:        []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},

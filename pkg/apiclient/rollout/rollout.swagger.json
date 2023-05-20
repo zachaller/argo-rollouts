@@ -1184,6 +1184,9 @@
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.PluginStatus": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "stepIndex": {
           "type": "integer",
           "format": "int32"
@@ -1643,11 +1646,10 @@
           "title": "/ ALB keeps information regarding the ALB and TargetGroups"
         },
         "pluginStatuses": {
-          "type": "object",
-          "additionalProperties": {
+          "type": "array",
+          "items": {
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.PluginStatus"
-          },
-          "title": "PluginStatues holds specific status that plugins can use for storing some state"
+          }
         }
       },
       "title": "RolloutStatus is the status for a Rollout resource"

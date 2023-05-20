@@ -1119,12 +1119,14 @@ message PingPongSpec {
 
 // PluginStatus holds specific status for a step plugin
 message PluginStatus {
-  optional int32 stepIndex = 1;
+  optional string name = 1;
 
-  optional CalledInfo calledInfo = 2;
+  optional int32 stepIndex = 2;
+
+  optional CalledInfo calledInfo = 3;
 
   // StatusRef is a reference to the custom resource created by a plugin, that the plugin can use to store some state
-  optional ObjectRef statusRef = 3;
+  optional ObjectRef statusRef = 4;
 }
 
 // PodTemplateMetadata extra labels to add to the template
@@ -1493,8 +1495,7 @@ message RolloutStatus {
   // / ALB keeps information regarding the ALB and TargetGroups
   optional ALBStatus alb = 25;
 
-  // PluginStatues holds specific status that plugins can use for storing some state
-  map<string, PluginStatus> pluginStatuses = 26;
+  repeated PluginStatus pluginStatuses = 26;
 }
 
 // RolloutStrategy defines strategy to apply during next rollout

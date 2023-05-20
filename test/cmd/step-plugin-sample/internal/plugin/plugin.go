@@ -5,6 +5,7 @@ import (
 	"github.com/argoproj/argo-rollouts/rollout/steps/rpc"
 	pluginTypes "github.com/argoproj/argo-rollouts/utils/plugin/types"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 var _ rpc.StepPlugin = &RpcPlugin{}
@@ -18,17 +19,17 @@ func (p RpcPlugin) InitPlugin() pluginTypes.RpcError {
 	return pluginTypes.RpcError{}
 }
 
+var startTime time.Time
+
 func (p *RpcPlugin) StepPlugin(ro *v1alpha1.Rollout) pluginTypes.RpcError {
 	p.LogCtx.Println("StepPlugin")
+	startTime = time.Now()
 	return pluginTypes.RpcError{}
 }
 
-var callCount = 0
-
 func (p *RpcPlugin) StepPluginCompleted(ro *v1alpha1.Rollout) (bool, pluginTypes.RpcError) {
 	p.LogCtx.Println("StepPluginCompleted")
-	callCount++
-	if callCount > 3 {
+	if startTime.Add(10*time.Second).UnixMicro() < time.Now().UnixMicro() {
 		return true, pluginTypes.RpcError{}
 	}
 	return false, pluginTypes.RpcError{}

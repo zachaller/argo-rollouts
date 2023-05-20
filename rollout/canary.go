@@ -1,6 +1,7 @@
 package rollout
 
 import (
+	"github.com/argoproj/argo-rollouts/utils/plugin/step/sync"
 	"sort"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -345,8 +346,22 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		return true
 	case currentStep.SetMirrorRoute != nil:
 		return true
-		//case currentStep.Plugins != nil:
-		//	return
+	case currentStep.Plugins != nil:
+		return false
+		//foundMatch := false
+		//for _, status := range c.rollout.Status.PluginStatuses {
+		//	psk := step.PluginStatusKey{
+		//		PluginName: status.Name,
+		//		StepIndex:  *c.rollout.Status.CurrentStepIndex,
+		//	}
+		//	if status.Name == psk.String() {
+		//		if !status.CalledInfo.Called && !status.CalledInfo.Finished {
+		//			foundMatch = true
+		//			return false
+		//		}
+		//	}
+		//}
+		//return !foundMatch
 	}
 	return false
 }
@@ -362,6 +377,8 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	newStatus.StableRS = c.rollout.Status.StableRS
 	newStatus.CurrentStepHash = conditions.ComputeStepHash(c.rollout)
 	stepCount := int32(len(c.rollout.Spec.Strategy.Canary.Steps))
+
+	newStatus.PluginStatuses = sync.GetRolloutStepPluginStatus(c.rollout)
 
 	if replicasetutil.PodTemplateOrStepsChanged(c.rollout, c.newRS) {
 		c.resetRolloutStatus(&newStatus)
