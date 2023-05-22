@@ -378,6 +378,7 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	newStatus.CurrentStepHash = conditions.ComputeStepHash(c.rollout)
 	stepCount := int32(len(c.rollout.Spec.Strategy.Canary.Steps))
 
+	newStatus.PluginStatuses = c.rollout.Status.PluginStatuses
 	newStatus.PluginStatuses = sync.GetRolloutStepPluginStatus(c.rollout)
 
 	if replicasetutil.PodTemplateOrStepsChanged(c.rollout, c.newRS) {
