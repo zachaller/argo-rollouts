@@ -729,6 +729,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep 
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
      */
     setMirrorRoute?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SetMirrorRoute;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1CanaryStep
+     */
+    plugins?: { [key: string]: string; };
 }
 /**
  * 
@@ -2373,6 +2379,12 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStat
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
      */
     albs?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ALBStatus>;
+    /**
+     * 
+     * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses>}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
+     */
+    stepPluginStatuses?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses>;
 }
 /**
  * 
@@ -2715,6 +2727,37 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SkyWalkingM
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1SkyWalkingMetric
      */
     interval?: string;
+}
+/**
+ * 
+ * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses {
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    name?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    stepIndex?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    runStatus?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    completedStatus?: string;
 }
 /**
  * 

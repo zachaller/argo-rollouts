@@ -992,6 +992,14 @@
         "setMirrorRoute": {
           "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.SetMirrorRoute",
           "title": "SetMirrorRoutes Mirrors traffic that matches rules to a particular destination\n+optional"
+        },
+        "plugins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "format": "byte"
+          },
+          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object\nPlugins holds specific configuration that traffic router plugins can use for routing traffic"
         }
       },
       "description": "CanaryStep defines a step of a canary deployment."
@@ -2209,6 +2217,13 @@
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.ALBStatus"
           },
           "title": "/ ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario"
+        },
+        "stepPluginStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StepPluginStatuses"
+          },
+          "title": "+patchMergeKey=name\n+patchStrategy=merge"
         }
       },
       "title": "RolloutStatus is the status for a Rollout resource"
@@ -2464,6 +2479,28 @@
         },
         "interval": {
           "type": "string"
+        }
+      }
+    },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StepPluginStatuses": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "stepIndex": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "runStatus": {
+          "type": "string",
+          "format": "byte",
+          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object"
+        },
+        "completedStatus": {
+          "type": "string",
+          "format": "byte",
+          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object"
         }
       }
     },

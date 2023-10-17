@@ -642,6 +642,9 @@ spec:
                                   - type: string
                                   x-kubernetes-int-or-string: true
                               type: object
+                            plugins:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
                             setCanaryScale:
                               properties:
                                 matchTrafficWeight:
@@ -3611,6 +3614,22 @@ spec:
                 type: string
               stableRS:
                 type: string
+              stepPluginStatuses:
+                items:
+                  properties:
+                    completedStatus:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    name:
+                      type: string
+                    runStatus:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    stepIndex:
+                      format: int32
+                      type: integer
+                  type: object
+                type: array
               updatedReplicas:
                 format: int32
                 type: integer

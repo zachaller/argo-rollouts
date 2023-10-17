@@ -1,7 +1,10 @@
 package rollout
 
 import (
+	"fmt"
+	"github.com/argoproj/argo-rollouts/rollout/steps"
 	"sort"
+	"strconv"
 
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,6 +57,10 @@ func (c *rolloutContext) rolloutCanary() error {
 	}
 
 	if err := c.reconcileTrafficRouting(); err != nil {
+		return err
+	}
+
+	if err := c.reconcileStepPlugins(); err != nil {
 		return err
 	}
 
@@ -312,7 +319,7 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 	if c.rollout.Spec.Paused {
 		return false
 	}
-	currentStep, _ := replicasetutil.GetCurrentCanaryStep(c.rollout)
+	currentStep, stepIndex := replicasetutil.GetCurrentCanaryStep(c.rollout)
 	if currentStep == nil {
 		return false
 	}
@@ -341,6 +348,23 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		return true
 	case currentStep.SetMirrorRoute != nil:
 		return true
+	case currentStep.Plugins != nil:
+		completed := true
+		ps := steps.NewStepPluginReconcile(currentStep)
+		for _, p := range ps {
+			singleStepCompleted, res, _ := p.IsStepCompleted(*c.newRollout)
+
+			for i, status := range c.newRollout.Status.StepPluginStatuses {
+				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {
+					status.CompletedStatus = res
+					c.newRollout.Status.StepPluginStatuses[i] = status
+				}
+			}
+			if !singleStepCompleted {
+				completed = false
+			}
+		}
+		return completed
 	}
 	return false
 }
@@ -351,6 +375,7 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	newStatus.HPAReplicas = replicasetutil.GetActualReplicaCountForReplicaSets(c.allRSs)
 	newStatus.Selector = metav1.FormatLabelSelector(c.rollout.Spec.Selector)
 	newStatus.Canary.StablePingPong = c.rollout.Status.Canary.StablePingPong
+	newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
 
 	currentStep, currentStepIndex := replicasetutil.GetCurrentCanaryStep(c.rollout)
 	newStatus.StableRS = c.rollout.Status.StableRS
@@ -407,13 +432,13 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	if c.completedCurrentCanaryStep() {
 		stepStr := rolloututil.CanaryStepString(*currentStep)
 		*currentStepIndex++
-		newStatus.Canary.CurrentStepAnalysisRunStatus = nil
 
 		c.recorder.Eventf(c.rollout, record.EventOptions{EventReason: conditions.RolloutStepCompletedReason}, conditions.RolloutStepCompletedMessage, int(*currentStepIndex), stepCount, stepStr)
 		c.pauseContext.RemovePauseCondition(v1alpha1.PauseReasonCanaryPauseStep)
 	}
 
 	newStatus.CurrentStepIndex = currentStepIndex
+	newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
 	newStatus = c.calculateRolloutConditions(newStatus)
 	return c.persistRolloutStatus(&newStatus)
 }

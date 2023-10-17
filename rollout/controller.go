@@ -149,6 +149,7 @@ type reconcilerBase struct {
 	enqueueRollout              func(obj any)                                                                  //nolint:structcheck
 	enqueueRolloutAfter         func(obj any, duration time.Duration)                                          //nolint:structcheck
 	newTrafficRoutingReconciler func(roCtx *rolloutContext) ([]trafficrouting.TrafficRoutingReconciler, error) //nolint:structcheck
+	newStepPluginReconciler     func(roCtx *rolloutContext) ([]trafficrouting.TrafficRoutingReconciler, error) //nolint:structcheck
 
 	// recorder is an event recorder for recording Event resources to the Kubernetes API.
 	recorder     record.EventRecorder

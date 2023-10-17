@@ -457,6 +457,12 @@ message CanaryStep {
   // SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
   // +optional
   optional SetMirrorRoute setMirrorRoute = 8;
+
+  // +kubebuilder:validation:Schemaless
+  // +kubebuilder:pruning:PreserveUnknownFields
+  // +kubebuilder:validation:Type=object
+  // Plugins holds specific configuration that traffic router plugins can use for routing traffic
+  map<string, bytes> plugins = 9;
 }
 
 // CanaryStrategy defines parameters for a Replica Based Canary
@@ -1533,6 +1539,10 @@ message RolloutStatus {
 
   // / ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario
   repeated ALBStatus albs = 26;
+
+  // +patchMergeKey=name
+  // +patchStrategy=merge
+  repeated StepPluginStatuses stepPluginStatuses = 27;
 }
 
 // RolloutStrategy defines strategy to apply during next rollout
@@ -1700,6 +1710,22 @@ message SkyWalkingMetric {
   optional string query = 2;
 
   optional string interval = 3;
+}
+
+message StepPluginStatuses {
+  optional string name = 1;
+
+  optional int32 stepIndex = 2;
+
+  // +kubebuilder:validation:Schemaless
+  // +kubebuilder:pruning:PreserveUnknownFields
+  // +kubebuilder:validation:Type=object
+  optional bytes runStatus = 3;
+
+  // +kubebuilder:validation:Schemaless
+  // +kubebuilder:pruning:PreserveUnknownFields
+  // +kubebuilder:validation:Type=object
+  optional bytes completedStatus = 4;
 }
 
 message StickinessConfig {

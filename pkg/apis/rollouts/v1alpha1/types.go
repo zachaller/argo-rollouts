@@ -622,6 +622,11 @@ type CanaryStep struct {
 	// SetMirrorRoutes Mirrors traffic that matches rules to a particular destination
 	// +optional
 	SetMirrorRoute *SetMirrorRoute `json:"setMirrorRoute,omitempty" protobuf:"bytes,8,opt,name=setMirrorRoute"`
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Type=object
+	// Plugins holds specific configuration that traffic router plugins can use for routing traffic
+	Plugins map[string]json.RawMessage `json:"plugins,omitempty" protobuf:"bytes,9,opt,name=plugins"`
 }
 
 type SetMirrorRoute struct {
@@ -939,7 +944,41 @@ type RolloutStatus struct {
 	ALB *ALBStatus `json:"alb,omitempty" protobuf:"bytes,25,opt,name=alb"`
 	/// ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario
 	ALBs []ALBStatus `json:"albs,omitempty" protobuf:"bytes,26,opt,name=albs"`
+
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	StepPluginStatuses []StepPluginStatuses `json:"stepPluginStatuses,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,27,opt,name=stepPluginStatuses"`
 }
+
+type StepPluginStatuses struct {
+	Name      string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+	StepIndex *int32 `json:"stepIndex,omitempty" protobuf:"bytes,2,opt,name=stepIndex"`
+
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Type=object
+	RunStatus json.RawMessage `json:"runStatus,omitempty" protobuf:"bytes,3,opt,name=runStatus"`
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Type=object
+	CompletedStatus json.RawMessage `json:"completedStatus,omitempty" protobuf:"bytes,4,opt,name=completedStatus"`
+
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	// PluginStatuses map[string]StepPluginStatus `json:"pluginStatuses,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,3,opt,name=pluginStatuses"`
+}
+
+//type StepPluginStatus struct {
+//	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+//	// +kubebuilder:validation:Schemaless
+//	// +kubebuilder:pruning:PreserveUnknownFields
+//	// +kubebuilder:validation:Type=object
+//	RunStatus json.RawMessage `json:"runStatus,omitempty" protobuf:"bytes,2,opt,name=runStatus"`
+//	// +kubebuilder:validation:Schemaless
+//	// +kubebuilder:pruning:PreserveUnknownFields
+//	// +kubebuilder:validation:Type=object
+//	CompletedStatus json.RawMessage `json:"completedStatus,omitempty" protobuf:"bytes,3,opt,name=completedStatus"`
+//}
 
 // BlueGreenStatus status fields that only pertain to the blueGreen rollout
 type BlueGreenStatus struct {
