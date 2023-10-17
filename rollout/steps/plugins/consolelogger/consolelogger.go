@@ -55,7 +55,7 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 			if err != nil {
 				return false, nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
 			}
-			if rs.IsRunning == true && rs.Count <= 10 {
+			if rs.IsRunning == true {
 				rs.Count++
 			} else {
 				rs.IsRunning = false
@@ -64,7 +64,7 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 	}
 
 	byteStatus, _ := json.Marshal(rs)
-	return true, byteStatus, nil
+	return rs.Count >= 10, byteStatus, nil
 }
 
 func (c *ConsoleLogger) Type() string {

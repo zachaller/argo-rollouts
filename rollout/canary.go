@@ -354,10 +354,10 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		for _, p := range ps {
 			singleStepCompleted, res, _ := p.IsStepCompleted(*c.newRollout)
 
-			for i, status := range c.newRollout.Status.StepPluginStatuses {
+			for i, status := range c.newStatus.StepPluginStatuses {
 				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {
 					status.CompletedStatus = res
-					c.newRollout.Status.StepPluginStatuses[i] = status
+					c.newStatus.StepPluginStatuses[i] = status
 				}
 			}
 			if !singleStepCompleted {
@@ -375,7 +375,6 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	newStatus.HPAReplicas = replicasetutil.GetActualReplicaCountForReplicaSets(c.allRSs)
 	newStatus.Selector = metav1.FormatLabelSelector(c.rollout.Spec.Selector)
 	newStatus.Canary.StablePingPong = c.rollout.Status.Canary.StablePingPong
-	newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
 
 	currentStep, currentStepIndex := replicasetutil.GetCurrentCanaryStep(c.rollout)
 	newStatus.StableRS = c.rollout.Status.StableRS
@@ -438,7 +437,7 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	}
 
 	newStatus.CurrentStepIndex = currentStepIndex
-	newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
+	newStatus.StepPluginStatuses = c.newStatus.StepPluginStatuses
 	newStatus = c.calculateRolloutConditions(newStatus)
 	return c.persistRolloutStatus(&newStatus)
 }

@@ -396,7 +396,7 @@ func (c *Manager) Run(ctx context.Context, rolloutThreadiness, serviceThreadines
 		}
 	}()
 
-	if !electOpts.LeaderElect {
+	if true {
 		log.Info("Leader election is turned off. Running in single-instance mode")
 		go c.startLeading(ctx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness)
 		<-ctx.Done()
