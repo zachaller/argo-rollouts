@@ -957,11 +957,7 @@ type StepPluginStatuses struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Type=object
-	RunStatus json.RawMessage `json:"runStatus,omitempty" protobuf:"bytes,3,opt,name=runStatus"`
-	// +kubebuilder:validation:Schemaless
-	// +kubebuilder:pruning:PreserveUnknownFields
-	// +kubebuilder:validation:Type=object
-	CompletedStatus json.RawMessage `json:"completedStatus,omitempty" protobuf:"bytes,4,opt,name=completedStatus"`
+	Status json.RawMessage `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 
 	// +patchMergeKey=name
 	// +patchStrategy=merge

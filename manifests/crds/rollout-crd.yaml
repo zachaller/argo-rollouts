@@ -3617,12 +3617,9 @@ spec:
               stepPluginStatuses:
                 items:
                   properties:
-                    completedStatus:
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
                     name:
                       type: string
-                    runStatus:
+                    status:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     stepIndex:

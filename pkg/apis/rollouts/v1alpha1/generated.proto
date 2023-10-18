@@ -1720,12 +1720,7 @@ message StepPluginStatuses {
   // +kubebuilder:validation:Schemaless
   // +kubebuilder:pruning:PreserveUnknownFields
   // +kubebuilder:validation:Type=object
-  optional bytes runStatus = 3;
-
-  // +kubebuilder:validation:Schemaless
-  // +kubebuilder:pruning:PreserveUnknownFields
-  // +kubebuilder:validation:Type=object
-  optional bytes completedStatus = 4;
+  optional bytes status = 3;
 }
 
 message StickinessConfig {

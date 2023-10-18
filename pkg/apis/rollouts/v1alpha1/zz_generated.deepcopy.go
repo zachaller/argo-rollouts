@@ -2743,13 +2743,8 @@ func (in *StepPluginStatuses) DeepCopyInto(out *StepPluginStatuses) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.RunStatus != nil {
-		in, out := &in.RunStatus, &out.RunStatus
-		*out = make(json.RawMessage, len(*in))
-		copy(*out, *in)
-	}
-	if in.CompletedStatus != nil {
-		in, out := &in.CompletedStatus, &out.CompletedStatus
+	if in.Status != nil {
+		in, out := &in.Status, &out.Status
 		*out = make(json.RawMessage, len(*in))
 		copy(*out, *in)
 	}

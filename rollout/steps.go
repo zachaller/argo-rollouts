@@ -15,10 +15,18 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 	if currentStep == nil {
 		return nil
 	}
+	if index == nil {
+		var ii int32 = 0
+		index = &ii
+	}
 	revision, revisionFound := annotations.GetRevisionAnnotation(c.rollout)
 	if currentStep != nil && (revisionFound && revision <= 1) {
 		log.Printf("Skipping Step Plugin Reconcile for Rollout %s/%s, revision %d", c.rollout.Namespace, c.rollout.Name, revision)
 		return nil
+	}
+
+	if c.newRollout == nil {
+		c.newRollout = c.rollout.DeepCopy()
 	}
 
 	sps := steps.NewStepPluginReconcile(currentStep)
@@ -27,23 +35,22 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 
 		res, _ := plugin.RunStep(*c.rollout)
 
-		if len(c.newStatus.StepPluginStatuses) == 0 || ContainsStepPluginStatus(c.newStatus.StepPluginStatuses, fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index)))) == false {
-			c.newStatus.StepPluginStatuses = append(c.newStatus.StepPluginStatuses, rolloutsv1alpha1.StepPluginStatuses{
-				Name:            fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))),
-				StepIndex:       index,
-				RunStatus:       res,
-				CompletedStatus: nil,
+		if len(c.newRollout.Status.StepPluginStatuses) == 0 || ContainsStepPluginStatus(c.newRollout.Status.StepPluginStatuses, fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index)))) == false {
+			c.newRollout.Status.StepPluginStatuses = append(c.newRollout.Status.StepPluginStatuses, rolloutsv1alpha1.StepPluginStatuses{
+				Name:      fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))),
+				StepIndex: index,
+				Status:    res,
 			})
 		} else {
-			for i, ps := range c.newStatus.StepPluginStatuses {
+			for i, ps := range c.newRollout.Status.StepPluginStatuses {
 				if ps.Name == fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))) {
-					c.newStatus.StepPluginStatuses[i].RunStatus = res
+					c.newRollout.Status.StepPluginStatuses[i].Status = res
 				}
 			}
 		}
 	}
 
-	return c.persistRolloutStatus(&c.newStatus)
+	return c.persistRolloutStatus(&c.newRollout.Status)
 }
 
 func ContainsStepPluginStatus(plugins []rolloutsv1alpha1.StepPluginStatuses, name string) bool {

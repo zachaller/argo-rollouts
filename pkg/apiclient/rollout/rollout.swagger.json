@@ -2492,12 +2492,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "runStatus": {
-          "type": "string",
-          "format": "byte",
-          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object"
-        },
-        "completedStatus": {
+        "status": {
           "type": "string",
           "format": "byte",
           "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object"

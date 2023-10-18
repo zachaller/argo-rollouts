@@ -51,7 +51,7 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 			stepIndex = *rollout.Status.CurrentStepIndex
 		}
 		if status.Name == fmt.Sprintf("%s.%d", c.Type(), stepIndex) {
-			err := json.Unmarshal(status.RunStatus, &rs)
+			err := json.Unmarshal(status.Status, &rs)
 			if err != nil {
 				return false, nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
 			}
@@ -60,11 +60,13 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 			} else {
 				rs.IsRunning = false
 			}
+
+			byteStatus, _ := json.Marshal(rs)
+			return rs.Count >= 10, byteStatus, nil
 		}
 	}
 
-	byteStatus, _ := json.Marshal(rs)
-	return rs.Count >= 10, byteStatus, nil
+	return false, nil, nil
 }
 
 func (c *ConsoleLogger) Type() string {
