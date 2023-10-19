@@ -31,12 +31,23 @@ func NewConsoleLoggerStep() *ConsoleLogger {
 func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessage, error) {
 	log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
 
-	for _, status := range rollout.Status.StepPluginStatuses {
-		if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
-			byteStatus, _ := json.Marshal(status)
-			return byteStatus, nil
-		}
-	}
+	//for _, status := range rollout.Status.StepPluginStatuses {
+	//	if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
+	//
+	//		byteStatus, _ := json.Marshal(RunStatus{
+	//			IsRunning:          true,
+	//			TimeRunningStarted: time.Now(),
+	//			DummyStruct: DummyStruct{
+	//				Value1: "Value1",
+	//				Value2: "Value2",
+	//			},
+	//			Count: 0,
+	//		})
+	//
+	//		//byteStatus, _ := json.Marshal(status.Status)
+	//		return byteStatus, nil
+	//	}
+	//}
 
 	byteStatus, _ := json.Marshal(RunStatus{
 		IsRunning:          true,
@@ -70,6 +81,12 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 			}
 
 			byteStatus, _ := json.Marshal(rs)
+
+			if rs.Count >= 10 {
+				log.Printf("ConsoleLogger Step Completed")
+				return true, byteStatus, nil
+			}
+
 			return rs.Count >= 10, byteStatus, nil
 		}
 	}

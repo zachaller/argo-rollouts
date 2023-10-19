@@ -352,12 +352,15 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		completed := true
 		ps := steps.NewStepPluginReconcile(currentStep)
 		for _, p := range ps {
-			singleStepCompleted, res, _ := p.IsStepCompleted(*c.newRollout)
+
+			rodp := c.rollout.DeepCopy()
+			rodp.Status = c.newRollout.Status
+			singleStepCompleted, res, _ := p.IsStepCompleted(*rodp)
 
 			for i, status := range c.newRollout.Status.StepPluginStatuses {
 				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {
 					status.Status = res
-					c.newRollout.Status.StepPluginStatuses[i] = status
+					c.newStatus.StepPluginStatuses[i] = status
 				}
 			}
 			if !singleStepCompleted {
@@ -437,7 +440,7 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	}
 
 	newStatus.CurrentStepIndex = currentStepIndex
-	newStatus.StepPluginStatuses = c.newRollout.Status.StepPluginStatuses
+	//newStatus.StepPluginStatuses = c.newStatus.StepPluginStatuses
 	newStatus = c.calculateRolloutConditions(newStatus)
 	return c.persistRolloutStatus(&newStatus)
 }

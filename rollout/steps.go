@@ -44,7 +44,8 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 		} else {
 			for i, ps := range c.newRollout.Status.StepPluginStatuses {
 				if ps.Name == fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))) {
-					c.newRollout.Status.StepPluginStatuses[i].Status = res
+					ps.Status = res
+					c.newRollout.Status.StepPluginStatuses[i] = ps
 				}
 			}
 		}
