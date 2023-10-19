@@ -13,6 +13,7 @@ type ConsoleLogger struct {
 
 type RunStatus struct {
 	IsRunning          bool
+	IsCompleted        bool
 	TimeRunningStarted time.Time
 	TimeRunning        time.Duration
 	DummyStruct        DummyStruct
@@ -31,26 +32,34 @@ func NewConsoleLoggerStep() *ConsoleLogger {
 func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessage, error) {
 	log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
 
-	//for _, status := range rollout.Status.StepPluginStatuses {
-	//	if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
-	//
-	//		byteStatus, _ := json.Marshal(RunStatus{
-	//			IsRunning:          true,
-	//			TimeRunningStarted: time.Now(),
-	//			DummyStruct: DummyStruct{
-	//				Value1: "Value1",
-	//				Value2: "Value2",
-	//			},
-	//			Count: 0,
-	//		})
-	//
-	//		//byteStatus, _ := json.Marshal(status.Status)
-	//		return byteStatus, nil
-	//	}
-	//}
+	for _, status := range rollout.Status.StepPluginStatuses {
+		if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
+			runS := RunStatus{}
+			if err := json.Unmarshal(status.Status, &runS); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
+			}
+
+			var byteStatus []byte
+			if runS.IsRunning == true && runS.IsCompleted == false {
+				byteStatus, _ = json.Marshal(RunStatus{
+					IsRunning:          true,
+					TimeRunningStarted: time.Now(),
+					DummyStruct: DummyStruct{
+						Value1: "Value1",
+						Value2: "Value2",
+					},
+					Count: 0,
+				})
+			}
+
+			//byteStatus, _ := json.Marshal(status.Status)
+			return byteStatus, nil
+		}
+	}
 
 	byteStatus, _ := json.Marshal(RunStatus{
 		IsRunning:          true,
+		IsCompleted:        false,
 		TimeRunningStarted: time.Now(),
 		DummyStruct: DummyStruct{
 			Value1: "Value1",
