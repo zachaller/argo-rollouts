@@ -31,7 +31,7 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 
 	sps := steps.NewStepPluginReconcile(currentStep)
 	for _, plugin := range sps {
-		log.Printf("Running Step: %d,  Plugin: %s", index, plugin.Type())
+		log.Printf("Running Step: %d,  Plugin: %s", *index, plugin.Type())
 
 		res, _ := plugin.RunStep(*c.rollout)
 

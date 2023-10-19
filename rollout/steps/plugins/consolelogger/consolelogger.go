@@ -30,12 +30,20 @@ func NewConsoleLoggerStep() *ConsoleLogger {
 
 func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessage, error) {
 	log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
+
+	for _, status := range rollout.Status.StepPluginStatuses {
+		if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
+			byteStatus, _ := json.Marshal(status)
+			return byteStatus, nil
+		}
+	}
+
 	byteStatus, _ := json.Marshal(RunStatus{
 		IsRunning:          true,
 		TimeRunningStarted: time.Now(),
 		DummyStruct: DummyStruct{
-			Value1: rollout.Name,
-			Value2: rollout.Namespace,
+			Value1: "Value1",
+			Value2: "Value2",
 		},
 		Count: 0,
 	})
