@@ -39,21 +39,11 @@ func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessa
 				return nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
 			}
 
-			var byteStatus []byte
+			//var byteStatus []byte
 			if runS.IsRunning == true && runS.IsCompleted == false {
-				byteStatus, _ = json.Marshal(RunStatus{
-					IsRunning:          true,
-					TimeRunningStarted: time.Now(),
-					DummyStruct: DummyStruct{
-						Value1: "Value1",
-						Value2: "Value2",
-					},
-					Count: 0,
-				})
+				//byteStatus, _ = json.Marshal(status)
+				return nil, nil
 			}
-
-			//byteStatus, _ := json.Marshal(status.Status)
-			return byteStatus, nil
 		}
 	}
 

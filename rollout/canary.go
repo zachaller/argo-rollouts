@@ -60,10 +60,6 @@ func (c *rolloutContext) rolloutCanary() error {
 		return err
 	}
 
-	if err := c.reconcileStepPlugins(); err != nil {
-		return err
-	}
-
 	err = c.reconcileExperiments()
 	if err != nil {
 		return err
@@ -91,6 +87,10 @@ func (c *rolloutContext) rolloutCanary() error {
 	if stillReconciling {
 		c.log.Infof("Not finished reconciling Canary Pause")
 		return c.syncRolloutStatusCanary()
+	}
+
+	if err := c.reconcileStepPlugins(); err != nil {
+		return err
 	}
 
 	return c.syncRolloutStatusCanary()
@@ -354,10 +354,11 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		for _, p := range ps {
 
 			rodp := c.rollout.DeepCopy()
-			rodp.Status = c.newRollout.Status
+			statuses := c.newStatus.DeepCopy().StepPluginStatuses
+
 			singleStepCompleted, res, _ := p.IsStepCompleted(*rodp)
 
-			for i, status := range c.newRollout.Status.StepPluginStatuses {
+			for i, status := range statuses {
 				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {
 					status.Status = res
 					c.newStatus.StepPluginStatuses[i] = status
@@ -366,6 +367,9 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 			if !singleStepCompleted {
 				completed = false
 			}
+		}
+		if !completed {
+			c.enqueueRolloutAfter(c.rollout, defaults.GetRolloutVerifyRetryInterval())
 		}
 		return completed
 	}
@@ -440,7 +444,6 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	}
 
 	newStatus.CurrentStepIndex = currentStepIndex
-	//newStatus.StepPluginStatuses = c.newStatus.StepPluginStatuses
 	newStatus = c.calculateRolloutConditions(newStatus)
 	return c.persistRolloutStatus(&newStatus)
 }

@@ -35,8 +35,13 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 
 		res, _ := plugin.RunStep(*c.rollout)
 
-		if len(c.newRollout.Status.StepPluginStatuses) == 0 || ContainsStepPluginStatus(c.newRollout.Status.StepPluginStatuses, fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index)))) == false {
-			c.newRollout.Status.StepPluginStatuses = append(c.newRollout.Status.StepPluginStatuses, rolloutsv1alpha1.StepPluginStatuses{
+		if res == nil {
+			c.newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
+			return nil
+		}
+
+		if len(c.rollout.Status.StepPluginStatuses) == 0 || ContainsStepPluginStatus(c.rollout.Status.StepPluginStatuses, fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index)))) == false {
+			c.newStatus.StepPluginStatuses = append(c.newRollout.Status.StepPluginStatuses, rolloutsv1alpha1.StepPluginStatuses{
 				Name:      fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))),
 				StepIndex: index,
 				Status:    res,
@@ -45,13 +50,13 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 			for i, ps := range c.newRollout.Status.StepPluginStatuses {
 				if ps.Name == fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))) {
 					ps.Status = res
-					c.newRollout.Status.StepPluginStatuses[i] = ps
+					c.newStatus.StepPluginStatuses[i] = ps
 				}
 			}
 		}
 	}
 
-	return c.persistRolloutStatus(&c.newRollout.Status)
+	return nil
 }
 
 func ContainsStepPluginStatus(plugins []rolloutsv1alpha1.StepPluginStatuses, name string) bool {

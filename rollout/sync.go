@@ -413,7 +413,7 @@ func (c *rolloutContext) calculateBaseStatus() v1alpha1.RolloutStatus {
 	newStatus.Conditions = prevStatus.Conditions
 	newStatus.RestartedAt = c.newStatus.RestartedAt
 	newStatus.PromoteFull = (newStatus.CurrentPodHash != newStatus.StableRS) && prevStatus.PromoteFull
-	//newStatus.StepPluginStatuses = c.newRollout.Status.StepPluginStatuses
+	newStatus.StepPluginStatuses = c.newStatus.StepPluginStatuses
 	return newStatus
 }
 
