@@ -25,10 +25,6 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 		return nil
 	}
 
-	if c.newRollout == nil {
-		c.newRollout = c.rollout.DeepCopy()
-	}
-
 	sps := steps.NewStepPluginReconcile(currentStep)
 	for _, plugin := range sps {
 		log.Printf("Running Step: %d,  Plugin: %s", *index, plugin.Type())
@@ -47,14 +43,19 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 				Status:    res,
 			})
 		} else {
-			for i, ps := range c.newRollout.Status.StepPluginStatuses {
+			for i, ps := range c.rollout.Status.StepPluginStatuses {
 				if ps.Name == fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))) {
 					ps.Status = res
+					if c.newStatus.StepPluginStatuses == nil {
+						c.newStatus.StepPluginStatuses = make([]rolloutsv1alpha1.StepPluginStatuses, 1)
+					}
 					c.newStatus.StepPluginStatuses[i] = ps
 				}
 			}
 		}
 	}
+
+	//c.argoprojclientset.ArgoprojV1alpha1().Rollouts(c.rollout.Namespace).UpdateStatus(context.Background(), c.rollout, metav1.UpdateOptions{})
 
 	return nil
 }

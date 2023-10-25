@@ -356,7 +356,10 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 			rodp := c.rollout.DeepCopy()
 			statuses := c.newStatus.DeepCopy().StepPluginStatuses
 
-			singleStepCompleted, res, _ := p.IsStepCompleted(*rodp)
+			singleStepCompleted, res, err := p.IsStepCompleted(*rodp)
+			if err != nil {
+				fmt.Printf("Error: %s", err.Error())
+			}
 
 			for i, status := range statuses {
 				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {

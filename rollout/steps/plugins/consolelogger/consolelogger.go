@@ -35,6 +35,19 @@ func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessa
 	for _, status := range rollout.Status.StepPluginStatuses {
 		if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
 			runS := RunStatus{}
+			if status.Status == nil {
+				byteStatus, _ := json.Marshal(RunStatus{
+					IsRunning:          true,
+					IsCompleted:        false,
+					TimeRunningStarted: time.Now(),
+					DummyStruct: DummyStruct{
+						Value1: "Value1",
+						Value2: "Value2",
+					},
+					Count: 0,
+				})
+				return byteStatus, nil
+			}
 			if err := json.Unmarshal(status.Status, &runS); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
 			}
@@ -43,6 +56,18 @@ func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessa
 			if runS.IsRunning == true && runS.IsCompleted == false {
 				//byteStatus, _ = json.Marshal(status)
 				return nil, nil
+			} else if runS.IsRunning == false && runS.IsCompleted == false {
+				byteStatus, _ := json.Marshal(RunStatus{
+					IsRunning:          true,
+					IsCompleted:        false,
+					TimeRunningStarted: time.Now(),
+					DummyStruct: DummyStruct{
+						Value1: "Value1",
+						Value2: "Value2",
+					},
+					Count: 0,
+				})
+				return byteStatus, nil
 			}
 		}
 	}
@@ -69,9 +94,13 @@ func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool,
 			stepIndex = *rollout.Status.CurrentStepIndex
 		}
 		if status.Name == fmt.Sprintf("%s.%d", c.Type(), stepIndex) {
+
+			if status.Status == nil {
+				return false, nil, nil
+			}
 			err := json.Unmarshal(status.Status, &rs)
 			if err != nil {
-				return false, nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
+				return false, nil, fmt.Errorf("failed to unmarshal plugin IsCompleted response %s: %w", status.Status, err)
 			}
 			if rs.IsRunning == true {
 				rs.Count++
