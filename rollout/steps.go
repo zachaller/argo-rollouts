@@ -2,13 +2,37 @@ package rollout
 
 import (
 	"fmt"
-	rolloutsv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
+	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/rollout/steps"
 	"github.com/argoproj/argo-rollouts/utils/annotations"
 	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
-	"strconv"
 )
+
+type stepContext struct {
+	rollout           *v1alpha1.Rollout
+	pluginType        string
+	calledAt          metav1.Time
+	currentStepStatus v1alpha1.StepPluginStatuses
+}
+
+func newStepContext(rollout *v1alpha1.Rollout, pluginType string) *stepContext {
+	sc := &stepContext{
+		rollout:    rollout,
+		pluginType: pluginType,
+	}
+
+	//mapStatuses := map[string]v1alpha1.StepPluginStatuses{}
+	//json.Unmarshal(rollout.Status.SPluginStatus, &mapStatuses)
+	for stepName, status := range sc.rollout.Status.SPluginStatus {
+		if stepName == fmt.Sprintf("%s.%d", pluginType, *rollout.Status.CurrentStepIndex) {
+			sc.currentStepStatus = status
+		}
+	}
+
+	return sc
+}
 
 func (c *rolloutContext) reconcileStepPlugins() error {
 	currentStep, index := replicasetutil.GetCurrentCanaryStep(c.rollout)
@@ -27,44 +51,46 @@ func (c *rolloutContext) reconcileStepPlugins() error {
 
 	sps := steps.NewStepPluginReconcile(currentStep)
 	for _, plugin := range sps {
-		log.Printf("Running Step: %d,  Plugin: %s", *index, plugin.Type())
+		c.stepContext = newStepContext(c.rollout, plugin.Type())
 
-		res, _ := plugin.RunStep(*c.rollout)
+		c.newStatus = *c.rollout.Status.DeepCopy()
 
-		if res == nil {
-			c.newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
-			return nil
-		}
+		if c.controllerStartTime.After(c.stepContext.calledAt.Time) {
+			log.Printf("Controller Running Step: %d,  Plugin: %s", *index, plugin.Type())
+			res, e := plugin.RunStep(*c.rollout, c.stepContext.currentStepStatus)
+			c.stepContext.currentStepStatus.HasBeenCalled = true
+			c.stepContext.currentStepStatus.CalledAt = metav1.Now()
+			if e != nil {
+				fmt.Println(e)
+			}
 
-		if len(c.rollout.Status.StepPluginStatuses) == 0 || ContainsStepPluginStatus(c.rollout.Status.StepPluginStatuses, fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index)))) == false {
-			c.newStatus.StepPluginStatuses = append(c.newRollout.Status.StepPluginStatuses, rolloutsv1alpha1.StepPluginStatuses{
-				Name:      fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))),
-				StepIndex: index,
-				Status:    res,
-			})
-		} else {
-			for i, ps := range c.rollout.Status.StepPluginStatuses {
-				if ps.Name == fmt.Sprintf("%s.%s", plugin.Type(), strconv.Itoa(int(*index))) {
-					ps.Status = res
-					if c.newStatus.StepPluginStatuses == nil {
-						c.newStatus.StepPluginStatuses = make([]rolloutsv1alpha1.StepPluginStatuses, 1)
-					}
-					c.newStatus.StepPluginStatuses[i] = ps
+			if c.stepContext.currentStepStatus.IsEmpty() {
+				c.stepContext.currentStepStatus = v1alpha1.StepPluginStatuses{
+					Name:      fmt.Sprintf("%s.%d", plugin.Type(), *index),
+					StepIndex: index,
+					Status:    v1alpha1.Object{Value: res},
 				}
 			}
+			if res != nil {
+				c.stepContext.currentStepStatus.Status = v1alpha1.Object{Value: res}
+			}
 		}
-	}
 
-	//c.argoprojclientset.ArgoprojV1alpha1().Rollouts(c.rollout.Namespace).UpdateStatus(context.Background(), c.rollout, metav1.UpdateOptions{})
+		c.newStatus.SPluginStatus[fmt.Sprintf("%s.%d", plugin.Type(), *index)] = c.stepContext.currentStepStatus
+
+		//c.newStatus.SPluginStatus = jsonPStatus
+
+		//return c.syncRolloutStatusCanary()
+	}
 
 	return nil
 }
 
-func ContainsStepPluginStatus(plugins []rolloutsv1alpha1.StepPluginStatuses, name string) bool {
-	for _, plugin := range plugins {
-		if plugin.Name == name {
-			return true
-		}
-	}
-	return false
+func (c *rolloutContext) setStepCondition(pluginType string, status v1alpha1.StepPluginStatuses) {
+	//c.newStatus = *c.rollout.Status.DeepCopy()
+	//if c.newStatus.SPluginStatus == nil {
+	//	c.newStatus.SPluginStatus = map[string]v1alpha1.StepPluginStatuses{}
+	//}
+	//c.newStatus.SPluginStatus[fmt.Sprintf("%s.%d", pluginType, *c.rollout.Status.CurrentStepIndex)] = status
+	//c.syncRolloutStatusCanary()
 }

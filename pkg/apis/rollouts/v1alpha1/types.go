@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -945,24 +946,52 @@ type RolloutStatus struct {
 	/// ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario
 	ALBs []ALBStatus `json:"albs,omitempty" protobuf:"bytes,26,opt,name=albs"`
 
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Type=object
 	// +patchMergeKey=name
 	// +patchStrategy=merge
-	StepPluginStatuses []StepPluginStatuses `json:"stepPluginStatuses,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,27,opt,name=stepPluginStatuses"`
+	SPluginStatus []StepPluginStatuses `json:"sPluginStatus,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,28,opt,name=sPluginStatus"` // This is of type StepPluginStatuses
 }
 
 type StepPluginStatuses struct {
-	Name      string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-	StepIndex *int32 `json:"stepIndex,omitempty" protobuf:"bytes,2,opt,name=stepIndex"`
+	Name          string      `json:"name,omitempty" protobuf:"bytes,1,opt,name=stepName"`
+	StepIndex     *int32      `json:"stepIndex,omitempty" protobuf:"bytes,2,opt,name=stepIndex"`
+	HasBeenCalled bool        `json:"hasBeenCalled,omitempty" protobuf:"bytes,3,opt,name=hasBeenCalled"`
+	CalledAt      metav1.Time `json:"calledAt,omitempty" protobuf:"bytes,4,opt,name=calledAt"`
 
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Type=object
-	Status json.RawMessage `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
+	Status Object `json:"status,omitempty" protobuf:"bytes,5,opt,name=status"`
 
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	// PluginStatuses map[string]StepPluginStatus `json:"pluginStatuses,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,3,opt,name=pluginStatuses"`
 }
+
+func (m StepPluginStatuses) IsEmpty() bool {
+	return reflect.DeepEqual(StepPluginStatuses{}, m)
+}
+
+// +kubebuilder:validation:Type=object
+type Object struct {
+	Value json.RawMessage `json:"-"`
+}
+
+func (i *Object) UnmarshalJSON(value []byte) error {
+	return i.Value.UnmarshalJSON(value)
+}
+
+func (i Object) MarshalJSON() ([]byte, error) {
+	return i.Value.MarshalJSON()
+}
+
+func (i Object) OpenAPISchemaType() []string {
+	return []string{"object"}
+}
+
+func (i Object) OpenAPISchemaFormat() string { return "" }
 
 //type StepPluginStatus struct {
 //	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`

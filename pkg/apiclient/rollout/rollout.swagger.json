@@ -1689,6 +1689,10 @@
         }
       }
     },
+    "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.Object": {
+      "type": "object",
+      "title": "+kubebuilder:validation:Type=object"
+    },
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.ObjectRef": {
       "type": "object",
       "properties": {
@@ -2218,12 +2222,12 @@
           },
           "title": "/ ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario"
         },
-        "stepPluginStatuses": {
+        "sPluginStatus": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StepPluginStatuses"
           },
-          "title": "+patchMergeKey=name\n+patchStrategy=merge"
+          "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object\n+patchMergeKey=name\n+patchStrategy=merge"
         }
       },
       "title": "RolloutStatus is the status for a Rollout resource"
@@ -2485,16 +2489,21 @@
     "github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.StepPluginStatuses": {
       "type": "object",
       "properties": {
-        "name": {
+        "stepName": {
           "type": "string"
         },
         "stepIndex": {
           "type": "integer",
           "format": "int32"
         },
+        "hasBeenCalled": {
+          "type": "boolean"
+        },
+        "calledAt": {
+          "$ref": "#/definitions/k8s.io.apimachinery.pkg.apis.meta.v1.Time"
+        },
         "status": {
-          "type": "string",
-          "format": "byte",
+          "$ref": "#/definitions/github.com.argoproj.argo_rollouts.pkg.apis.rollouts.v1alpha1.Object",
           "title": "+kubebuilder:validation:Schemaless\n+kubebuilder:pruning:PreserveUnknownFields\n+kubebuilder:validation:Type=object"
         }
       }

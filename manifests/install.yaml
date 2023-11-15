@@ -15200,23 +15200,13 @@ spec:
               restartedAt:
                 format: date-time
                 type: string
+              sPluginStatus:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               selector:
                 type: string
               stableRS:
                 type: string
-              stepPluginStatuses:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    status:
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    stepIndex:
-                      format: int32
-                      type: integer
-                  type: object
-                type: array
               updatedReplicas:
                 format: int32
                 type: integer
