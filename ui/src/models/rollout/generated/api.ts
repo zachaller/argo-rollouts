@@ -1685,6 +1685,13 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1OAuth2Confi
 /**
  * 
  * @export
+ * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1Object
+ */
+export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1Object {
+}
+/**
+ * 
+ * @export
  * @interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ObjectRef
  */
 export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1ObjectRef {
@@ -2384,7 +2391,7 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStat
      * @type {Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses>}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1RolloutStatus
      */
-    stepPluginStatuses?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses>;
+    sPluginStatus?: Array<GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses>;
 }
 /**
  * 
@@ -2739,7 +2746,7 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginS
      * @type {string}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
      */
-    name?: string;
+    stepName?: string;
     /**
      * 
      * @type {number}
@@ -2748,10 +2755,22 @@ export interface GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginS
     stepIndex?: number;
     /**
      * 
-     * @type {string}
+     * @type {boolean}
      * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
      */
-    status?: string;
+    hasBeenCalled?: boolean;
+    /**
+     * 
+     * @type {K8sIoApimachineryPkgApisMetaV1Time}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    calledAt?: K8sIoApimachineryPkgApisMetaV1Time;
+    /**
+     * 
+     * @type {GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1Object}
+     * @memberof GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1StepPluginStatuses
+     */
+    status?: GithubComArgoprojArgoRolloutsPkgApisRolloutsV1alpha1Object;
 }
 /**
  * 

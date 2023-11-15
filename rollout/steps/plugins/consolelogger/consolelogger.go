@@ -16,8 +16,8 @@ type RunStatus struct {
 	IsCompleted        bool
 	TimeRunningStarted time.Time
 	TimeRunning        time.Duration
-	DummyStruct        DummyStruct
-	Count              int
+	//DummyStruct        DummyStruct
+	Count int
 }
 
 type DummyStruct struct {
@@ -29,97 +29,62 @@ func NewConsoleLoggerStep() *ConsoleLogger {
 	return &ConsoleLogger{}
 }
 
-func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout) (json.RawMessage, error) {
-	log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
+func (c *ConsoleLogger) RunStep(rollout rolloutsv1alpha1.Rollout, currentStatus rolloutsv1alpha1.StepPluginStatuses) (json.RawMessage, error) {
+	if currentStatus.IsEmpty() {
+		byteStatus, _ := json.Marshal(RunStatus{
+			IsRunning:          true,
+			IsCompleted:        false,
+			TimeRunningStarted: time.Now(),
+			Count:              0,
+			//DummyStruct: DummyStruct{
+			//	Value1: "Value1",
+			//	Value2: "Value2",
+			//},
+		})
 
-	for _, status := range rollout.Status.StepPluginStatuses {
-		if status.Name == fmt.Sprintf("%s.%d", c.Type(), *rollout.Status.CurrentStepIndex) {
-			runS := RunStatus{}
-			if status.Status == nil {
-				byteStatus, _ := json.Marshal(RunStatus{
-					IsRunning:          true,
-					IsCompleted:        false,
-					TimeRunningStarted: time.Now(),
-					DummyStruct: DummyStruct{
-						Value1: "Value1",
-						Value2: "Value2",
-					},
-					Count: 0,
-				})
-				return byteStatus, nil
+		go func() {
+			for {
+				log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
+				time.Sleep(5 * time.Second)
 			}
-			if err := json.Unmarshal(status.Status, &runS); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal plugin IsRunning response: %w", err)
-			}
+		}()
 
-			//var byteStatus []byte
-			if runS.IsRunning == true && runS.IsCompleted == false {
-				//byteStatus, _ = json.Marshal(status)
-				return nil, nil
-			} else if runS.IsRunning == false && runS.IsCompleted == false {
-				byteStatus, _ := json.Marshal(RunStatus{
-					IsRunning:          true,
-					IsCompleted:        false,
-					TimeRunningStarted: time.Now(),
-					DummyStruct: DummyStruct{
-						Value1: "Value1",
-						Value2: "Value2",
-					},
-					Count: 0,
-				})
-				return byteStatus, nil
-			}
+		return byteStatus, nil
+	} else {
+		runStatus := RunStatus{}
+		err := json.Unmarshal(currentStatus.Status.Value, &runStatus)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal plugin status %s: %w", currentStatus.Status, err)
 		}
-	}
+		if runStatus.IsCompleted == false {
+			go func() {
+				for {
+					log.Printf("Running ConsoleLogger on Rollout %s", rollout.Name)
+					time.Sleep(5 * time.Second)
+				}
+			}()
+		}
 
-	byteStatus, _ := json.Marshal(RunStatus{
-		IsRunning:          true,
-		IsCompleted:        false,
-		TimeRunningStarted: time.Now(),
-		DummyStruct: DummyStruct{
-			Value1: "Value1",
-			Value2: "Value2",
-		},
-		Count: 0,
-	})
-	return byteStatus, nil
+		byteStatus, _ := json.Marshal(runStatus)
+		return byteStatus, nil
+	}
 }
 
-func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout) (bool, json.RawMessage, error) {
+func (c *ConsoleLogger) IsStepCompleted(rollout rolloutsv1alpha1.Rollout, currentStatus rolloutsv1alpha1.StepPluginStatuses) (bool, json.RawMessage, error) {
 
 	rs := RunStatus{}
-	for _, status := range rollout.Status.StepPluginStatuses {
-		var stepIndex int32 = 0
-		if rollout.Status.CurrentStepIndex != nil {
-			stepIndex = *rollout.Status.CurrentStepIndex
-		}
-		if status.Name == fmt.Sprintf("%s.%d", c.Type(), stepIndex) {
+	json.Unmarshal(currentStatus.Status.Value, &rs)
 
-			if status.Status == nil {
-				return false, nil, nil
-			}
-			err := json.Unmarshal(status.Status, &rs)
-			if err != nil {
-				return false, nil, fmt.Errorf("failed to unmarshal plugin IsCompleted response %s: %w", status.Status, err)
-			}
-			if rs.IsRunning == true {
-				rs.Count++
-			} else {
-				rs.IsRunning = false
-			}
+	rs.Count++
 
-			byteStatus, _ := json.Marshal(rs)
+	byteStatus, _ := json.Marshal(rs)
 
-			if rs.Count >= 10 {
-				log.Printf("ConsoleLogger Step Completed")
-				return true, byteStatus, nil
-			}
-
-			return rs.Count >= 10, byteStatus, nil
-		}
+	if rs.Count >= 10 {
+		log.Printf("ConsoleLogger Step Completed")
+		return true, byteStatus, nil
 	}
 
-	return false, nil, nil
+	return rs.Count >= 10, byteStatus, nil
 }
 
 func (c *ConsoleLogger) Type() string {

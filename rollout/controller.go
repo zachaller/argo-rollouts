@@ -154,6 +154,8 @@ type reconcilerBase struct {
 	// recorder is an event recorder for recording Event resources to the Kubernetes API.
 	recorder     record.EventRecorder
 	resyncPeriod time.Duration
+
+	controllerStartTime metav1.Time
 }
 
 type IngressWrapper interface {
@@ -165,7 +167,6 @@ type IngressWrapper interface {
 
 // NewController returns a new rollout controller
 func NewController(cfg ControllerConfig) *Controller {
-
 	replicaSetControl := controller.RealRSControl{
 		KubeClient: cfg.KubeClientSet,
 		Recorder:   cfg.Recorder.K8sRecorder(),
@@ -200,6 +201,7 @@ func NewController(cfg ControllerConfig) *Controller {
 		resyncPeriod:                  cfg.ResyncPeriod,
 		podRestarter:                  podRestarter,
 		refResolver:                   cfg.RefResolver,
+		controllerStartTime:           metav1.Now(),
 	}
 
 	controller := &Controller{

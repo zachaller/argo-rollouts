@@ -7,8 +7,8 @@ import (
 )
 
 type StepPlugin interface {
-	RunStep(rollout v1alpha1.Rollout) (json.RawMessage, error)
-	IsStepCompleted(rollout v1alpha1.Rollout) (bool, json.RawMessage, error)
+	RunStep(rollout v1alpha1.Rollout, currentStepStatus v1alpha1.StepPluginStatuses) (json.RawMessage, error)
+	IsStepCompleted(rollout v1alpha1.Rollout, currentStatus v1alpha1.StepPluginStatuses) (bool, json.RawMessage, error)
 	Type() string
 }
 

@@ -1124,6 +1124,10 @@ message OAuth2Config {
   repeated string scopes = 4;
 }
 
+// +kubebuilder:validation:Type=object
+message Object {
+}
+
 // ObjectRef holds a references to the Kubernetes object
 message ObjectRef {
   // API Version of the referent
@@ -1540,9 +1544,12 @@ message RolloutStatus {
   // / ALBs keeps information regarding multiple ALBs and TargetGroups in a multi ingress scenario
   repeated ALBStatus albs = 26;
 
+  // +kubebuilder:validation:Schemaless
+  // +kubebuilder:pruning:PreserveUnknownFields
+  // +kubebuilder:validation:Type=object
   // +patchMergeKey=name
   // +patchStrategy=merge
-  repeated StepPluginStatuses stepPluginStatuses = 27;
+  repeated StepPluginStatuses sPluginStatus = 28;
 }
 
 // RolloutStrategy defines strategy to apply during next rollout
@@ -1713,14 +1720,18 @@ message SkyWalkingMetric {
 }
 
 message StepPluginStatuses {
-  optional string name = 1;
+  optional string stepName = 1;
 
   optional int32 stepIndex = 2;
+
+  optional bool hasBeenCalled = 3;
+
+  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time calledAt = 4;
 
   // +kubebuilder:validation:Schemaless
   // +kubebuilder:pruning:PreserveUnknownFields
   // +kubebuilder:validation:Type=object
-  optional bytes status = 3;
+  optional Object status = 5;
 }
 
 message StickinessConfig {

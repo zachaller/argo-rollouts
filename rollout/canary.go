@@ -1,14 +1,11 @@
 package rollout
 
 import (
-	"fmt"
 	"github.com/argoproj/argo-rollouts/rollout/steps"
-	"sort"
-	"strconv"
-
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
+	"sort"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/rollout/trafficrouting"
@@ -318,7 +315,7 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 	if c.rollout.Spec.Paused {
 		return false
 	}
-	currentStep, stepIndex := replicasetutil.GetCurrentCanaryStep(c.rollout)
+	currentStep, _ := replicasetutil.GetCurrentCanaryStep(c.rollout)
 	if currentStep == nil {
 		return false
 	}
@@ -351,24 +348,8 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 		completed := true
 		ps := steps.NewStepPluginReconcile(currentStep)
 		for _, p := range ps {
-
-			rodp := c.rollout.DeepCopy()
-			statuses := c.newStatus.DeepCopy().StepPluginStatuses
-
-			singleStepCompleted, res, err := p.IsStepCompleted(*rodp)
-			if err != nil {
-				fmt.Printf("Error: %s", err.Error())
-			}
-
-			for i, status := range statuses {
-				if status.Name == fmt.Sprintf("%s.%s", p.Type(), strconv.Itoa(int(*stepIndex))) {
-					status.Status = res
-					c.newStatus.StepPluginStatuses[i] = status
-				}
-			}
-			if !singleStepCompleted {
-				completed = false
-			}
+			p.IsStepCompleted(*c.rollout, c.stepContext.currentStepStatus)
+			return false
 		}
 		if !completed {
 			c.enqueueRolloutAfter(c.rollout, defaults.GetRolloutVerifyRetryInterval())
@@ -389,6 +370,9 @@ func (c *rolloutContext) syncRolloutStatusCanary() error {
 	newStatus.StableRS = c.rollout.Status.StableRS
 	newStatus.CurrentStepHash = conditions.ComputeStepHash(c.rollout)
 	stepCount := int32(len(c.rollout.Spec.Strategy.Canary.Steps))
+	//if newStatus.StepPluginStatuses == nil && c.rollout.Status.StepPluginStatuses != nil
+	//	newStatus.StepPluginStatuses = c.rollout.Status.StepPluginStatuses
+	//}
 
 	if replicasetutil.PodTemplateOrStepsChanged(c.rollout, c.newRS) {
 		c.resetRolloutStatus(&newStatus)
