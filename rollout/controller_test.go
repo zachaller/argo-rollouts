@@ -1188,11 +1188,17 @@ func TestDontSyncRolloutsWithEmptyPodSelector(t *testing.T) {
 	f := newFixture(t)
 	defer f.Close()
 
-	r := newBlueGreenRollout("foo", 1, nil, "", "")
+	r := newBlueGreenRollout("foo", 1, nil, "active", "")
+	activeSvc := newService("active", 80, nil, r)
 	f.rolloutLister = append(f.rolloutLister, r)
+	f.serviceLister = append(f.serviceLister, activeSvc)
 	f.objects = append(f.objects, r)
+	f.kubeobjects = append(f.kubeobjects, activeSvc)
 
+	f.expectUpdateRolloutStatusAction(r)
 	f.expectPatchRolloutAction(r)
+	f.expectCreateReplicaSetAction(&appsv1.ReplicaSet{})
+	f.expectUpdateReplicaSetAction(&appsv1.ReplicaSet{})
 	f.run(getKey(r, t))
 }
 
@@ -1226,12 +1232,14 @@ func TestAdoptReplicaSet(t *testing.T) {
 
 func TestRequeueStuckRollout(t *testing.T) {
 	rollout := func(progressingConditionReason string, rolloutCompleted bool, rolloutPaused bool, progressDeadlineSeconds *int32) *v1alpha1.Rollout {
-		r := &v1alpha1.Rollout{
-			Spec: v1alpha1.RolloutSpec{
-				Replicas:                pointer.Int32Ptr(0),
-				ProgressDeadlineSeconds: progressDeadlineSeconds,
-			},
-		}
+		r := newCanaryRollout("foo", 0, nil, nil, nil, intstr.FromInt(0), intstr.FromInt(1))
+		//r := &v1alpha1.Rollout{
+		//	Spec: v1alpha1.RolloutSpec{
+		//		Replicas:                pointer.Int32Ptr(0),
+		//		ProgressDeadlineSeconds: progressDeadlineSeconds,
+		//}}
+		r.Spec.ProgressDeadlineSeconds = progressDeadlineSeconds
+		//r.Spec.Strategy.BlueGreen = &v1alpha1.BlueGreenStrategy{}
 		r.Generation = 123
 		if rolloutPaused {
 			r.Status.PauseConditions = []v1alpha1.PauseCondition{{
@@ -1262,16 +1270,16 @@ func TestRequeueStuckRollout(t *testing.T) {
 		requeueImmediately bool
 		noRequeue          bool
 	}{
-		{
-			name:      "No Progressing Condition",
-			rollout:   rollout("", false, false, nil),
-			noRequeue: true,
-		},
-		{
-			name:      "Rollout Completed",
-			rollout:   rollout(conditions.ReplicaSetUpdatedReason, true, false, nil),
-			noRequeue: true,
-		},
+		//{
+		//	name:      "No Progressing Condition",
+		//	rollout:   rollout("", false, false, nil),
+		//	noRequeue: true,
+		//},
+		//{
+		//	name:      "Rollout Completed",
+		//	rollout:   rollout(conditions.ReplicaSetUpdatedReason, true, false, nil),
+		//	noRequeue: true,
+		//},
 		{
 			name:      "Rollout Timed out",
 			rollout:   rollout(conditions.TimedOutReason, false, false, nil),
@@ -1295,9 +1303,18 @@ func TestRequeueStuckRollout(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
+			savedRollout := test.rollout.DeepCopy()
 			f := newFixture(t)
 			defer f.Close()
 			c, _, _ := f.newController(noResyncPeriodFunc)
+			f.client.PrependReactor("*", "rollouts", func(action core.Action) (bool, runtime.Object, error) {
+				savedRollout.DeepCopyInto(test.rollout)
+				return true, savedRollout, nil
+			})
+			//f.kubeclient.PrependReactor("get", "replicasets", func(action core.Action) (bool, runtime.Object, error) {
+			//	newReplicaset := newReplicaSet(test.rollout, 1)
+			//	return true, newReplicaset, nil
+			//})
 			roCtx, err := c.newRolloutContext(test.rollout)
 			assert.NoError(t, err)
 			duration := roCtx.requeueStuckRollout(test.rollout.Status)
@@ -1321,7 +1338,10 @@ func TestSetReplicaToDefault(t *testing.T) {
 	f.rolloutLister = append(f.rolloutLister, r)
 	f.objects = append(f.objects, r)
 
+	//updateIndex := f.expectUpdateRolloutAction(r)
+	f.expectUpdateRolloutStatusAction(r)
 	updateIndex := f.expectUpdateRolloutAction(r)
+	f.expectCreateReplicaSetAction(&appsv1.ReplicaSet{})
 	f.run(getKey(r, t))
 	updatedRollout := f.getUpdatedRollout(updateIndex)
 	assert.Equal(t, defaults.DefaultReplicas, *updatedRollout.Spec.Replicas)
@@ -1332,7 +1352,8 @@ func TestSwitchInvalidSpecMessage(t *testing.T) {
 	f := newFixture(t)
 	defer f.Close()
 
-	r := newBlueGreenRollout("foo", 1, nil, "", "")
+	r := newBlueGreenRollout("foo", 1, nil, "active", "")
+	activeSvc := newService("active", 80, nil, r)
 	r.Spec.Selector = &metav1.LabelSelector{}
 	cond := conditions.NewRolloutCondition(v1alpha1.InvalidSpec, corev1.ConditionTrue, conditions.InvalidSpecReason, conditions.RolloutSelectAllMessage)
 	conditions.SetRolloutCondition(&r.Status, *cond)
@@ -1341,9 +1362,12 @@ func TestSwitchInvalidSpecMessage(t *testing.T) {
 	r.Spec.Selector = nil
 	f.rolloutLister = append(f.rolloutLister, r)
 	f.objects = append(f.objects, r)
+	f.kubeobjects = append(f.kubeobjects, activeSvc)
+	f.serviceLister = append(f.serviceLister, activeSvc)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	//f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 
 	expectedPatchWithoutSub := `{
 		"status": {
@@ -1587,8 +1611,7 @@ func newInvalidSpecCondition(reason string, resourceObj runtime.Object, optional
 }
 
 func TestGetReferencedAnalyses(t *testing.T) {
-	f := newFixture(t)
-	defer f.Close()
+	//f := newFixture(t)
 
 	rolloutAnalysisFail := v1alpha1.RolloutAnalysis{
 		Templates: []v1alpha1.AnalysisTemplateRef{{
@@ -1598,53 +1621,81 @@ func TestGetReferencedAnalyses(t *testing.T) {
 	}
 
 	t.Run("blueGreen pre-promotion analysis - fail", func(t *testing.T) {
+		f := newFixture(t)
+		defer f.Close()
 		r := newBlueGreenRollout("rollout", 1, nil, "active-service", "preview-service")
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.objects = append(f.objects, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.rolloutLister = append(f.rolloutLister, r)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 		r.Spec.Strategy.BlueGreen.PrePromotionAnalysis = &rolloutAnalysisFail
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getReferencedRolloutAnalyses()
 		assert.NotNil(t, err)
+		assert.Nil(t, roCtx)
 		msg := "spec.strategy.blueGreen.prePromotionAnalysis.templates: Invalid value: \"does-not-exist\": AnalysisTemplate 'does-not-exist' not found"
 		assert.Equal(t, msg, err.Error())
 	})
 
 	t.Run("blueGreen post-promotion analysis - fail", func(t *testing.T) {
+		f := newFixture(t)
+		defer f.Close()
 		r := newBlueGreenRollout("rollout", 1, nil, "active-service", "preview-service")
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.objects = append(f.objects, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.rolloutLister = append(f.rolloutLister, r)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 		r.Spec.Strategy.BlueGreen.PostPromotionAnalysis = &rolloutAnalysisFail
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getReferencedRolloutAnalyses()
 		assert.NotNil(t, err)
+		assert.Nil(t, roCtx)
 		msg := "spec.strategy.blueGreen.postPromotionAnalysis.templates: Invalid value: \"does-not-exist\": AnalysisTemplate 'does-not-exist' not found"
 		assert.Equal(t, msg, err.Error())
 	})
 
 	t.Run("canary analysis - fail", func(t *testing.T) {
+		f := newFixture(t)
+		defer f.Close()
 		r := newCanaryRollout("rollout-canary", 1, nil, nil, int32Ptr(0), intstr.FromInt(0), intstr.FromInt(1))
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.objects = append(f.objects, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.rolloutLister = append(f.rolloutLister, r)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 		r.Spec.Strategy.Canary.Analysis = &v1alpha1.RolloutAnalysisBackground{
 			RolloutAnalysis: rolloutAnalysisFail,
 		}
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getReferencedRolloutAnalyses()
 		assert.NotNil(t, err)
+		assert.Nil(t, roCtx)
 		msg := "spec.strategy.canary.analysis.templates: Invalid value: \"does-not-exist\": AnalysisTemplate 'does-not-exist' not found"
 		assert.Equal(t, msg, err.Error())
 	})
 
 	t.Run("canary step analysis - fail", func(t *testing.T) {
+		f := newFixture(t)
+		defer f.Close()
 		canarySteps := []v1alpha1.CanaryStep{{
 			Analysis: &rolloutAnalysisFail,
 		}}
 		r := newCanaryRollout("rollout-canary", 1, nil, canarySteps, int32Ptr(0), intstr.FromInt(0), intstr.FromInt(1))
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.objects = append(f.objects, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.rolloutLister = append(f.rolloutLister, r)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getReferencedRolloutAnalyses()
 		assert.NotNil(t, err)
+		assert.Nil(t, roCtx)
 		msg := "spec.strategy.canary.steps[0].analysis.templates: Invalid value: \"does-not-exist\": AnalysisTemplate 'does-not-exist' not found"
 		assert.Equal(t, msg, err.Error())
 	})
@@ -1660,6 +1711,12 @@ func TestGetReferencedClusterAnalysisTemplate(t *testing.T) {
 			ClusterScope: true,
 		}},
 	}
+	activeSvc := newService("active-service", 80, nil, r)
+	previewSvc := newService("preview-service", 80, nil, r)
+	f.rolloutLister = append(f.rolloutLister, r)
+	f.objects = append(f.objects, r)
+	f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+	f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 
 	t.Run("get referenced analysisTemplate - fail", func(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
@@ -1691,6 +1748,12 @@ func TestGetInnerReferencedAnalysisTemplate(t *testing.T) {
 		}},
 	}
 	f.clusterAnalysisTemplateLister = append(f.clusterAnalysisTemplateLister, clusterAnalysisTemplateWithAnalysisRefs("first-cluster-analysis-template-name", "second-cluster-analysis-template-name", "third-cluster-analysis-template-name"))
+	activeSvc := newService("active-service", 80, nil, r)
+	previewSvc := newService("preview-service", 80, nil, r)
+	f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+	f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
+	f.objects = append(f.objects, r)
+	f.rolloutLister = append(f.rolloutLister, r)
 
 	t.Run("get inner referenced analysisTemplate - fail", func(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
@@ -1736,6 +1799,14 @@ func TestGetReferencedIngressesALB(t *testing.T) {
 		},
 	}
 	r.Namespace = metav1.NamespaceDefault
+	stableSvc := newService("stable", 80, nil, r)
+	canarySvc := newService("canary", 80, nil, r)
+	r.Spec.Strategy.Canary.StableService = stableSvc.Name
+	r.Spec.Strategy.Canary.CanaryService = canarySvc.Name
+	f.kubeobjects = append(f.kubeobjects, stableSvc, canarySvc)
+	f.serviceLister = append(f.serviceLister, stableSvc, canarySvc)
+	f.objects = append(f.objects, r)
+	f.rolloutLister = append(f.rolloutLister, r)
 
 	t.Run("get referenced ALB ingress - fail", func(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)

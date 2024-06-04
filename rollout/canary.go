@@ -441,10 +441,10 @@ func (c *rolloutContext) reconcileCanaryReplicaSets() (bool, error) {
 
 	// If we have updated both the replica count and the pod template hash c.newRS will be nil we want to reconcile the newRS so we look at the
 	// rollout status to get the newRS to reconcile it.
-	if c.newRS == nil && c.rollout.Status.CurrentPodHash != c.rollout.Status.StableRS {
-		rs, _ := replicasetutil.GetReplicaSetByTemplateHash(c.allRSs, c.rollout.Status.CurrentPodHash)
-		c.newRS = rs
-	}
+	//if c.newRS == nil && c.rollout.Status.CurrentPodHash != c.rollout.Status.StableRS {
+	//	rs, _ := replicasetutil.GetReplicaSetByTemplateHash(c.allRSs, c.rollout.Status.CurrentPodHash)
+	//	c.newRS = rs
+	//}
 
 	scaledNewRS, err := c.reconcileNewReplicaSet()
 	if err != nil {

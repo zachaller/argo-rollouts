@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/argoproj/argo-rollouts/utils/hash"
 	"os"
 	"reflect"
 	"strconv"
@@ -529,6 +530,63 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
 		},
 		reconcilerBase: c.reconcilerBase,
 	}
+
+	// Get Rollout Validation errors
+	err = roCtx.getRolloutValidationErrors()
+	if err != nil {
+		if vErr, ok := err.(*field.Error); ok {
+			// We want to frequently requeue rollouts with InvalidSpec errors, because the error
+			// condition might be timing related (e.g. the Rollout was applied before the Service).
+			c.enqueueRolloutAfter(roCtx.rollout, 20*time.Second)
+			err := roCtx.createInvalidRolloutCondition(vErr, roCtx.rollout)
+			if err != nil {
+				return nil, err
+			}
+			return nil, vErr
+		}
+		return nil, err
+	}
+
+	if roCtx.newRS == nil {
+		foundDoNotCreateRS := false
+		podHash := hash.ComputePodTemplateHash(&roCtx.rollout.Spec.Template, roCtx.rollout.Status.CollisionCount)
+
+		// Look at rollouts selector and find all replica sets with that selector
+		s, err := metav1.LabelSelectorAsSelector(roCtx.rollout.Spec.Selector)
+		if err != nil {
+			return nil, err
+		}
+		rsList, err := c.replicaSetLister.ReplicaSets(roCtx.rollout.Namespace).List(s)
+		if err != nil {
+			return nil, err
+		}
+
+		// Go through the replicasets that have the same selector as the rollout object and if the pod hash matches the
+		// current rollout pod hash, set the foundDoNotCreateRS to true so that we don't create a new replica set
+		for _, rs := range rsList {
+			if rs.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] == podHash {
+				foundDoNotCreateRS = true
+			}
+		}
+
+		if roCtx.newRS == nil && !foundDoNotCreateRS {
+			roCtx.newRS, err = roCtx.createDesiredReplicaSet()
+			if err != nil {
+				return nil, err
+			}
+			roCtx.olderRSs = replicasetutil.FindOldReplicaSets(roCtx.rollout, rsList, roCtx.newRS)
+			roCtx.stableRS = replicasetutil.GetStableRS(roCtx.rollout, roCtx.newRS, roCtx.olderRSs)
+			roCtx.otherRSs = replicasetutil.GetOtherRSs(roCtx.rollout, roCtx.newRS, roCtx.stableRS, rsList)
+			roCtx.allRSs = append(rsList, roCtx.newRS)
+		} else {
+			roCtx.newRS = replicasetutil.FindNewReplicaSet(roCtx.rollout, rsList)
+			roCtx.olderRSs = replicasetutil.FindOldReplicaSets(roCtx.rollout, rsList, roCtx.newRS)
+			roCtx.stableRS = replicasetutil.GetStableRS(roCtx.rollout, roCtx.newRS, roCtx.olderRSs)
+			roCtx.otherRSs = replicasetutil.GetOtherRSs(roCtx.rollout, roCtx.newRS, roCtx.stableRS, rsList)
+			roCtx.allRSs = rsList
+		}
+	}
+
 	if rolloututil.IsFullyPromoted(rollout) && roCtx.pauseContext.IsAborted() {
 		logCtx.Warnf("Removing abort condition from fully promoted rollout")
 		roCtx.pauseContext.RemoveAbort()

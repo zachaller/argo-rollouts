@@ -91,14 +91,16 @@ spec:
 		ExpectRevisionPodCount("2", 1).
 		ExpectRolloutEvents([]string{
 			"RolloutAddedToInformer", // Rollout added to informer cache
-			"RolloutNotCompleted",    // Rollout not completed, started update to revision 0 (7fd9b5545c)
-			"RolloutUpdated",         // Rollout updated to revision 1
-			"NewReplicaSetCreated",   // Created ReplicaSet abort-retry-promote-698fbfb9dc (revision 1)
-			"ScalingReplicaSet",      // Scaled up ReplicaSet abort-retry-promote-698fbfb9dc (revision 1) from 0 to 1
-			"RolloutCompleted",       // Rollout completed update to revision 1 (698fbfb9dc): Initial deploy
-			"RolloutNotCompleted",
+			//"RolloutNotCompleted",    // Rollout not completed, started update to revision 0 (7fd9b5545c)
+			"RolloutUpdated",       // Rollout updated to revision 1
+			"NewReplicaSetCreated", // Created ReplicaSet abort-retry-promote-698fbfb9dc (revision 1)
+			"RolloutNotCompleted",  // Rollout not completed, started update to revision 2 (7fd9b5545c)
+			"ScalingReplicaSet",    // Scaled up ReplicaSet abort-retry-promote-698fbfb9dc (revision 1) from 0 to 1
+			"RolloutCompleted",     // Rollout completed update to revision 1 (698fbfb9dc): Initial deploy
+			//"RolloutNotCompleted",
 			"RolloutUpdated",       // Rollout updated to revision 2
 			"NewReplicaSetCreated", // Created ReplicaSet abort-retry-promote-75dcb5ddd6 (revision 2)
+			"RolloutNotCompleted",  // Rollout not completed, started update to revision 3 (5bb7978cd)
 			"ScalingReplicaSet",    // Scaled up ReplicaSet abort-retry-promote-75dcb5ddd6 (revision 2) from 0 to 1
 			"RolloutStepCompleted", // Rollout step 1/2 completed (setWeight: 50)
 			"RolloutPaused",        // Rollout is paused (CanaryPauseStep)
