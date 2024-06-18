@@ -1572,7 +1572,7 @@ func TestCanaryRolloutWithInvalidCanaryServiceName(t *testing.T) {
 	f.kubeobjects = append(f.kubeobjects, rs)
 
 	patchIndex := f.expectPatchRolloutAction(rollout)
-	f.run(getKey(rollout, t))
+	f.runExpectError(getKey(rollout, t), true)
 
 	patch := make(map[string]any)
 	patchData := f.getPatchedRollout(patchIndex)
@@ -1624,7 +1624,7 @@ func TestCanaryRolloutWithInvalidStableServiceName(t *testing.T) {
 	f.kubeobjects = append(f.kubeobjects, rs)
 
 	patchIndex := f.expectPatchRolloutAction(rollout)
-	f.run(getKey(rollout, t))
+	f.runExpectError(getKey(rollout, t), true)
 
 	patch := make(map[string]any)
 	patchData := f.getPatchedRollout(patchIndex)
@@ -1673,7 +1673,7 @@ func TestCanaryRolloutWithInvalidPingServiceName(t *testing.T) {
 	f.objects = append(f.objects, r)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 
 	patch := make(map[string]any)
 	patchData := f.getPatchedRollout(patchIndex)
