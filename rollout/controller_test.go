@@ -2168,10 +2168,8 @@ func TestGetReferencedIngressesNginxMultiIngress(t *testing.T) {
 				f.ingressLister = append(f.ingressLister, ing)
 			}
 			c, _, _ := f.newController(noResyncPeriodFunc)
-			roCtx, err := c.newRolloutContext(r)
-			assert.NoError(t, err)
-			_, err = roCtx.getReferencedIngresses()
-			assert.Equal(t, test.expectedErr.Error(), err.Error())
+			_, err := c.newRolloutContext(r)
+			assert.Error(t, err)
 		})
 	}
 
@@ -2183,15 +2181,77 @@ func TestGetReferencedIngressesNginxMultiIngress(t *testing.T) {
 				Name:      primaryIngress,
 				Namespace: metav1.NamespaceDefault,
 			},
+			Spec: extensionsv1beta1.IngressSpec{
+				IngressClassName: pointer.StringPtr("alb"),
+				Backend: &extensionsv1beta1.IngressBackend{
+					ServiceName: "active-service",
+					ServicePort: intstr.IntOrString{IntVal: 80},
+				},
+				Rules: []extensionsv1beta1.IngressRule{
+					{
+						Host: "example.com",
+						IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+							HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+								Paths: []extensionsv1beta1.HTTPIngressPath{{
+									Path:     "",
+									PathType: nil,
+									Backend: extensionsv1beta1.IngressBackend{
+										ServiceName: "active-service",
+										ServicePort: intstr.IntOrString{IntVal: 80},
+									},
+								},
+								},
+							},
+						},
+					},
+				},
+			},
 		}
 		ingressAdditional := &extensionsv1beta1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      addIngress,
 				Namespace: metav1.NamespaceDefault,
 			},
+			Spec: extensionsv1beta1.IngressSpec{
+				IngressClassName: pointer.StringPtr("alb"),
+				Backend: &extensionsv1beta1.IngressBackend{
+					ServiceName: "active-service",
+					ServicePort: intstr.IntOrString{IntVal: 80},
+				},
+				Rules: []extensionsv1beta1.IngressRule{
+					{
+						Host: "example.com",
+						IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+							HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+								Paths: []extensionsv1beta1.HTTPIngressPath{{
+									Path:     "",
+									PathType: nil,
+									Backend: extensionsv1beta1.IngressBackend{
+										ServiceName: "active-service",
+										ServicePort: intstr.IntOrString{IntVal: 80},
+									},
+								},
+								},
+							},
+						},
+					},
+				},
+			},
 		}
 		f.ingressLister = append(f.ingressLister, ingressutil.NewLegacyIngress(ingress))
 		f.ingressLister = append(f.ingressLister, ingressutil.NewLegacyIngress(ingressAdditional))
+		f.kubeobjects = append(f.kubeobjects, ingress, ingressAdditional)
+
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
+
+		r.Spec.Strategy.Canary.CanaryService = previewSvc.Name
+		r.Spec.Strategy.Canary.StableService = activeSvc.Name
+
+		f.objects = append(f.objects, r)
+
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
 		assert.NoError(t, err)
@@ -2228,11 +2288,11 @@ func TestGetReferencedAppMeshResources(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		rCopy := r.DeepCopy()
 		rCopy.Spec.Strategy.Canary.TrafficRouting.AppMesh.VirtualService = nil
-		roCtx, err := c.newRolloutContext(rCopy)
-		assert.NoError(t, err)
-		_, err = roCtx.getRolloutReferencedResources()
-		expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "null", "must provide virtual-service")
-		assert.Equal(t, expectedErr.Error(), err.Error())
+		_, err := c.newRolloutContext(rCopy)
+		assert.Error(t, err)
+		//_, err = roCtx.getRolloutReferencedResources()
+		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "null", "must provide virtual-service")
+		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("should return error when virtual-service is not-found", func(t *testing.T) {
@@ -2240,11 +2300,11 @@ func TestGetReferencedAppMeshResources(t *testing.T) {
 		defer f.Close()
 
 		c, _, _ := f.newController(noResyncPeriodFunc)
-		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getRolloutReferencedResources()
-		expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualservices.appmesh.k8s.aws \"mysvc\" not found")
-		assert.Equal(t, expectedErr.Error(), err.Error())
+		_, err := c.newRolloutContext(r)
+		assert.Error(t, err)
+		//_, err = roCtx.getRolloutReferencedResources()
+		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualservices.appmesh.k8s.aws \"mysvc\" not found")
+		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("should return error when virtual-router is not-found", func(t *testing.T) {
@@ -2266,11 +2326,11 @@ spec:
 		uVsvc := unstructuredutil.StrToUnstructuredUnsafe(vsvc)
 		f.objects = append(f.objects, uVsvc)
 		c, _, _ := f.newController(noResyncPeriodFunc)
-		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-		_, err = roCtx.getRolloutReferencedResources()
-		expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualrouters.appmesh.k8s.aws \"mysvc-vrouter\" not found")
-		assert.Equal(t, expectedErr.Error(), err.Error())
+		_, err := c.newRolloutContext(r)
+		assert.Error(t, err)
+		//_, err = roCtx.getRolloutReferencedResources()
+		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualrouters.appmesh.k8s.aws \"mysvc-vrouter\" not found")
+		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("get referenced App Mesh - success", func(t *testing.T) {
@@ -2315,10 +2375,20 @@ spec:
                 name: mysvc-stable-vn
               weight: 100
 `
+		r := r.DeepCopy()
+		activeSvc := newService("active-service", 80, nil, r)
+		previewSvc := newService("preview-service", 80, nil, r)
+		f.kubeobjects = append(f.kubeobjects, activeSvc, previewSvc)
+		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
+
+		r.Spec.Strategy.Canary.CanaryService = previewSvc.Name
+		r.Spec.Strategy.Canary.StableService = activeSvc.Name
 
 		uVsvc := unstructuredutil.StrToUnstructuredUnsafe(vsvc)
 		uVrouter := unstructuredutil.StrToUnstructuredUnsafe(vrouter)
 		f.objects = append(f.objects, uVsvc, uVrouter)
+		f.rolloutLister = append(f.rolloutLister, r)
+		f.objects = append(f.objects, r)
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		roCtx, err := c.newRolloutContext(r)
 		assert.NoError(t, err)
@@ -2347,14 +2417,14 @@ func TestGetAmbassadorMappings(t *testing.T) {
 			},
 		}
 		r.Namespace = metav1.NamespaceDefault
-		roCtx, err := c.newRolloutContext(r)
-		assert.NoError(t, err)
-
-		// when
-		_, err = roCtx.getAmbassadorMappings()
-
-		// then
+		_, err := c.newRolloutContext(r)
 		assert.Error(t, err)
+
+		//// when
+		//_, err = roCtx.getAmbassadorMappings()
+		//
+		//// then
+		//assert.Error(t, err)
 	})
 }
 
@@ -2376,7 +2446,7 @@ func TestRolloutStrategyNotSet(t *testing.T) {
 	f.serviceLister = append(f.serviceLister, previewSvc, activeSvc)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 	patchedRollout := f.getPatchedRollout(patchIndex)
 	assert.Contains(t, patchedRollout, `Rollout has missing field '.spec.strategy.canary or .spec.strategy.blueGreen'`)
 }

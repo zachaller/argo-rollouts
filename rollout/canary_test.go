@@ -1697,6 +1697,7 @@ func TestCanaryRolloutWithInvalidPongServiceName(t *testing.T) {
 
 	r := newCanaryRollout("foo", 0, nil, nil, nil, intstr.FromInt(1), intstr.FromInt(0))
 	pingSvc := newService("ping-service", 80, nil, r)
+	//pongSvc := newService("pong-service1", 80, nil, r)
 	r.Spec.Strategy.Canary.PingPong = &v1alpha1.PingPongSpec{PingService: pingSvc.Name, PongService: "pong-service"}
 
 	f.rolloutLister = append(f.rolloutLister, r)
@@ -1705,7 +1706,7 @@ func TestCanaryRolloutWithInvalidPongServiceName(t *testing.T) {
 	f.serviceLister = append(f.serviceLister, pingSvc)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 
 	patch := make(map[string]any)
 	patchData := f.getPatchedRollout(patchIndex)
