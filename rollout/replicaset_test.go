@@ -314,7 +314,7 @@ func TestReconcileNewReplicaSet(t *testing.T) {
 }
 
 func TestReconcileOldReplicaSet(t *testing.T) {
-	t.Skip("broken in refactor")
+	//t.Skip("broken in refactor")
 	tests := []struct {
 		name                string
 		rolloutReplicas     int
@@ -366,14 +366,21 @@ func TestReconcileOldReplicaSet(t *testing.T) {
 			oldRS := rs("foo-old", test.oldReplicas, oldSelector, noTimestamp, nil)
 			oldRS.Annotations = map[string]string{annotations.DesiredReplicasAnnotation: strconv.Itoa(test.oldReplicas)}
 			oldRS.Status.AvailableReplicas = int32(test.readyPodsFromOldRS)
-			rollout := newBlueGreenRollout("foo", test.rolloutReplicas, nil, "", "")
+
+			rollout := newBlueGreenRollout("foo", test.rolloutReplicas, nil, "active-service", "preview-service")
 			rollout.Spec.Strategy.BlueGreen.ScaleDownDelayRevisionLimit = pointer.Int32Ptr(0)
 			rollout.Spec.Selector = &metav1.LabelSelector{MatchLabels: newSelector}
+
+			activeService := newService("active-service", 80, nil, nil)
+			previewService := newService("preview-service", 80, nil, nil)
+			rollout.Spec.Template.Labels["foo"] = "new"
+
 			f := newFixture(t)
 			defer f.Close()
 			f.objects = append(f.objects, rollout)
 			f.replicaSetLister = append(f.replicaSetLister, oldRS, newRS)
-			f.kubeobjects = append(f.kubeobjects, oldRS, newRS)
+			f.serviceLister = append(f.serviceLister, activeService, previewService)
+			f.kubeobjects = append(f.kubeobjects, oldRS, newRS, activeService, previewService)
 			c, informers, _ := f.newController(noResyncPeriodFunc)
 			stopCh := make(chan struct{})
 			informers.Start(stopCh)

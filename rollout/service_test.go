@@ -53,7 +53,6 @@ func newService(name string, port int, selector map[string]string, ro *v1alpha1.
 }
 
 func TestGetPreviewAndActiveServices(t *testing.T) {
-	t.Skip("broken in refactor")
 	f := newFixture(t)
 	defer f.Close()
 	expActive := newService("active", 80, nil, nil)
@@ -66,19 +65,16 @@ func TestGetPreviewAndActiveServices(t *testing.T) {
 	otherRoSvc := newService("other-svc", 80, nil, otherRo)
 	f.kubeobjects = append(f.kubeobjects, expActive, expPreview, otherRoSvc)
 	f.serviceLister = append(f.serviceLister, expActive, expPreview, otherRoSvc)
-	rollout := &v1alpha1.Rollout{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: metav1.NamespaceDefault,
-		},
-		Spec: v1alpha1.RolloutSpec{
-			Strategy: v1alpha1.RolloutStrategy{
-				BlueGreen: &v1alpha1.BlueGreenStrategy{
-					PreviewService: "preview",
-					ActiveService:  "active",
-				},
-			},
+	rollout := newRollout("foo", 1, nil, map[string]string{"foo": "bar"})
+	rollout.Spec.Strategy = v1alpha1.RolloutStrategy{
+		BlueGreen: &v1alpha1.BlueGreenStrategy{
+			PreviewService: "preview",
+			ActiveService:  "active",
 		},
 	}
+	f.rolloutLister = append(f.rolloutLister, rollout)
+	f.objects = append(f.objects, rollout)
+
 	c, _, _ := f.newController(noResyncPeriodFunc)
 	t.Run("Get Both", func(t *testing.T) {
 		roCtx, err := c.newRolloutContext(rollout)
