@@ -314,7 +314,6 @@ func TestReconcileNewReplicaSet(t *testing.T) {
 }
 
 func TestReconcileOldReplicaSet(t *testing.T) {
-	//t.Skip("broken in refactor")
 	tests := []struct {
 		name                string
 		rolloutReplicas     int

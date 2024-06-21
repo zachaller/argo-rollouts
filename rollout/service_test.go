@@ -2,6 +2,7 @@ package rollout
 
 import (
 	"fmt"
+	v1 "k8s.io/api/apps/v1"
 	"strconv"
 	"strings"
 	"testing"
@@ -13,7 +14,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -53,7 +53,6 @@ func newService(name string, port int, selector map[string]string, ro *v1alpha1.
 }
 
 func TestGetPreviewAndActiveServices(t *testing.T) {
-	t.Skip("broken in refactor")
 	f := newFixture(t)
 	defer f.Close()
 	expActive := newService("active", 80, nil, nil)
@@ -88,35 +87,25 @@ func TestGetPreviewAndActiveServices(t *testing.T) {
 	t.Run("Preview not found", func(t *testing.T) {
 		noPreviewSvcRollout := rollout.DeepCopy()
 		noPreviewSvcRollout.Spec.Strategy.BlueGreen.PreviewService = "not-preview"
-		roCtx, err := c.newRolloutContext(noPreviewSvcRollout)
-		assert.NoError(t, err)
-		_, _, err = roCtx.getPreviewAndActiveServices()
-		assert.NotNil(t, err)
-		assert.True(t, errors.IsNotFound(err))
+		_, err := c.newRolloutContext(noPreviewSvcRollout)
+		assert.Error(t, err)
 	})
 	t.Run("Active not found", func(t *testing.T) {
 		noActiveSvcRollout := rollout.DeepCopy()
 		noActiveSvcRollout.Spec.Strategy.BlueGreen.ActiveService = "not-active"
-		roCtx, err := c.newRolloutContext(noActiveSvcRollout)
-		assert.NoError(t, err)
-		_, _, err = roCtx.getPreviewAndActiveServices()
-		assert.NotNil(t, err)
-		assert.True(t, errors.IsNotFound(err))
+		_, err := c.newRolloutContext(noActiveSvcRollout)
+		assert.Error(t, err)
 	})
 
 	t.Run("Invalid Spec: No Active Svc", func(t *testing.T) {
 		noActiveSvcRollout := rollout.DeepCopy()
 		noActiveSvcRollout.Spec.Strategy.BlueGreen.ActiveService = ""
-		roCtx, err := c.newRolloutContext(noActiveSvcRollout)
-		assert.NoError(t, err)
-		_, _, err = roCtx.getPreviewAndActiveServices()
-		assert.NotNil(t, err)
-		assert.EqualError(t, err, "service \"\" not found")
+		_, err := c.newRolloutContext(noActiveSvcRollout)
+		assert.Error(t, err)
 	})
 }
 
 func TestActiveServiceNotFound(t *testing.T) {
-	t.Skip("broken in refactor")
 	f := newFixture(t)
 	defer f.Close()
 
@@ -130,7 +119,7 @@ func TestActiveServiceNotFound(t *testing.T) {
 	f.serviceLister = append(f.serviceLister, previewSvc)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 
 	patch := f.getPatchedRollout(patchIndex)
 	errmsg := "The Rollout \"foo\" is invalid: spec.strategy.blueGreen.activeService: Invalid value: \"active-svc\": service \"active-svc\" not found"
@@ -146,7 +135,6 @@ func TestActiveServiceNotFound(t *testing.T) {
 }
 
 func TestPreviewServiceNotFound(t *testing.T) {
-	t.Skip("broken in refactor")
 	f := newFixture(t)
 	defer f.Close()
 
@@ -159,7 +147,7 @@ func TestPreviewServiceNotFound(t *testing.T) {
 	f.kubeobjects = append(f.kubeobjects, activeSvc)
 
 	patchIndex := f.expectPatchRolloutAction(r)
-	f.run(getKey(r, t))
+	f.runExpectError(getKey(r, t), true)
 
 	patch := f.getPatchedRollout(patchIndex)
 	errmsg := "The Rollout \"foo\" is invalid: spec.strategy.blueGreen.previewService: Invalid value: \"preview-svc\": service \"preview-svc\" not found"
@@ -675,7 +663,6 @@ func TestCanaryAWSVerifyTargetGroupsSkip(t *testing.T) {
 
 // TestShouldVerifyTargetGroups returns whether or not we should verify the target group
 func TestShouldVerifyTargetGroups(t *testing.T) {
-	t.Skip("broken in refactor")
 	defaults.SetVerifyTargetGroup(true)
 	defer defaults.SetVerifyTargetGroup(false)
 
@@ -685,6 +672,17 @@ func TestShouldVerifyTargetGroups(t *testing.T) {
 
 	t.Run("CanaryNotUsingTrafficRouting", func(t *testing.T) {
 		ro := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromString("25%"), intstr.FromString("25%"))
+
+		f.rolloutLister = append(f.rolloutLister, ro)
+		f.objects = append(f.objects, ro)
+
+		f.expectUpdateRolloutStatusAction(ro)
+		f.expectPatchRolloutAction(ro)
+
+		f.expectCreateReplicaSetAction(&v1.ReplicaSet{})
+		f.expectUpdateReplicaSetAction(&v1.ReplicaSet{})
+		f.run(getKey(ro, t))
+
 		roCtx, err := ctrl.newRolloutContext(ro)
 		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
 		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
