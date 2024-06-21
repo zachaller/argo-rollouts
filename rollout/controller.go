@@ -549,7 +549,7 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
 	}
 
 	if roCtx.newRS == nil {
-		foundDoNotCreateRS := false
+		foundRS := false
 		podHash := hash.ComputePodTemplateHash(&roCtx.rollout.Spec.Template, roCtx.rollout.Status.CollisionCount)
 
 		// Look at rollouts selector and find all replica sets with that selector
@@ -563,14 +563,14 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
 		}
 
 		// Go through the replicasets that have the same selector as the rollout object and if the pod hash matches the
-		// current rollout pod hash, set the foundDoNotCreateRS to true so that we don't create a new replica set
+		// current rollout pod hash, set the foundRS to true so that we don't create a new replica set
 		for _, rs := range rsList {
 			if rs.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] == podHash {
-				foundDoNotCreateRS = true
+				foundRS = true
 			}
 		}
 
-		if roCtx.newRS == nil && !foundDoNotCreateRS {
+		if roCtx.newRS == nil && !foundRS {
 			roCtx.newRS, err = roCtx.createDesiredReplicaSet()
 			if err != nil {
 				return nil, err
