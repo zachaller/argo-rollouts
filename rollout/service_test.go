@@ -2,7 +2,6 @@ package rollout
 
 import (
 	"fmt"
-	v1 "k8s.io/api/apps/v1"
 	"strconv"
 	"strings"
 	"testing"
@@ -666,28 +665,12 @@ func TestShouldVerifyTargetGroups(t *testing.T) {
 	defaults.SetVerifyTargetGroup(true)
 	defer defaults.SetVerifyTargetGroup(false)
 
-	f := newFixture(t)
-	defer f.Close()
-	ctrl, _, _ := f.newController(noResyncPeriodFunc)
-
 	t.Run("CanaryNotUsingTrafficRouting", func(t *testing.T) {
 		ro := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromString("25%"), intstr.FromString("25%"))
 
-		f.rolloutLister = append(f.rolloutLister, ro)
-		f.objects = append(f.objects, ro)
-
-		f.expectUpdateRolloutStatusAction(ro)
-		f.expectPatchRolloutAction(ro)
-
-		f.expectCreateReplicaSetAction(&v1.ReplicaSet{})
-		f.expectUpdateReplicaSetAction(&v1.ReplicaSet{})
-		f.run(getKey(ro, t))
-
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
-		assert.NoError(t, err)
-		assert.False(t, roCtx.shouldVerifyTargetGroup(stableSvc))
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		assert.False(t, shouldVerifyTargetGroup(ro, newRS, stableSvc))
 	})
 	t.Run("CanaryNotFullyPromoted", func(t *testing.T) {
 		ro := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromString("25%"), intstr.FromString("25%"))
@@ -696,12 +679,10 @@ func TestShouldVerifyTargetGroups(t *testing.T) {
 				Ingress: "ingress",
 			},
 		}
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
 		ro.Status.StableRS = "somethingelse"
-		assert.NoError(t, err)
-		assert.False(t, roCtx.shouldVerifyTargetGroup(stableSvc))
+		assert.False(t, shouldVerifyTargetGroup(ro, newRS, stableSvc))
 	})
 	t.Run("CanaryFullyPromoted", func(t *testing.T) {
 		ro := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromString("25%"), intstr.FromString("25%"))
@@ -710,56 +691,46 @@ func TestShouldVerifyTargetGroups(t *testing.T) {
 				Ingress: "ingress",
 			},
 		}
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
-		ro.Status.StableRS = roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
-		assert.NoError(t, err)
-		assert.True(t, roCtx.shouldVerifyTargetGroup(stableSvc))
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		stableSvc := newService("stable", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		ro.Status.StableRS = newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
+		assert.True(t, shouldVerifyTargetGroup(ro, newRS, stableSvc))
 	})
 	t.Run("BlueGreenFullyPromoted", func(t *testing.T) {
 		ro := newBlueGreenRollout("foo", 3, nil, "active-svc", "")
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
-		ro.Status.StableRS = roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
-		assert.NoError(t, err)
-		assert.False(t, roCtx.shouldVerifyTargetGroup(activeSvc))
+
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		ro.Status.StableRS = newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
+		assert.False(t, shouldVerifyTargetGroup(ro, newRS, activeSvc))
 	})
 	t.Run("BlueGreenBeforePromotion", func(t *testing.T) {
 		ro := newBlueGreenRollout("foo", 3, nil, "active-svc", "")
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
 		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: "oldrshash"}, ro)
 		ro.Status.StableRS = "oldrshash"
-		assert.NoError(t, err)
-		assert.False(t, roCtx.shouldVerifyTargetGroup(activeSvc))
+		assert.False(t, shouldVerifyTargetGroup(ro, newRS, activeSvc))
 	})
 	t.Run("BlueGreenAfterPromotionAfterPromotionAnalysisStarted", func(t *testing.T) {
 		ro := newBlueGreenRollout("foo", 3, nil, "active-svc", "")
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
 		ro.Status.StableRS = "oldrshash"
 		ro.Status.BlueGreen.PostPromotionAnalysisRunStatus = &v1alpha1.RolloutAnalysisRunStatus{}
-		assert.NoError(t, err)
-		assert.False(t, roCtx.shouldVerifyTargetGroup(activeSvc))
+		assert.False(t, shouldVerifyTargetGroup(ro, newRS, activeSvc))
 	})
 	t.Run("BlueGreenAfterPromotion", func(t *testing.T) {
 		ro := newBlueGreenRollout("foo", 3, nil, "active-svc", "")
-		roCtx, err := ctrl.newRolloutContext(ro)
-		roCtx.newRS = newReplicaSetWithStatus(ro, 3, 3)
-		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: roCtx.newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
+		newRS := newReplicaSetWithStatus(ro, 3, 3)
+		activeSvc := newService("active-svc", 80, map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: newRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, ro)
 		ro.Status.StableRS = "oldrshash"
-		assert.NoError(t, err)
-		assert.True(t, roCtx.shouldVerifyTargetGroup(activeSvc))
+		assert.True(t, shouldVerifyTargetGroup(ro, newRS, activeSvc))
 	})
 }
 
 // TestDelayCanaryStableServiceLabelInjection verifies we don't inject pod hash labels to the canary
 // or stable service before the pods for them are ready.
 func TestDelayCanaryStableServiceLabelInjection(t *testing.T) {
-	t.Skip("broken in refactor")
 	ro1 := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromInt(1), intstr.FromInt(1))
 	ro1.Spec.Strategy.Canary.CanaryService = "canary"
 	ro1.Spec.Strategy.Canary.StableService = "stable"
@@ -771,6 +742,9 @@ func TestDelayCanaryStableServiceLabelInjection(t *testing.T) {
 	defer f.Close()
 	f.kubeobjects = append(f.kubeobjects, canarySvc, stableSvc)
 	f.serviceLister = append(f.serviceLister, canarySvc, stableSvc)
+
+	f.objects = append(f.objects, ro2)
+	f.rolloutLister = append(f.rolloutLister, ro2)
 
 	{
 		// first ensure we don't update service because new/stable are both not available
@@ -826,7 +800,6 @@ func TestDelayCanaryStableServiceLabelInjection(t *testing.T) {
 // TestDelayCanaryStableServiceDelayOnAdoptedService verifies allow partial readiness of pods when switching labels
 // on an adopted services, but that if there is zero readiness we will not switch
 func TestDelayCanaryStableServiceDelayOnAdoptedService(t *testing.T) {
-	t.Skip("broken in refactor")
 	ro1 := newCanaryRollout("foo", 3, nil, nil, nil, intstr.FromInt(1), intstr.FromInt(1))
 	ro1.Spec.Strategy.Canary.CanaryService = "canary"
 	ro1.Spec.Strategy.Canary.StableService = "stable"
@@ -839,6 +812,9 @@ func TestDelayCanaryStableServiceDelayOnAdoptedService(t *testing.T) {
 	defer f.Close()
 	f.kubeobjects = append(f.kubeobjects, canarySvc, stableSvc)
 	f.serviceLister = append(f.serviceLister, canarySvc, stableSvc)
+
+	f.objects = append(f.objects, ro2)
+	f.rolloutLister = append(f.rolloutLister, ro2)
 
 	t.Run("AdoptedService No Availability", func(t *testing.T) {
 		// first ensure we don't update service because new/stable are both not available
