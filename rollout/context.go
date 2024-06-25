@@ -48,58 +48,6 @@ type rolloutContext struct {
 }
 
 func (c *rolloutContext) reconcile() error {
-	// Get Rollout Validation errors
-	//err := c.getRolloutValidationErrors()
-	//if err != nil {
-	//	if vErr, ok := err.(*field.Error); ok {
-	//		// We want to frequently requeue rollouts with InvalidSpec errors, because the error
-	//		// condition might be timing related (e.g. the Rollout was applied before the Service).
-	//		c.enqueueRolloutAfter(c.rollout, 20*time.Second)
-	//		return c.createInvalidRolloutCondition(vErr, c.rollout)
-	//	}
-	//	return err
-	//}
-
-	//if c.newRS == nil {
-	//	foundDoNotCreateRS := false
-	//	podHash := hash.ComputePodTemplateHash(&c.rollout.Spec.Template, c.rollout.Status.CollisionCount)
-	//
-	//	// Look at rollouts selector and find all replica sets with that selector
-	//	s, err := metav1.LabelSelectorAsSelector(c.rollout.Spec.Selector)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	rsList, err := c.replicaSetLister.ReplicaSets(c.rollout.Namespace).List(s)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	// Go through the replicasets that have the same selector as the rollout object and if the pod hash matches the
-	//	// current rollout pod hash, set the foundDoNotCreateRS to true so that we don't create a new replica set
-	//	for _, rs := range rsList {
-	//		if rs.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] == podHash {
-	//			foundDoNotCreateRS = true
-	//		}
-	//	}
-	//
-	//	if c.newRS == nil && !foundDoNotCreateRS {
-	//		c.newRS, err = c.createDesiredReplicaSet()
-	//		if err != nil {
-	//			return err
-	//		}
-	//		c.olderRSs = replicasetutil.FindOldReplicaSets(c.rollout, rsList, c.newRS)
-	//		c.stableRS = replicasetutil.GetStableRS(c.rollout, c.newRS, c.olderRSs)
-	//		c.otherRSs = replicasetutil.GetOtherRSs(c.rollout, c.newRS, c.stableRS, rsList)
-	//		c.allRSs = append(rsList, c.newRS)
-	//	} else {
-	//		c.newRS = replicasetutil.FindNewReplicaSet(c.rollout, rsList)
-	//		c.olderRSs = replicasetutil.FindOldReplicaSets(c.rollout, rsList, c.newRS)
-	//		c.stableRS = replicasetutil.GetStableRS(c.rollout, c.newRS, c.olderRSs)
-	//		c.otherRSs = replicasetutil.GetOtherRSs(c.rollout, c.newRS, c.stableRS, rsList)
-	//		c.allRSs = rsList
-	//	}
-	//}
-
 	err := c.checkPausedConditions()
 	if err != nil {
 		return err
