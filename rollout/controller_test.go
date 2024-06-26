@@ -95,6 +95,7 @@ type fixture struct {
 	replicaSetLister              []*appsv1.ReplicaSet
 	serviceLister                 []*corev1.Service
 	ingressLister                 []*ingressutil.Ingress
+	virtualServiceLister          []*unstructured.Unstructured
 	// Actions expected to happen on the client.
 	kubeactions []core.Action
 	actions     []core.Action
@@ -662,6 +663,9 @@ func (f *fixture) newController(resync resyncFunc) (*Controller, informers.Share
 	for _, ar := range f.analysisRunLister {
 		i.Argoproj().V1alpha1().AnalysisRuns().Informer().GetIndexer().Add(ar)
 	}
+	for _, vs := range f.virtualServiceLister {
+		c.IstioController.VirtualServiceInformer.GetIndexer().Add(vs)
+	}
 
 	return c, i, k8sI
 }
@@ -682,8 +686,9 @@ func (f *fixture) runController(rolloutName string, startInformers bool, expectE
 		defer close(stopCh)
 		i.Start(stopCh)
 		k8sI.Start(stopCh)
+		go c.IstioController.VirtualServiceInformer.Run(stopCh)
 
-		assert.True(f.t, cache.WaitForCacheSync(stopCh, c.replicaSetSynced, c.rolloutsSynced))
+		assert.True(f.t, cache.WaitForCacheSync(stopCh, c.replicaSetSynced, c.rolloutsSynced, c.IstioController.VirtualServiceInformer.HasSynced))
 	}
 
 	err := c.syncHandler(context.Background(), rolloutName)
