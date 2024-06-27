@@ -1,6 +1,7 @@
 package rollout
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -2121,7 +2122,7 @@ func TestIsDynamicallyRollingBackToStable(t *testing.T) {
 }
 
 func TestCanaryReplicaAndSpecChangedTogether(t *testing.T) {
-	t.Skip("TODO: fix this test - move to e2e")
+	//t.Skip("TODO: fix this test - move to e2e")
 	f := newFixture(t)
 	defer f.Close()
 
@@ -2136,34 +2137,66 @@ func TestCanaryReplicaAndSpecChangedTogether(t *testing.T) {
 	stableSVC := newService(stableSVCName, 80,
 		map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: stableRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, r1)
 
-	r2 := bumpVersion(r1)
-	canaryRS := newReplicaSetWithStatus(r2, originReplicas, originReplicas)
-	canarySVC := newService(canarySVCName, 80,
-		map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: canaryRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, r2)
+	//r2 := bumpVersion(r1)
+	r1.Status.StableRS = stableRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
+	r1.Status.CurrentPodHash = stableRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
+	//r2.Status.AvailableReplicas = int32(originReplicas)
+	//r2.Status.ReadyReplicas = int32(originReplicas)
+	//r2.Status.Replicas = int32(originReplicas)
 
-	f.replicaSetLister = append(f.replicaSetLister, canaryRS, stableRS)
+	canaryRS := newReplicaSetWithStatus(r1, originReplicas, originReplicas)
+	canarySVC := newService(canarySVCName, 80,
+		map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: canaryRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]}, r1)
+
+	f.replicaSetLister = append(f.replicaSetLister, stableRS)
 	f.serviceLister = append(f.serviceLister, canarySVC, stableSVC)
 
-	r3 := bumpVersion(r2)
-	r3.Spec.Replicas = pointer.Int32(int32(originReplicas) + 5)
+	//r3 := bumpVersion(r2)
+	//r3.Spec.Replicas = pointer.Int32(int32(originReplicas) + 5)
 	//r3.Spec.Template.Spec.Containers[0].Image = "nginx:1.8.1"
 	//r3.Status.StableRS = stableRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
 	//r3.Status.CurrentPodHash = canaryRS.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]
 
-	f.rolloutLister = append(f.rolloutLister, r2)
-	f.kubeobjects = append(f.kubeobjects, canaryRS, stableRS, canarySVC, stableSVC)
-	f.objects = append(f.objects, r2)
+	f.rolloutLister = append(f.rolloutLister, r1)
+	f.kubeobjects = append(f.kubeobjects, stableRS, canarySVC, stableSVC)
+	f.objects = append(f.objects, r1)
 
 	c, i, k8sI := f.newController(noResyncPeriodFunc)
 
-	f.runController(getKey(r2, t), true, false, c, i, k8sI)
-	i.Argoproj().V1alpha1().Rollouts().Informer().GetStore().Update(r3)
+	f.expectPatchRolloutAction(r1)
+	//f.expectUpdateRolloutStatusAction(r2)
+	//f.expectPatchRolloutAction(r2)
+	//createRsIndex := f.expectCreateReplicaSetAction(&v1.ReplicaSet{})
+	//f.expectUpdateReplicaSetAction(&v1.ReplicaSet{})
+	//f.expectUpdateReplicaSetAction(&v1.ReplicaSet{})
 
-	fmt.Println("TODO: fix this test")
+	f.runController(getKey(r1, t), true, false, c, i, k8sI)
+	//rsCreated := f.getCreatedReplicaSet(createRsIndex)
 
-	//rsUpdated, err := f.kubeclient.AppsV1().ReplicaSets(r3.Namespace).Get(context.Background(), roCtx.newRS.Name, metav1.GetOptions{})
+	r3 := bumpVersion(r1)
+	r3.Spec.Replicas = pointer.Int32(int32(originReplicas) + 5)
+	r3.Spec.Template.Spec.Containers[0].Image = "nginx:1.8.1"
+	updatedRO, err := c.argoprojclientset.ArgoprojV1alpha1().Rollouts(r3.Namespace).Update(context.Background(), r3, metav1.UpdateOptions{})
+	assert.NoError(t, err)
+	err = i.Argoproj().V1alpha1().Rollouts().Informer().GetIndexer().Update(r3)
+	assert.NoError(t, err)
+
+	err = c.syncHandler(context.Background(), getKey(r1, t))
+	assert.NoError(t, err)
+
+	updatedRO, err = c.argoprojclientset.ArgoprojV1alpha1().Rollouts(r3.Namespace).Get(context.Background(), r3.Name, metav1.GetOptions{})
+	rslist := k8sI.Core().V1().ReplicationControllers().Informer().GetIndexer().List()
+	assert.NoError(t, err)
+
+	fmt.Println(updatedRO)
+	rses, err := c.getReplicaSetsForRollouts(r3)
+	assert.NoError(t, err)
+
+	fmt.Println(updatedRO, rses, rslist)
+
+	//rsUpdated, err := f.kubeclient.AppsV1().ReplicaSets(r3.Namespace).Get(context.Background(), rsCreated.Name, metav1.GetOptions{})
 	//assert.NoError(t, err)
-	// check the canary one is updated
+	////check the canary one is updated
 	//assert.NotEqual(t, originReplicas, int(*rsUpdated.Spec.Replicas))
 }
 

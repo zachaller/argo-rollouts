@@ -1251,6 +1251,7 @@ func TestAdoptReplicaSet(t *testing.T) {
 }
 
 func TestRequeueStuckRollout(t *testing.T) {
+	//t.Skip("broken in the refactor")
 	rollout := func(progressingConditionReason string, rolloutCompleted bool, rolloutPaused bool, progressDeadlineSeconds *int32) *v1alpha1.Rollout {
 		r := newCanaryRollout("foo", 0, nil, nil, nil, intstr.FromInt(0), intstr.FromInt(1))
 		//r := &v1alpha1.Rollout{
@@ -1290,16 +1291,16 @@ func TestRequeueStuckRollout(t *testing.T) {
 		requeueImmediately bool
 		noRequeue          bool
 	}{
-		//{
-		//	name:      "No Progressing Condition",
-		//	rollout:   rollout("", false, false, nil),
-		//	noRequeue: true,
-		//},
-		//{
-		//	name:      "Rollout Completed",
-		//	rollout:   rollout(conditions.ReplicaSetUpdatedReason, true, false, nil),
-		//	noRequeue: true,
-		//},
+		{
+			name:      "No Progressing Condition",
+			rollout:   rollout("", false, false, nil),
+			noRequeue: true,
+		},
+		{
+			name:      "Rollout Completed",
+			rollout:   rollout(conditions.ReplicaSetUpdatedReason, true, false, nil),
+			noRequeue: true,
+		},
 		{
 			name:      "Rollout Timed out",
 			rollout:   rollout(conditions.TimedOutReason, false, false, nil),
@@ -1832,9 +1833,6 @@ func TestGetReferencedIngressesALB(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		_, err := c.newRolloutContext(r)
 		assert.Error(t, err)
-		//_, err = roCtx.getReferencedIngresses()
-		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "alb", "ingress"), "alb-ingress-name", "ingress.extensions \"alb-ingress-name\" not found")
-		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("get referenced ALB ingress - success", func(t *testing.T) {
@@ -2054,9 +2052,6 @@ func TestGetReferencedIngressesNginx(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		_, err := c.newRolloutContext(r)
 		assert.Error(t, err)
-		//_, err = roCtx.getReferencedIngresses()
-		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "nginx", "stableIngress"), primaryIngress, fmt.Sprintf("ingress.extensions \"%s\" not found", primaryIngress))
-		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("get referenced Nginx ingress - success", func(t *testing.T) {
@@ -2295,9 +2290,6 @@ func TestGetReferencedAppMeshResources(t *testing.T) {
 		rCopy.Spec.Strategy.Canary.TrafficRouting.AppMesh.VirtualService = nil
 		_, err := c.newRolloutContext(rCopy)
 		assert.Error(t, err)
-		//_, err = roCtx.getRolloutReferencedResources()
-		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "null", "must provide virtual-service")
-		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("should return error when virtual-service is not-found", func(t *testing.T) {
@@ -2307,9 +2299,6 @@ func TestGetReferencedAppMeshResources(t *testing.T) {
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		_, err := c.newRolloutContext(r)
 		assert.Error(t, err)
-		//_, err = roCtx.getRolloutReferencedResources()
-		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualservices.appmesh.k8s.aws \"mysvc\" not found")
-		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("should return error when virtual-router is not-found", func(t *testing.T) {
@@ -2333,9 +2322,6 @@ spec:
 		c, _, _ := f.newController(noResyncPeriodFunc)
 		_, err := c.newRolloutContext(r)
 		assert.Error(t, err)
-		//_, err = roCtx.getRolloutReferencedResources()
-		//expectedErr := field.Invalid(field.NewPath("spec", "strategy", "canary", "trafficRouting", "appmesh", "virtualService"), "mysvc.default", "virtualrouters.appmesh.k8s.aws \"mysvc-vrouter\" not found")
-		//assert.Equal(t, expectedErr.Error(), err.Error())
 	})
 
 	t.Run("get referenced App Mesh - success", func(t *testing.T) {
