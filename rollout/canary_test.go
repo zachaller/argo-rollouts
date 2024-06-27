@@ -423,7 +423,6 @@ func TestResetCurrentStepIndexOnStepChange(t *testing.T) {
 
 	f.expectUpdateRolloutStatusAction(r2)
 	patchIndex := f.expectPatchRolloutAction(r2)
-	//f.expectCreateReplicaSetAction(rs1)
 	createRSIndex := f.expectCreateReplicaSetAction(rs1)
 	f.run(getKey(r2, t))
 	createdRS := f.getCreatedReplicaSet(createRSIndex)
@@ -1698,7 +1697,6 @@ func TestCanaryRolloutWithInvalidPongServiceName(t *testing.T) {
 
 	r := newCanaryRollout("foo", 0, nil, nil, nil, intstr.FromInt(1), intstr.FromInt(0))
 	pingSvc := newService("ping-service", 80, nil, r)
-	//pongSvc := newService("pong-service1", 80, nil, r)
 	r.Spec.Strategy.Canary.PingPong = &v1alpha1.PingPongSpec{PingService: pingSvc.Name, PongService: "pong-service"}
 
 	f.rolloutLister = append(f.rolloutLister, r)
