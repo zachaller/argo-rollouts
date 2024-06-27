@@ -49,33 +49,6 @@ func (c *rolloutContext) getAllReplicaSetsAndSyncRevision(createIfNotExisted boo
 		return nil, err
 	}
 
-	//foundDoNotCreateRS := false
-	//podHash := hash.ComputePodTemplateHash(&c.rollout.Spec.Template, c.rollout.Status.CollisionCount)
-	//
-	//// Look at rollouts selector and find all replica sets with that selector
-	//s, err := metav1.LabelSelectorAsSelector(c.rollout.Spec.Selector)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//rsList, err := c.replicaSetLister.ReplicaSets(c.rollout.Namespace).List(s)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// Go through the replicasets that have the same selector as the rollout object and if the pod hash matches the
-	//// current rollout pod hash, set the foundDoNotCreateRS to true so that we don't create a new replica set
-	//for _, rs := range rsList {
-	//	if rs.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] == podHash {
-	//		foundDoNotCreateRS = true
-	//	}
-	//}
-	//
-	//if newRS == nil && !foundDoNotCreateRS {
-	//	newRS, err = c.createDesiredReplicaSet()
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
 	return newRS, nil
 }
 

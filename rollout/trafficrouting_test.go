@@ -1171,11 +1171,6 @@ func TestRolloutReplicaIsAvailableAndGenerationNotBeModifiedShouldModifyVirtualS
 					"primary",
 				},
 			},
-			//DestinationRule: &v1alpha1.IstioDestinationRule{
-			//	Name:             "test",
-			//	StableSubsetName: "stable",
-			//	CanarySubsetName: "canary",
-			//},
 		},
 		ManagedRoutes: []v1alpha1.MangedRoutes{
 			{
