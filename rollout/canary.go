@@ -296,7 +296,7 @@ func (c *rolloutContext) canProceedWithScaleDownAnnotation(oldRSs []*appsv1.Repl
 		// AWS API calls.
 		return true, nil
 	}
-	stableSvcName, _ := trafficrouting.GetStableAndCanaryServices(c.rollout)
+	stableSvcName, _ := trafficrouting.GetStableAndCanaryServices(c.rollout, true)
 	stableSvc, err := c.servicesLister.Services(c.rollout.Namespace).Get(stableSvcName)
 	if err != nil {
 		return false, err
@@ -437,13 +437,6 @@ func (c *rolloutContext) reconcileCanaryReplicaSets() (bool, error) {
 	if scaledStableRS {
 		c.log.Infof("Not finished reconciling stableRS")
 		return true, nil
-	}
-
-	// If we have updated both the replica count and the pod template hash c.newRS will be nil we want to reconcile the newRS so we look at the
-	// rollout status to get the newRS to reconcile it.
-	if c.newRS == nil && c.rollout.Status.CurrentPodHash != c.rollout.Status.StableRS {
-		rs, _ := replicasetutil.GetReplicaSetByTemplateHash(c.allRSs, c.rollout.Status.CurrentPodHash)
-		c.newRS = rs
 	}
 
 	scaledNewRS, err := c.reconcileNewReplicaSet()
