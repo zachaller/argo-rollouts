@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"context"
+	stdcontext "context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -44,6 +44,12 @@ type State struct {
 	StartTime *metav1.Time `json:"startTime,omitempty"`
 	// Applied indicates whether the change was applied to the CRD
 	Applied bool `json:"applied,omitempty"`
+	// OriginalRegions stores the original traffic distribution before changes
+	OriginalRegions []RegionWeight `json:"originalRegions,omitempty"`
+	// RouterName stores the name of the router for abort operations
+	RouterName string `json:"routerName,omitempty"`
+	// Namespace stores the namespace for abort operations
+	Namespace string `json:"namespace,omitempty"`
 }
 
 type regionalTrafficPlugin struct {
@@ -136,6 +142,33 @@ func (p *regionalTrafficPlugin) Run(rollout *v1alpha1.Rollout, context *types.Rp
 		now := metav1.Now()
 		state.StartTime = &now
 		state.Phase = "applying"
+
+		// Capture original state before making changes for potential rollback
+		if len(state.OriginalRegions) == 0 {
+			bgCtx := stdcontext.Background()
+			resource, err := p.kubeClient.Resource(p.gvr).Namespace(namespace).Get(bgCtx, config.RouterName, metav1.GetOptions{})
+			if err != nil {
+				p.logCtx.Warnf("Could not capture original state: %v", err)
+			} else {
+				// Extract current regions from spec
+				spec, found, err := unstructured.NestedSlice(resource.Object, "spec", "regions")
+				if found && err == nil {
+					for _, r := range spec {
+						if regionMap, ok := r.(map[string]interface{}); ok {
+							name, _ := regionMap["name"].(string)
+							weight, _ := regionMap["weight"].(int64)
+							state.OriginalRegions = append(state.OriginalRegions, RegionWeight{
+								Name:   name,
+								Weight: int(weight),
+							})
+						}
+					}
+					state.RouterName = config.RouterName
+					state.Namespace = namespace
+					p.logCtx.Infof("Captured original traffic distribution: %s", p.formatRegions(state.OriginalRegions))
+				}
+			}
+		}
 	}
 
 	// Apply the traffic routing changes
@@ -168,6 +201,10 @@ func (p *regionalTrafficPlugin) Terminate(rollout *v1alpha1.Rollout, context *ty
 func (p *regionalTrafficPlugin) Abort(rollout *v1alpha1.Rollout, context *types.RpcStepContext) (types.RpcStepResult, types.RpcError) {
 	p.logCtx.Info("Aborting regional traffic step")
 
+	if !p.initialized {
+		return types.RpcStepResult{}, types.RpcError{ErrorString: "plugin not initialized"}
+	}
+
 	var state State
 	if context != nil && context.Status != nil {
 		if err := json.Unmarshal(context.Status, &state); err != nil {
@@ -175,8 +212,39 @@ func (p *regionalTrafficPlugin) Abort(rollout *v1alpha1.Rollout, context *types.
 		}
 	}
 
+	// Attempt to restore original traffic distribution if available
+	if len(state.OriginalRegions) > 0 && state.RouterName != "" {
+		namespace := state.Namespace
+		if namespace == "" {
+			namespace = rollout.Namespace
+		}
+
+		p.logCtx.Infof("Restoring original traffic distribution to %s/%s: %s",
+			namespace, state.RouterName, p.formatRegions(state.OriginalRegions))
+
+		// Create a Config with original regions to pass to updateRegionalTrafficRouter
+		restoreConfig := Config{
+			RouterName: state.RouterName,
+			Namespace:  namespace,
+			Regions:    state.OriginalRegions,
+		}
+
+		if err := p.updateRegionalTrafficRouter(namespace, restoreConfig); err != nil {
+			p.logCtx.Errorf("Failed to restore original traffic: %v", err)
+			// Continue with abort even if restore fails
+			state.Phase = "aborted"
+			return p.completedResult(state, fmt.Sprintf("Operation aborted (warning: failed to restore traffic: %v)", err))
+		}
+
+		p.logCtx.Info("Successfully restored original traffic distribution")
+		state.Phase = "aborted"
+		return p.completedResult(state, fmt.Sprintf("Operation aborted, traffic restored to: %s", p.formatRegions(state.OriginalRegions)))
+	}
+
+	// No original state to restore
+	p.logCtx.Info("No original traffic state to restore")
 	state.Phase = "aborted"
-	return p.completedResult(state, "Operation aborted")
+	return p.completedResult(state, "Operation aborted (no traffic changes to restore)")
 }
 
 func (p *regionalTrafficPlugin) Type() string {
@@ -185,7 +253,7 @@ func (p *regionalTrafficPlugin) Type() string {
 
 // updateRegionalTrafficRouter updates the RegionalTrafficRouter CRD with new weights
 func (p *regionalTrafficPlugin) updateRegionalTrafficRouter(namespace string, config Config) error {
-	ctx := context.Background()
+	ctx := stdcontext.Background()
 
 	// Get the existing resource
 	resource, err := p.kubeClient.Resource(p.gvr).Namespace(namespace).Get(ctx, config.RouterName, metav1.GetOptions{})

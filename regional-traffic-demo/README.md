@@ -127,11 +127,14 @@ You should see the traffic distribution change as the rollout progresses:
 
 ### Plugin Architecture
 
-The step plugin implements the `RpcStep` interface with three key methods:
+The step plugin implements the `RpcStep` interface with four key methods:
 
-1. **Run()** - Executes the step by updating the RegionalTrafficRouter CRD
-2. **Terminate()** - Stops an in-progress operation
-3. **Abort()** - Reverts changes if the rollout is aborted
+1. **InitPlugin()** - Initializes the plugin and creates Kubernetes client
+2. **Run()** - Executes the step by updating the RegionalTrafficRouter CRD
+   - Captures the original traffic distribution before making changes
+   - Stores state for potential rollback
+3. **Terminate()** - Stops an in-progress operation gracefully
+4. **Abort()** - Automatically reverts traffic to the original distribution if the rollout is aborted
 
 ### Plugin Configuration
 
@@ -249,15 +252,38 @@ kubectl delete -f regional-traffic-demo/crd/sample-regional-traffic-router.yaml
 kubectl delete -f regional-traffic-demo/crd/regional-traffic-router-crd.yaml
 ```
 
+## Abort and Rollback
+
+The plugin includes automatic rollback functionality. If a rollout is aborted (e.g., via `kubectl argo rollouts abort demo-app`), the plugin will:
+
+1. Retrieve the original traffic distribution captured at the start of the rollout
+2. Restore the traffic to its original state
+3. Log the rollback operation for visibility
+
+This ensures that failed rollouts don't leave traffic in an intermediate state.
+
+To test abort functionality:
+
+```bash
+# Start a rollout
+kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
+
+# Abort it mid-execution
+kubectl argo rollouts abort demo-app
+
+# Watch traffic revert to original distribution
+kubectl get regionaltrafficrouters demo-app-traffic -o yaml
+```
+
 ## Extending the Demo
 
 Ideas for extending this demo:
 
 1. **Add verification** - Query the CRD in subsequent steps to verify traffic distribution
-2. **Add rollback** - Implement logic in `Abort()` to restore original traffic state
-3. **Add metrics** - Integrate with a metrics provider to validate traffic shift success
-4. **Multi-service** - Support multiple services with coordinated traffic shifts
-5. **Async operations** - Make the plugin wait for external systems to confirm traffic changes
+2. **Add metrics** - Integrate with a metrics provider to validate traffic shift success
+3. **Multi-service** - Support multiple services with coordinated traffic shifts
+4. **Async operations** - Make the plugin wait for external systems to confirm traffic changes
+5. **Add notifications** - Send alerts when traffic distribution changes
 
 ## Troubleshooting
 
