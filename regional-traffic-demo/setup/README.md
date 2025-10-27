@@ -147,6 +147,26 @@ Triggers a rollout update by changing the image version.
 
 **Requires:** Rollout deployed (step 06)
 
+### abort-rollout.sh
+Aborts an in-progress rollout and triggers automatic traffic restoration.
+
+```bash
+./abort-rollout.sh
+```
+
+**What it does:**
+- Checks the current rollout status
+- Displays the current traffic distribution
+- Aborts the rollout
+- The plugin automatically restores the original traffic distribution
+- Shows watch commands for monitoring the abort process
+
+**Requires:**
+- Rollout deployed (step 06)
+- Rollout in Progressing or Paused state
+
+**Use when:** Testing the abort/rollback functionality of the plugin
+
 ### cleanup.sh
 Removes all demo resources from the cluster.
 
@@ -211,12 +231,21 @@ The typical workflow is:
    kubectl get regionaltrafficrouters demo-app-traffic -w
    ```
 
-3. **Trigger a new rollout** (change the image):
+3. **Trigger a new rollout:**
    ```bash
-   kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
+   ./trigger-rollout.sh
    ```
 
-4. **Clean up when done:**
+4. **Test abort functionality (optional):**
+   ```bash
+   # Start a rollout first
+   ./trigger-rollout.sh
+
+   # Then abort it mid-execution
+   ./abort-rollout.sh
+   ```
+
+5. **Clean up when done:**
    ```bash
    ./cleanup.sh
    ```

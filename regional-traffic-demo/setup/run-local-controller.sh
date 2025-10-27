@@ -10,7 +10,7 @@ echo ""
 # Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DEMO_DIR="$(dirname "$SCRIPT_DIR")"
-ARGO_ROOT="$(dirname "$(dirname "$DEMO_DIR")")"
+ARGO_ROOT="$(dirname "$DEMO_DIR")"
 
 echo "Argo Rollouts root: $ARGO_ROOT"
 echo ""

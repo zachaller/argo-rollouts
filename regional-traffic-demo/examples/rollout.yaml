@@ -46,9 +46,9 @@ spec:
             routerName: demo-app-traffic
             regions:
             - name: us-east-1
-              weight: 75
+              weight: 80
             - name: us-west-2
-              weight: 25
+              weight: 20
 
       # Step 4: Pause for 1 minute to monitor
       - pause:
@@ -61,9 +61,9 @@ spec:
             routerName: demo-app-traffic
             regions:
             - name: us-east-1
-              weight: 25
+              weight: 40
             - name: us-west-2
-              weight: 75
+              weight: 60
 
       # Step 6: Pause for 1 minute to monitor
       - pause:
