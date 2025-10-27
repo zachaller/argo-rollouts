@@ -145,6 +145,7 @@ Each plugin step in the Rollout accepts a configuration:
     name: regional-traffic/shift
     config:
       routerName: demo-app-traffic
+      abortMode: restore  # Optional: "restore" (default) or "firstRegion"
       regions:
       - name: us-east-1
         weight: 75
@@ -155,6 +156,9 @@ Each plugin step in the Rollout accepts a configuration:
 Parameters:
 - `routerName` - Name of the RegionalTrafficRouter resource to update
 - `regions` - List of regions with their target traffic weights (must sum to 100)
+- `abortMode` (optional) - Determines abort behavior:
+  - `restore` (default) - Restore traffic to the original distribution before the rollout started
+  - `firstRegion` - Shift 100% traffic to the first region in the step's configuration
 
 ### Rollout Strategy
 
@@ -254,7 +258,11 @@ kubectl delete -f regional-traffic-demo/crd/regional-traffic-router-crd.yaml
 
 ## Abort and Rollback
 
-The plugin includes automatic rollback functionality. If a rollout is aborted (e.g., via `kubectl argo rollouts abort demo-app`), the plugin will:
+The plugin includes configurable abort functionality with two modes:
+
+### Restore Mode (Default)
+
+When `abortMode: restore` or no abort mode is specified, the plugin will:
 
 1. Retrieve the original traffic distribution captured at the start of the rollout
 2. Restore the traffic to its original state
@@ -262,8 +270,43 @@ The plugin includes automatic rollback functionality. If a rollout is aborted (e
 
 This ensures that failed rollouts don't leave traffic in an intermediate state.
 
-To test abort functionality:
+```yaml
+- plugin:
+    name: regional-traffic/shift
+    config:
+      routerName: demo-app-traffic
+      abortMode: restore  # Can be omitted (default)
+      regions:
+      - name: us-east-1
+        weight: 100
+```
 
+### First Region Mode
+
+When `abortMode: firstRegion`, the plugin will:
+
+1. Shift 100% of traffic to the first region specified in the step's configuration
+2. Set all other regions to 0% traffic
+3. Log the emergency failover operation
+
+This is useful for disaster recovery scenarios where you want to immediately shift all traffic to a known-good region.
+
+```yaml
+- plugin:
+    name: regional-traffic/shift
+    config:
+      routerName: demo-app-traffic
+      abortMode: firstRegion
+      regions:
+      - name: us-east-1  # Will receive 100% on abort
+        weight: 100
+      - name: us-west-2
+        weight: 0
+```
+
+### Testing Abort Functionality
+
+**Test restore mode:**
 ```bash
 # Start a rollout
 kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
@@ -272,6 +315,21 @@ kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
 kubectl argo rollouts abort demo-app
 
 # Watch traffic revert to original distribution
+kubectl get regionaltrafficrouters demo-app-traffic -o yaml
+```
+
+**Test firstRegion mode:**
+```bash
+# Deploy the rollout with firstRegion abort mode
+kubectl apply -f examples/rollout-abort-firstregion.yaml
+
+# Start a rollout
+kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
+
+# Abort it mid-execution
+kubectl argo rollouts abort demo-app
+
+# Watch traffic shift 100% to us-east-1
 kubectl get regionaltrafficrouters demo-app-traffic -o yaml
 ```
 

@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: demo-app
+spec:
+  replicas: 3
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+      - name: demo-app
+        image: nginx:1.19-alpine
+        ports:
+        - containerPort: 80
+  strategy:
+    canary:
+      steps:
+      # Step 1: Shift all traffic to us-east-1 (with firstRegion abort mode)
+      # If aborted, will shift 100% traffic to us-east-1 (the first region in this step)
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            abortMode: firstRegion
+            firstRegion: us-east-1
+            regions:
+            - name: us-east-1
+              weight: 100
+            - name: us-west-2
+              weight: 0
+
+      # Step 2: Deploy new code to all pods
+      - setWeight: 100
+
+      # Step 3: Start shifting traffic back to us-west-2 (25%)
+      # Default restore abort mode - will restore to original distribution
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            abortMode: firstRegion
+            firstRegion: us-east-1
+            regions:
+            - name: us-east-1
+              weight: 75
+            - name: us-west-2
+              weight: 25
+
+      # Step 4: Pause for observation
+      - pause:
+          duration: 1m
+
+      # Step 5: Continue shifting to us-west-2 (75%)
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            abortMode: firstRegion
+            firstRegion: us-east-1
+            regions:
+            - name: us-east-1
+              weight: 25
+            - name: us-west-2
+              weight: 75
+
+      # Step 6: Pause for observation
+      - pause:
+          duration: 1m
+
+      # Step 7: Complete migration to us-west-2 (100%)
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            abortMode: firstRegion
+            firstRegion: us-east-1
+            regions:
+            - name: us-east-1
+              weight: 0
+            - name: us-west-2
+              weight: 100
