@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argo-rollouts-config
+  namespace: argo-rollouts
+data:
+  stepPlugins: |-
+    - name: regional-traffic/shift
+      location: file:///path/to/regional-traffic-step-plugin
+      # For local development, use the absolute path to the built plugin binary
+      # Example: location: file:///Users/zaller/Development/argo-rollouts/regional-traffic-demo/plugin/bin/regional-traffic-step-plugin

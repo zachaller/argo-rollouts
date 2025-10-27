@@ -1,0 +1,12 @@
+apiVersion: demo.argoproj.io/v1alpha1
+kind: RegionalTrafficRouter
+metadata:
+  name: demo-app-traffic
+  namespace: default
+spec:
+  serviceName: demo-app
+  regions:
+  - name: us-west-2
+    weight: 100
+  - name: us-east-1
+    weight: 0

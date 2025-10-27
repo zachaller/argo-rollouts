@@ -1,0 +1,81 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: demo-app
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+      - name: demo-app
+        image: nginx:1.19-alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: 16Mi
+            cpu: 5m
+  strategy:
+    canary:
+      steps:
+      # Step 1: Shift all traffic to us-east-1 so we can safely update us-west-2
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            regions:
+            - name: us-east-1
+              weight: 100
+            - name: us-west-2
+              weight: 0
+
+      # Step 2: Deploy new version to all pods (canary weight 100%)
+      - setWeight: 100
+
+      # Step 3: Start shifting traffic back to us-west-2 at 25%
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            regions:
+            - name: us-east-1
+              weight: 75
+            - name: us-west-2
+              weight: 25
+
+      # Step 4: Pause for 1 minute to monitor
+      - pause:
+          duration: 1m
+
+      # Step 5: Increase us-west-2 traffic to 75%
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            regions:
+            - name: us-east-1
+              weight: 25
+            - name: us-west-2
+              weight: 75
+
+      # Step 6: Pause for 1 minute to monitor
+      - pause:
+          duration: 1m
+
+      # Step 7: Complete migration - shift all traffic back to us-west-2
+      - plugin:
+          name: regional-traffic/shift
+          config:
+            routerName: demo-app-traffic
+            regions:
+            - name: us-east-1
+              weight: 0
+            - name: us-west-2
+              weight: 100
