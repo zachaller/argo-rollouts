@@ -37,6 +37,8 @@ spec:
 
       # Step 2: Deploy new code to all pods
       - setWeight: 100
+      - pause:
+          duration: 30s
 
       # Step 3: Start shifting traffic back to us-west-2 (25%)
       # Default restore abort mode - will restore to original distribution
