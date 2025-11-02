@@ -14,12 +14,12 @@ This demo includes:
 
 The demo simulates a scenario where you want to:
 
-1. Shift all traffic to `us-east-1` (away from `us-west-2`)
+1. Shift all traffic to `secondary` (away from `primary`)
 2. Deploy new code while traffic is routed away from the region being updated
-3. Gradually shift traffic back to `us-west-2` in increments:
-   - 25% to us-west-2, pause 1 minute
-   - 75% to us-west-2, pause 1 minute
-   - 100% to us-west-2 (complete)
+3. Gradually shift traffic back to `primary` in increments:
+   - 25% to primary, pause 1 minute
+   - 75% to primary, pause 1 minute
+   - 100% to primary (complete)
 
 This pattern is useful for:
 - **Blue/Green deployments across regions** - Update one region while traffic is served from another
@@ -114,14 +114,14 @@ kubectl get regionaltrafficrouters demo-app-traffic -w
 ```
 
 You should see the traffic distribution change as the rollout progresses:
-- Initially: `us-west-2=100%, us-east-1=0%`
-- Step 1: `us-east-1=100%, us-west-2=0%` (shift traffic away)
+- Initially: `primary=100%, secondary=0%`
+- Step 1: `secondary=100%, primary=0%` (shift traffic away)
 - Step 2: Deploy new version to all pods
-- Step 3: `us-east-1=75%, us-west-2=25%` (start shifting back)
+- Step 3: `secondary=75%, primary=25%` (start shifting back)
 - Step 4: Pause 1 minute
-- Step 5: `us-east-1=25%, us-west-2=75%` (continue shifting)
+- Step 5: `secondary=25%, primary=75%` (continue shifting)
 - Step 6: Pause 1 minute
-- Step 7: `us-east-1=0%, us-west-2=100%` (complete migration)
+- Step 7: `secondary=0%, primary=100%` (complete migration)
 
 ## How It Works
 
@@ -147,9 +147,9 @@ Each plugin step in the Rollout accepts a configuration:
       routerName: demo-app-traffic
       abortMode: restore  # Optional: "restore" (default) or "firstRegion"
       regions:
-      - name: us-east-1
+      - name: secondary
         weight: 75
-      - name: us-west-2
+      - name: primary
         weight: 25
 ```
 
@@ -164,13 +164,13 @@ Parameters:
 
 The sample rollout uses a 7-step canary strategy:
 
-1. **Plugin step**: Shift to us-east-1 (100%)
+1. **Plugin step**: Shift to secondary (100%)
 2. **SetWeight step**: Deploy new version (100% canary)
-3. **Plugin step**: Shift to us-west-2 (25%)
+3. **Plugin step**: Shift to primary (25%)
 4. **Pause step**: Wait 1 minute
-5. **Plugin step**: Shift to us-west-2 (75%)
+5. **Plugin step**: Shift to primary (75%)
 6. **Pause step**: Wait 1 minute
-7. **Plugin step**: Shift to us-west-2 (100%)
+7. **Plugin step**: Shift to primary (100%)
 
 ## Local Development
 
@@ -277,7 +277,7 @@ This ensures that failed rollouts don't leave traffic in an intermediate state.
       routerName: demo-app-traffic
       abortMode: restore  # Can be omitted (default)
       regions:
-      - name: us-east-1
+      - name: secondary
         weight: 100
 ```
 
@@ -298,9 +298,9 @@ This is useful for disaster recovery scenarios where you want to immediately shi
       routerName: demo-app-traffic
       abortMode: firstRegion
       regions:
-      - name: us-east-1  # Will receive 100% on abort
+      - name: secondary  # Will receive 100% on abort
         weight: 100
-      - name: us-west-2
+      - name: primary
         weight: 0
 ```
 
@@ -329,7 +329,7 @@ kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
 # Abort it mid-execution
 kubectl argo rollouts abort demo-app
 
-# Watch traffic shift 100% to us-east-1
+# Watch traffic shift 100% to secondary
 kubectl get regionaltrafficrouters demo-app-traffic -o yaml
 ```
 

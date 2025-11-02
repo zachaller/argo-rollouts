@@ -103,13 +103,13 @@ kubectl get regionaltrafficrouters demo-app-traffic -w
 The terminal where you're running the controller will show plugin execution logs.
 
 You should see the traffic distribution change through the rollout steps:
-1. Step 0: Plugin shifts traffic to us-east-1 (100%)
+1. Step 0: Plugin shifts traffic to secondary (100%)
 2. Step 1: Deploy new version (setWeight 100%)
-3. Step 2: Plugin shifts to us-west-2 (25%)
+3. Step 2: Plugin shifts to primary (25%)
 4. Step 3: Pause 1 minute
-5. Step 4: Plugin shifts to us-west-2 (75%)
+5. Step 4: Plugin shifts to primary (75%)
 6. Step 5: Pause 1 minute
-7. Step 6: Plugin shifts to us-west-2 (100%)
+7. Step 6: Plugin shifts to primary (100%)
 
 #### 7. Clean Up
 

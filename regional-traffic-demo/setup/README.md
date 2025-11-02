@@ -67,7 +67,7 @@ Creates a sample RegionalTrafficRouter instance.
 
 **What it does:**
 - Creates a RegionalTrafficRouter resource named `demo-app-traffic`
-- Sets initial traffic to 100% us-west-2, 0% us-east-1
+- Sets initial traffic to 100% primary, 0% secondary
 - Shows the created resource details
 
 **Requires:** CRD installed (step 02)
@@ -114,7 +114,7 @@ Deploys the demo application and rollout.
 **What it does:**
 - Prompts you to choose between two rollout configurations:
   1. Default (Restore Mode) - abort restores to original traffic distribution
-  2. First Region Mode - abort shifts 100% traffic to first region (us-east-1)
+  2. First Region Mode - abort shifts 100% traffic to first region (secondary)
 - Creates the demo-app Kubernetes Service
 - Creates the demo-app Rollout
 - Shows the deployed resources

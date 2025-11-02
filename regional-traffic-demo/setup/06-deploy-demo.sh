@@ -26,7 +26,7 @@ echo "   - Abort restores traffic to original distribution"
 echo "   - Recommended for most use cases"
 echo ""
 echo "2) First Region Mode"
-echo "   - Abort shifts 100% traffic to first region (us-east-1)"
+echo "   - Abort shifts 100% traffic to first region (secondary)"
 echo "   - Useful for disaster recovery scenarios"
 echo ""
 read -p "Enter your choice (1 or 2) [default: 1]: " choice

@@ -34,7 +34,7 @@ spec:
                   properties:
                     name:
                       type: string
-                      description: Region name (e.g., us-east-1, us-west-2)
+                      description: Region name (e.g., primary, secondary)
                     weight:
                       type: integer
                       minimum: 0

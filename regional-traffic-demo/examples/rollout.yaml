@@ -25,15 +25,15 @@ spec:
   strategy:
     canary:
       steps:
-      # Step 1: Shift all traffic to us-east-1 so we can safely update us-west-2
+      # Step 1: Shift all traffic to secondary so we can safely update primary
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 100
-            - name: us-west-2
+            - name: primary
               weight: 0
 
       # Step 2: Deploy new version to all pods (canary weight 100%)
@@ -41,43 +41,43 @@ spec:
       - pause:
             duration: 30s
 
-      # Step 3: Start shifting traffic back to us-west-2 at 25%
+      # Step 3: Start shifting traffic back to primary at 25%
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 80
-            - name: us-west-2
+            - name: primary
               weight: 20
 
       # Step 4: Pause for 1 minute to monitor
       - pause:
           duration: 30s
 
-      # Step 5: Increase us-west-2 traffic to 75%
+      # Step 5: Increase primary traffic to 75%
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 40
-            - name: us-west-2
+            - name: primary
               weight: 60
 
       # Step 6: Pause for 1 minute to monitor
       - pause:
           duration: 30s
 
-      # Step 7: Complete migration - shift all traffic back to us-west-2
+      # Step 7: Complete migration - shift all traffic back to primary
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 0
-            - name: us-west-2
+            - name: primary
               weight: 100

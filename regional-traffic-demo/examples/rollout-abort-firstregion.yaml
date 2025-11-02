@@ -21,18 +21,18 @@ spec:
   strategy:
     canary:
       steps:
-      # Step 1: Shift all traffic to us-east-1 (with firstRegion abort mode)
-      # If aborted, will shift 100% traffic to us-east-1 (the first region in this step)
+      # Step 1: Shift all traffic to secondary (with firstRegion abort mode)
+      # If aborted, will shift 100% traffic to secondary (the first region in this step)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             abortMode: firstRegion
-            firstRegion: us-east-1
+            firstRegion: secondary
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 100
-            - name: us-west-2
+            - name: primary
               weight: 0
 
       # Step 2: Deploy new code to all pods
@@ -40,50 +40,50 @@ spec:
       - pause:
           duration: 30s
 
-      # Step 3: Start shifting traffic back to us-west-2 (25%)
+      # Step 3: Start shifting traffic back to primary (25%)
       # Default restore abort mode - will restore to original distribution
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             abortMode: firstRegion
-            firstRegion: us-east-1
+            firstRegion: secondary
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 75
-            - name: us-west-2
+            - name: primary
               weight: 25
 
       # Step 4: Pause for observation
       - pause:
           duration: 1m
 
-      # Step 5: Continue shifting to us-west-2 (75%)
+      # Step 5: Continue shifting to primary (75%)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             abortMode: firstRegion
-            firstRegion: us-east-1
+            firstRegion: secondary
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 25
-            - name: us-west-2
+            - name: primary
               weight: 75
 
       # Step 6: Pause for observation
       - pause:
           duration: 1m
 
-      # Step 7: Complete migration to us-west-2 (100%)
+      # Step 7: Complete migration to primary (100%)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
             abortMode: firstRegion
-            firstRegion: us-east-1
+            firstRegion: secondary
             regions:
-            - name: us-east-1
+            - name: secondary
               weight: 0
-            - name: us-west-2
+            - name: primary
               weight: 100
