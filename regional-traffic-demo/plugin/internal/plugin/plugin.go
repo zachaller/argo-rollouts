@@ -59,10 +59,10 @@ type State struct {
 }
 
 type regionalTrafficPlugin struct {
-	logCtx        *log.Entry
-	kubeClient    dynamic.Interface
-	initialized   bool
-	gvr           schema.GroupVersionResource
+	logCtx      *log.Entry
+	kubeClient  dynamic.Interface
+	initialized bool
+	gvr         schema.GroupVersionResource
 }
 
 func New(logCtx *log.Entry) rpc.StepPlugin {
@@ -138,7 +138,7 @@ func (p *regionalTrafficPlugin) Run(rollout *v1alpha1.Rollout, context *types.Rp
 	}
 
 	// Check if already completed
-	if state.Applied {
+	if state.Applied && state.Phase == "completed" {
 		p.logCtx.Infof("Traffic routing already applied for %s/%s", namespace, config.RouterName)
 		return p.completedResult(state, "Traffic routing completed")
 	}
@@ -190,15 +190,44 @@ func (p *regionalTrafficPlugin) Run(rollout *v1alpha1.Rollout, context *types.Rp
 		}
 	}
 
-	// Apply the traffic routing changes
-	p.logCtx.Infof("Applying traffic routing to %s/%s", namespace, config.RouterName)
-	if err := p.updateRegionalTrafficRouter(namespace, config); err != nil {
-		return types.RpcStepResult{}, types.RpcError{ErrorString: fmt.Sprintf("failed to update regional traffic router: %v", err)}
+	// Apply the traffic routing changes if not already applied
+	if !state.Applied {
+		p.logCtx.Infof("Applying traffic routing to %s/%s", namespace, config.RouterName)
+		if err := p.updateRegionalTrafficRouter(namespace, config); err != nil {
+			return types.RpcStepResult{}, types.RpcError{ErrorString: fmt.Sprintf("failed to update regional traffic router: %v", err)}
+		}
+
+		// Mark as applied
+		state.Applied = true
+		state.Phase = "running"
+		p.logCtx.Info("Traffic routing applied, simulating operation for 10 seconds...")
 	}
 
-	// Mark as applied
-	state.Applied = true
-	state.Phase = "completed"
+	// Simulate a long-running operation (e.g., waiting for traffic shift to stabilize)
+	// Stay in Running phase for 10 seconds before completing
+	if state.Phase == "running" {
+		elapsed := time.Since(state.StartTime.Time)
+		if elapsed < 10*time.Second {
+			// Still waiting, return Running status
+			stateRaw, err := json.Marshal(state)
+			if err != nil {
+				return types.RpcStepResult{}, types.RpcError{ErrorString: fmt.Sprintf("could not marshal state: %v", err)}
+			}
+
+			remainingSeconds := int(10 - elapsed.Seconds())
+			p.logCtx.Infof("Operation in progress, %d seconds remaining...", remainingSeconds)
+
+			return types.RpcStepResult{
+				Phase:   types.PhaseRunning,
+				Message: fmt.Sprintf("Traffic routing applied, waiting for stabilization (%d seconds remaining)", remainingSeconds),
+				Status:  stateRaw,
+			}, types.RpcError{}
+		}
+
+		// 10 seconds have elapsed, mark as completed
+		state.Phase = "completed"
+		p.logCtx.Info("Simulated operation completed successfully")
+	}
 
 	return p.completedResult(state, fmt.Sprintf("Traffic routing updated: %s", p.formatRegions(config.Regions)))
 }
