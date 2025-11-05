@@ -29,8 +29,10 @@ type Config struct {
 	Namespace string `json:"namespace,omitempty"`
 	// Regions is the list of regions and their target weights
 	Regions []RegionWeight `json:"regions"`
-	// AbortMode determines the abort behavior: "restore" (default) or "firstRegion"
+	// AbortMode determines the abort behavior: "restore" (default) or "manual"
 	AbortMode string `json:"abortMode,omitempty"`
+	// Region specifies which region to shift traffic to on abort (used with manual abort mode)
+	Region string `json:"region,omitempty"`
 }
 
 type RegionWeight struct {
@@ -54,8 +56,8 @@ type State struct {
 	Namespace string `json:"namespace,omitempty"`
 	// AbortMode stores the abort mode for this step
 	AbortMode string `json:"abortMode,omitempty"`
-	// FirstRegion stores the first region from the step config for firstRegion abort mode
-	FirstRegion string `json:"firstRegion,omitempty"`
+	// Region stores the target region for abort operations (from config.Region)
+	Region string `json:"region,omitempty"`
 }
 
 type regionalTrafficPlugin struct {
@@ -149,13 +151,14 @@ func (p *regionalTrafficPlugin) Run(rollout *v1alpha1.Rollout, context *types.Rp
 		state.StartTime = &now
 		state.Phase = "applying"
 
-		// Store abort mode and first region for abort operations
+		// Store abort mode and region for abort operations
 		state.AbortMode = config.AbortMode
 		if state.AbortMode == "" {
 			state.AbortMode = "restore" // Default to restore mode
 		}
-		if len(config.Regions) > 0 {
-			state.FirstRegion = config.Regions[0].Name
+		// Store the region specified in config for manual abort mode
+		if config.Region != "" {
+			state.Region = config.Region
 		}
 
 		// Capture original state before making changes for potential rollback
@@ -182,8 +185,8 @@ func (p *regionalTrafficPlugin) Run(rollout *v1alpha1.Rollout, context *types.Rp
 					state.Namespace = namespace
 					p.logCtx.Infof("Captured original traffic distribution: %s", p.formatRegions(state.OriginalRegions))
 					p.logCtx.Infof("Abort mode: %s", state.AbortMode)
-					if state.AbortMode == "firstRegion" {
-						p.logCtx.Infof("First region for abort: %s", state.FirstRegion)
+					if state.AbortMode == "manual" {
+						p.logCtx.Infof("Target region for abort: %s", state.Region)
 					}
 				}
 			}
@@ -274,17 +277,17 @@ func (p *regionalTrafficPlugin) Abort(rollout *v1alpha1.Rollout, context *types.
 
 	p.logCtx.Infof("Abort mode: %s", abortMode)
 
-	if abortMode == "firstRegion" {
-		// Shift 100% traffic to the first region
-		if state.FirstRegion == "" || state.RouterName == "" {
-			p.logCtx.Warn("Cannot execute firstRegion abort: missing first region or router name")
+	if abortMode == "manual" {
+		// Shift 100% traffic to the target region
+		if state.Region == "" || state.RouterName == "" {
+			p.logCtx.Warn("Cannot execute region-based abort: missing target region or router name")
 			state.Phase = "aborted"
-			return p.completedResult(state, "Operation aborted (warning: cannot shift to first region)")
+			return p.completedResult(state, "Operation aborted (warning: cannot shift to target region)")
 		}
 
-		p.logCtx.Infof("Shifting 100%% traffic to first region: %s", state.FirstRegion)
+		p.logCtx.Infof("Shifting 100%% traffic to target region: %s", state.Region)
 
-		// Get all regions from the CRD and set first region to 100%, others to 0
+		// Get all regions from the CRD and set target region to 100%, others to 0
 		bgCtx := stdcontext.Background()
 		resource, err := p.kubeClient.Resource(p.gvr).Namespace(namespace).Get(bgCtx, state.RouterName, metav1.GetOptions{})
 		if err != nil {
@@ -300,7 +303,7 @@ func (p *regionalTrafficPlugin) Abort(rollout *v1alpha1.Rollout, context *types.
 			for _, r := range spec {
 				if regionMap, ok := r.(map[string]interface{}); ok {
 					name, _ := regionMap["name"].(string)
-					if name == state.FirstRegion {
+					if name == state.Region {
 						abortRegions = append(abortRegions, RegionWeight{Name: name, Weight: 100})
 					} else {
 						abortRegions = append(abortRegions, RegionWeight{Name: name, Weight: 0})
@@ -316,14 +319,14 @@ func (p *regionalTrafficPlugin) Abort(rollout *v1alpha1.Rollout, context *types.
 		}
 
 		if err := p.updateRegionalTrafficRouter(namespace, abortConfig); err != nil {
-			p.logCtx.Errorf("Failed to shift traffic to first region: %v", err)
+			p.logCtx.Errorf("Failed to shift traffic to target region: %v", err)
 			state.Phase = "aborted"
 			return p.completedResult(state, fmt.Sprintf("Operation aborted (warning: failed to shift traffic: %v)", err))
 		}
 
-		p.logCtx.Info("Successfully shifted 100% traffic to first region")
+		p.logCtx.Info("Successfully shifted 100% traffic to target region")
 		state.Phase = "aborted"
-		return p.completedResult(state, fmt.Sprintf("Operation aborted, 100%% traffic shifted to: %s", state.FirstRegion))
+		return p.completedResult(state, fmt.Sprintf("Operation aborted, 100%% traffic shifted to: %s", state.Region))
 	}
 
 	// Default: restore mode

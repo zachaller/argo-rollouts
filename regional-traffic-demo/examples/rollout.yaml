@@ -39,7 +39,7 @@ spec:
       # Step 2: Deploy new version to all pods (canary weight 100%)
       - setWeight: 100
       - pause:
-            duration: 30s
+            duration: 5s
 
       # Step 3: Start shifting traffic back to primary at 25%
       - plugin:
@@ -54,7 +54,7 @@ spec:
 
       # Step 4: Pause for 1 minute to monitor
       - pause:
-          duration: 30s
+          duration: 5s
 
       # Step 5: Increase primary traffic to 75%
       - plugin:
@@ -69,7 +69,7 @@ spec:
 
       # Step 6: Pause for 1 minute to monitor
       - pause:
-          duration: 30s
+          duration: 5s
 
       # Step 7: Complete migration - shift all traffic back to primary
       - plugin:

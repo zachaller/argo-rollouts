@@ -114,7 +114,7 @@ Deploys the demo application and rollout.
 **What it does:**
 - Prompts you to choose between two rollout configurations:
   1. Default (Restore Mode) - abort restores to original traffic distribution
-  2. First Region Mode - abort shifts 100% traffic to first region (secondary)
+  2. Manual Mode - abort shifts 100% traffic to specified region (secondary)
 - Creates the demo-app Kubernetes Service
 - Creates the demo-app Rollout
 - Shows the deployed resources

@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: demo-app
+  namespace: default
 spec:
   replicas: 3
   revisionHistoryLimit: 2
@@ -21,14 +22,14 @@ spec:
   strategy:
     canary:
       steps:
-      # Step 1: Shift all traffic to secondary (with firstRegion abort mode)
-      # If aborted, will shift 100% traffic to secondary (the first region in this step)
+      # Step 1: Shift all traffic to secondary (with manual abort mode)
+      # If aborted, will shift 100% traffic to the specified region (secondary)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
-            abortMode: firstRegion
-            firstRegion: secondary
+            abortMode: manual
+            region: secondary
             regions:
             - name: secondary
               weight: 100
@@ -38,7 +39,7 @@ spec:
       # Step 2: Deploy new code to all pods
       - setWeight: 100
       - pause:
-          duration: 30s
+          duration: 5s
 
       # Step 3: Start shifting traffic back to primary (25%)
       # Default restore abort mode - will restore to original distribution
@@ -46,8 +47,8 @@ spec:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
-            abortMode: firstRegion
-            firstRegion: secondary
+            abortMode: manual
+            region: secondary
             regions:
             - name: secondary
               weight: 75
@@ -56,15 +57,15 @@ spec:
 
       # Step 4: Pause for observation
       - pause:
-          duration: 1m
+          duration: 5s
 
       # Step 5: Continue shifting to primary (75%)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
-            abortMode: firstRegion
-            firstRegion: secondary
+            abortMode: manual
+            region: secondary
             regions:
             - name: secondary
               weight: 25
@@ -73,15 +74,15 @@ spec:
 
       # Step 6: Pause for observation
       - pause:
-          duration: 1m
+          duration: 5s
 
       # Step 7: Complete migration to primary (100%)
       - plugin:
           name: regional-traffic/shift
           config:
             routerName: demo-app-traffic
-            abortMode: firstRegion
-            firstRegion: secondary
+            abortMode: manual
+            region: secondary
             regions:
             - name: secondary
               weight: 0

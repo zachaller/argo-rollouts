@@ -145,7 +145,8 @@ Each plugin step in the Rollout accepts a configuration:
     name: regional-traffic/shift
     config:
       routerName: demo-app-traffic
-      abortMode: restore  # Optional: "restore" (default) or "firstRegion"
+      abortMode: restore  # Optional: "restore" (default) or "manual"
+      region: secondary    # Required if abortMode is "manual"
       regions:
       - name: secondary
         weight: 75
@@ -158,7 +159,8 @@ Parameters:
 - `regions` - List of regions with their target traffic weights (must sum to 100)
 - `abortMode` (optional) - Determines abort behavior:
   - `restore` (default) - Restore traffic to the original distribution before the rollout started
-  - `firstRegion` - Shift 100% traffic to the first region in the step's configuration
+  - `manual` - Shift 100% traffic to the region specified in the `region` field
+- `region` (optional) - Specifies which region to shift traffic to when `abortMode` is `manual`
 
 ### Rollout Strategy
 
@@ -281,11 +283,11 @@ This ensures that failed rollouts don't leave traffic in an intermediate state.
         weight: 100
 ```
 
-### First Region Mode
+### Manual Mode
 
-When `abortMode: firstRegion`, the plugin will:
+When `abortMode: manual`, the plugin will:
 
-1. Shift 100% of traffic to the first region specified in the step's configuration
+1. Shift 100% of traffic to the region specified in the `region` field
 2. Set all other regions to 0% traffic
 3. Log the emergency failover operation
 
@@ -296,9 +298,10 @@ This is useful for disaster recovery scenarios where you want to immediately shi
     name: regional-traffic/shift
     config:
       routerName: demo-app-traffic
-      abortMode: firstRegion
+      abortMode: manual
+      region: secondary  # Will receive 100% on abort
       regions:
-      - name: secondary  # Will receive 100% on abort
+      - name: secondary
         weight: 100
       - name: primary
         weight: 0
@@ -318,9 +321,9 @@ kubectl argo rollouts abort demo-app
 kubectl get regionaltrafficrouters demo-app-traffic -o yaml
 ```
 
-**Test firstRegion mode:**
+**Test manual mode:**
 ```bash
-# Deploy the rollout with firstRegion abort mode
+# Deploy the rollout with manual abort mode
 kubectl apply -f examples/rollout-abort-firstregion.yaml
 
 # Start a rollout
@@ -329,7 +332,7 @@ kubectl argo rollouts set image demo-app demo-app=nginx:1.20-alpine
 # Abort it mid-execution
 kubectl argo rollouts abort demo-app
 
-# Watch traffic shift 100% to secondary
+# Watch traffic shift 100% to secondary (specified region)
 kubectl get regionaltrafficrouters demo-app-traffic -o yaml
 ```
 
