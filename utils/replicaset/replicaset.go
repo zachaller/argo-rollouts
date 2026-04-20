@@ -476,7 +476,11 @@ func checkStepHashChange(rollout *v1alpha1.Rollout) bool {
 
 // checkPodSpecChange indicates if the rollout spec has changed indicating that the rollout needs to reset the
 // currentStepIndex to zero. If there is no previous pod spec to compare to the function defaults to false
-func CheckPodSpecChange(rollout *v1alpha1.Rollout, newRS *appsv1.ReplicaSet) bool {
+//
+// allRSs is optional; when provided it is used when newRS is nil to detect false positives where
+// ComputePodTemplateHash differs from status.CurrentPodHash only because k8s.io/api types/JSON
+// serialization changed (see https://github.com/argoproj/argo-rollouts/issues/88).
+func CheckPodSpecChange(rollout *v1alpha1.Rollout, newRS *appsv1.ReplicaSet, allRSs []*appsv1.ReplicaSet) bool {
 	if rollout.Status.CurrentPodHash == "" {
 		return false
 	}
@@ -484,20 +488,41 @@ func CheckPodSpecChange(rollout *v1alpha1.Rollout, newRS *appsv1.ReplicaSet) boo
 	if newRS != nil {
 		podHash = GetPodTemplateHash(newRS)
 	}
-	if rollout.Status.CurrentPodHash != podHash {
-		logCtx := logutil.WithRollout(rollout)
-		logCtx.Infof("Pod template change detected (new: %s, old: %s)", podHash, rollout.Status.CurrentPodHash)
-		return true
+	if rollout.Status.CurrentPodHash == podHash {
+		return false
 	}
-	return false
+	// Hash strings disagree: distinguish real spec edits from library/serialization drift.
+	if newRS != nil && PodTemplateEqualIgnoreHash(&newRS.Spec.Template, &rollout.Spec.Template) {
+		logCtx := logutil.WithRollout(rollout)
+		logCtx.Infof("Ignoring pod template hash drift (new: %s, old: %s); pod templates are semantically equal", podHash, rollout.Status.CurrentPodHash)
+		return false
+	}
+	if newRS == nil && allRSs != nil {
+		for _, rs := range allRSs {
+			if rs == nil {
+				continue
+			}
+			if GetPodTemplateHash(rs) != rollout.Status.CurrentPodHash {
+				continue
+			}
+			if PodTemplateEqualIgnoreHash(&rs.Spec.Template, &rollout.Spec.Template) {
+				logCtx := logutil.WithRollout(rollout)
+				logCtx.Infof("Ignoring pod template hash drift (computed: %s, status: %s); matching ReplicaSet %q has semantically equal template", podHash, rollout.Status.CurrentPodHash, rs.Name)
+				return false
+			}
+		}
+	}
+	logCtx := logutil.WithRollout(rollout)
+	logCtx.Infof("Pod template change detected (new: %s, old: %s)", podHash, rollout.Status.CurrentPodHash)
+	return true
 }
 
 // PodTemplateOrStepsChanged detects if there is a change in either the pod template, or canary steps
-func PodTemplateOrStepsChanged(rollout *v1alpha1.Rollout, newRS *appsv1.ReplicaSet) bool {
+func PodTemplateOrStepsChanged(rollout *v1alpha1.Rollout, newRS *appsv1.ReplicaSet, allRSs []*appsv1.ReplicaSet) bool {
 	if checkStepHashChange(rollout) {
 		return true
 	}
-	if CheckPodSpecChange(rollout, newRS) {
+	if CheckPodSpecChange(rollout, newRS, allRSs) {
 		return true
 	}
 	return false

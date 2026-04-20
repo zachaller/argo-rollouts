@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
+	corev1defaults "k8s.io/kubernetes/pkg/apis/core/v1"
 	"k8s.io/kubernetes/pkg/controller"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/yaml"
@@ -666,15 +667,46 @@ func TestMaxUnavailable(t *testing.T) {
 	}
 }
 
+// podTemplateMatchingClusterRS applies the same defaulting as the API server / PodTemplateEqualIgnoreHash "desired" path
+// so tests behave like a live ReplicaSet read from the informer.
+func podTemplateMatchingClusterRS(tmpl corev1.PodTemplateSpec) corev1.PodTemplateSpec {
+	pt := corev1.PodTemplate{Template: *tmpl.DeepCopy()}
+	corev1defaults.SetObjectDefaults_PodTemplate(&pt)
+	return pt.Template
+}
+
 func TestCheckPodSpecChange(t *testing.T) {
 	ro := generateRollout("nginx")
 	rs := generateRS(ro)
-	assert.False(t, CheckPodSpecChange(&ro, &rs))
-	ro.Status.CurrentPodHash = hash.ComputePodTemplateHash(&ro.Spec.Template, ro.Status.CollisionCount)
-	assert.False(t, CheckPodSpecChange(&ro, &rs))
+	rs.Spec.Template = podTemplateMatchingClusterRS(ro.Spec.Template)
+	h := hash.ComputePodTemplateHash(&ro.Spec.Template, ro.Status.CollisionCount)
+	rs.Spec.Template.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] = h
+	rs.Labels = map[string]string{}
+	for k, v := range rs.Spec.Template.Labels {
+		rs.Labels[k] = v
+	}
 
+	assert.False(t, CheckPodSpecChange(&ro, &rs, nil))
+	ro.Status.CurrentPodHash = hash.ComputePodTemplateHash(&ro.Spec.Template, ro.Status.CollisionCount)
+	assert.False(t, CheckPodSpecChange(&ro, &rs, nil))
+
+	// Hash strings differ but pod templates match (e.g. k8s.io/api upgrade changes ComputePodTemplateHash only).
 	ro.Status.CurrentPodHash = "different-hash"
-	assert.True(t, CheckPodSpecChange(&ro, &rs))
+	assert.False(t, CheckPodSpecChange(&ro, &rs, nil))
+
+	// Real template change: rollout spec no longer matches ReplicaSet template.
+	ro3 := generateRollout("nginx")
+	rs3 := generateRS(ro3)
+	rs3.Spec.Template = podTemplateMatchingClusterRS(ro3.Spec.Template)
+	h3 := hash.ComputePodTemplateHash(&ro3.Spec.Template, ro3.Status.CollisionCount)
+	rs3.Spec.Template.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] = h3
+	rs3.Labels = map[string]string{}
+	for k, v := range rs3.Spec.Template.Labels {
+		rs3.Labels[k] = v
+	}
+	ro3.Status.CurrentPodHash = "stale-status-hash"
+	ro3.Spec.Template.Spec.Containers[0].Image = "nginx:other"
+	assert.True(t, CheckPodSpecChange(&ro3, &rs3, nil))
 }
 
 func TestCheckStepHashChange(t *testing.T) {

@@ -32,7 +32,7 @@ func (c *rolloutContext) rolloutBlueGreen() error {
 		return err
 	}
 
-	if replicasetutil.CheckPodSpecChange(c.rollout, c.newRS) {
+	if replicasetutil.CheckPodSpecChange(c.rollout, c.newRS, c.allRSs) {
 		return c.syncRolloutStatusBlueGreen(previewSvc, activeSvc)
 	}
 
@@ -269,7 +269,7 @@ func (c *rolloutContext) syncRolloutStatusBlueGreen(previewSvc *corev1.Service, 
 	newStatus := c.calculateBaseStatus()
 	newStatus.StableRS = c.rollout.Status.StableRS
 
-	if replicasetutil.CheckPodSpecChange(c.rollout, c.newRS) {
+	if replicasetutil.CheckPodSpecChange(c.rollout, c.newRS, c.allRSs) {
 		c.resetRolloutStatus(&newStatus)
 	}
 	if c.rollout.Status.PromoteFull || c.isRollbackWithinWindow() {
