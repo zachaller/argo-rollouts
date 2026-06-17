@@ -33,6 +33,7 @@ import (
 	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
 	"github.com/argoproj/argo-rollouts/utils/record"
+	resourceversionutil "github.com/argoproj/argo-rollouts/utils/resourceversion"
 	timeutil "github.com/argoproj/argo-rollouts/utils/time"
 )
 
@@ -71,6 +72,10 @@ type Controller struct {
 	// Kubernetes API.
 	recorder     record.EventRecorder
 	resyncPeriod time.Duration
+
+	// analysisRunVersionTracker remembers ResourceVersions from our last successful writes so
+	// syncHandler can requeue when the informer cache hasn't caught up yet.
+	analysisRunVersionTracker *resourceversionutil.Tracker
 }
 
 // ControllerConfig describes the data required to instantiate a new analysis controller
@@ -98,6 +103,8 @@ func NewController(cfg ControllerConfig) *Controller {
 		analysisRunSynced:    cfg.AnalysisRunInformer.Informer().HasSynced,
 		recorder:             cfg.Recorder,
 		resyncPeriod:         cfg.ResyncPeriod,
+
+		analysisRunVersionTracker: resourceversionutil.NewTracker(),
 	}
 
 	controller.enqueueAnalysis = func(obj any) {
@@ -173,10 +180,15 @@ func (c *Controller) syncHandler(ctx context.Context, key string) error {
 	run, err := c.analysisRunLister.AnalysisRuns(namespace).Get(name)
 	if k8serrors.IsNotFound(err) {
 		log.WithField(logutil.AnalysisRunKey, name).WithField(logutil.NamespaceKey, namespace).Info("Analysis has been deleted")
+		c.analysisRunVersionTracker.Forget(key)
 		return nil
 	}
 	if err != nil {
 		return err
+	}
+
+	if c.analysisRunVersionTracker.IsCacheStale(key, run.ResourceVersion) {
+		return controllerutil.StaleCacheError
 	}
 
 	defer func() {

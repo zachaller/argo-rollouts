@@ -17,7 +17,9 @@ import (
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/utils/conditions"
+	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	"github.com/argoproj/argo-rollouts/utils/defaults"
+	"github.com/argoproj/argo-rollouts/utils/diff"
 	experimentutil "github.com/argoproj/argo-rollouts/utils/experiment"
 	"github.com/argoproj/argo-rollouts/utils/hash"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
@@ -129,10 +131,19 @@ func (ec *experimentContext) createReplicaSet(template v1alpha1.TemplateSpec, co
 		}
 
 		patch := fmt.Sprintf(CollisionCountPatch, string(templateStatusBytes))
-		_, patchErr := ec.argoProjClientset.ArgoprojV1alpha1().Experiments(ec.ex.Namespace).Patch(ctx, ec.ex.Name, patchtypes.MergePatchType, []byte(patch), metav1.PatchOptions{})
-		ec.log.WithField("patch", patch).Debug("Applied Patch")
+		patchBytes, marshalErr := diff.InjectResourceVersion([]byte(patch), ec.ex.ResourceVersion)
+		if marshalErr != nil {
+			return nil, marshalErr
+		}
+		_, patchErr := ec.argoProjClientset.ArgoprojV1alpha1().Experiments(ec.ex.Namespace).Patch(ctx, ec.ex.Name, patchtypes.MergePatchType, patchBytes, metav1.PatchOptions{})
+		ec.log.WithField("patch", string(patchBytes)).Debug("Applied Patch")
 		if patchErr != nil {
-			ec.log.Errorf("Error patching service %s", err.Error())
+			if k8serrors.IsConflict(patchErr) {
+				// A concurrent write landed since we read from cache; requeue and retry against
+				// fresh state rather than clobbering it.
+				return nil, controllerutil.StaleCacheError
+			}
+			ec.log.Errorf("Error patching experiment %s", patchErr.Error())
 			return nil, patchErr
 		}
 		ec.log.Warnf("Found a hash collision - bumped collisionCount (%d->%d) to resolve it", preCollisionCount, *newTemplate.CollisionCount)
