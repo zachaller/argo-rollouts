@@ -25,6 +25,7 @@ import (
 	clientset "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned"
 	informers "github.com/argoproj/argo-rollouts/pkg/client/informers/externalversions/rollouts/v1alpha1"
 	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
+	"github.com/argoproj/argo-rollouts/utils/diff"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
 	serviceutil "github.com/argoproj/argo-rollouts/utils/service"
 	unstructuredutil "github.com/argoproj/argo-rollouts/utils/unstructured"
@@ -204,10 +205,20 @@ func (c *Controller) syncService(ctx context.Context, key string) error {
 
 	patch := generateRemovePatch(svc)
 	if patch != "" {
-		_, err = c.kubeclientset.CoreV1().Services(svc.Namespace).Patch(ctx, svc.Name, patchtypes.MergePatchType, []byte(patch), metav1.PatchOptions{})
+		patchBytes, err := diff.InjectResourceVersion([]byte(patch), svc.ResourceVersion)
+		if err != nil {
+			return err
+		}
+		_, err = c.kubeclientset.CoreV1().Services(svc.Namespace).Patch(ctx, svc.Name, patchtypes.MergePatchType, patchBytes, metav1.PatchOptions{})
 		if err != nil {
 			if k8serrors.IsNotFound(err) {
 				return nil
+			}
+			if k8serrors.IsConflict(err) {
+				// The Service was modified concurrently since we read it from cache; requeue and
+				// retry against fresh state rather than clobbering the concurrent change.
+				logCtx.Infof("Conflict while cleaning service, requeuing: %v", err)
+				return controllerutil.StaleCacheError
 			}
 			return err
 		}

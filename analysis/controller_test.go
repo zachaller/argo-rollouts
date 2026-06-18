@@ -17,6 +17,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,6 +34,7 @@ import (
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/fake"
 	informers "github.com/argoproj/argo-rollouts/pkg/client/informers/externalversions"
+	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	"github.com/argoproj/argo-rollouts/utils/record"
 )
 
@@ -382,6 +384,56 @@ func TestFailedToCreateProviderError(t *testing.T) {
 
 	assert.Equal(t, v1alpha1.AnalysisPhaseError, updatedAr.Status.MetricResults[0].Measurements[0].Phase)
 	assert.Equal(t, "failed to create provider", updatedAr.Status.MetricResults[0].Measurements[0].Message)
+}
+
+// TestSyncAnalysisRunStaleCache verifies the syncHandler short-circuits with StaleCacheError when
+// the informer cache is behind a ResourceVersion we previously wrote.
+func TestSyncAnalysisRunStaleCache(t *testing.T) {
+	f := newFixture(t)
+	defer f.Close()
+
+	run := newRun()
+	run.Name = "test"
+	run.Namespace = metav1.NamespaceDefault
+	run.ResourceVersion = "100"
+	f.analysisRunLister = append(f.analysisRunLister, run)
+	f.objects = append(f.objects, run)
+
+	c, i, k8sI := f.newController(noResyncPeriodFunc)
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+	i.Start(stopCh)
+	k8sI.Start(stopCh)
+	assert.True(t, cache.WaitForCacheSync(stopCh, c.analysisRunSynced))
+
+	// We recorded a newer write than what the cache currently has.
+	c.analysisRunVersionTracker.Record("default/test", "200")
+
+	err := c.syncHandler(context.Background(), "default/test")
+	assert.ErrorIs(t, err, controllerutil.StaleCacheError)
+}
+
+// TestPersistAnalysisRunStatusConflictRequeue verifies a 409 Conflict on the status patch is mapped
+// to StaleCacheError so the item is requeued rather than treated as a fatal error.
+func TestPersistAnalysisRunStatusConflictRequeue(t *testing.T) {
+	f := newFixture(t)
+	defer f.Close()
+
+	orig := newRun()
+	orig.Name = "test"
+	orig.Namespace = metav1.NamespaceDefault
+	orig.ResourceVersion = "100"
+
+	c, _, _ := f.newController(noResyncPeriodFunc)
+	f.client.PrependReactor("patch", "analysisruns", func(action core.Action) (bool, runtime.Object, error) {
+		return true, nil, k8serrors.NewConflict(schema.GroupResource{Group: "argoproj.io", Resource: "analysisruns"}, orig.Name, fmt.Errorf("conflict"))
+	})
+
+	newStatus := orig.Status.DeepCopy()
+	newStatus.Phase = v1alpha1.AnalysisPhaseSuccessful
+
+	err := c.persistAnalysisRunStatus(orig, *newStatus)
+	assert.ErrorIs(t, err, controllerutil.StaleCacheError)
 }
 
 func TestRun(t *testing.T) {
