@@ -448,7 +448,7 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
 	now := timeutil.MetaNow()
 
 	// Determine if spec changed (for superseded rollout detection) or if it's the initial rollout
-	// CurrentPodHash == "" allows use to know that it is the initial rollout
+	// CurrentPodHash == "" allows us to know that it is the initial rollout
 	podSpecChanged := c.rollout.Status.CurrentPodHash == ""
 	if c.rollout.Spec.Strategy.Canary != nil {
 		podSpecChanged = podSpecChanged || replicasetutil.PodTemplateOrStepsChanged(c.rollout, c.newRS)
@@ -469,22 +469,33 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
 	durationInProgress := prevStatus.Duration != nil && prevStatus.Duration.RolloutStartedAt != nil && !prevStatus.Duration.IsCompleted()
 
 	if durationInProgress {
-		// Rollout is in progress
+		// Rollout is in progress. At most one completion outcome may be concluded (and its
+		// metrics emitted) per reconciliation: a pod spec change supersedes any pending abort,
+		// and an in-flight rollback keeps being tracked until it reaches the desired state.
 		if podSpecChanged {
 			// First rollout or Rollout was interrupted mid-execution
 			if c.isRollback() {
-				// If the rollout is a rollback, we keep the the current duration
+				// If the rollout is a rollback, we keep the current duration
 				// The user explicitly reverted the rollout to the previous pod spec
 				status := v1alpha1.CompletionStatusRollbacked
 				if c.isFastRollback() {
 					status = v1alpha1.CompletionStatusFastRollbacked
 				}
-				// The user explicitly reverted the rollout to the previous pod spec
 				durationStatus.CompletionStatus = &status
 				c.log.WithField("event", "rollout_rollback").
 					WithField("reason", "reverted to previous revision causing "+status+" rollout").
 					Info("Rollout rollback")
 
+				if isCompleted {
+					// Rollback to the stable ReplicaSet completes immediately
+					durationStatus.CompleteRollout(now, status)
+					c.metricsServer.EmitRolloutDuration(durationStatus)
+					c.log.WithFields(durationStatus.GetCompletionLogFields()).
+						WithField("event", "rollout_completed").
+						WithField("reason", "rollout reached desired replicas").
+						Info("Rollout completed")
+					return durationStatus
+				}
 			} else {
 				// Rollout was interrupted mid-execution
 				durationStatus.CompleteRollout(now, v1alpha1.CompletionStatusSuperseded)
@@ -501,8 +512,7 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
 					WithField("completion_reason", completionReason).
 					Info("Rollout completed")
 			}
-		}
-		if isCompleted && !durationStatus.IsCompleted() {
+		} else if isCompleted && !durationStatus.IsCompleted() {
 			// Rollout is now completed
 			completionStatus := durationStatus.GetCompletionStatus()
 			if completionStatus == "" {
@@ -518,7 +528,7 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
 			// if we just reached desired replicas.
 			return durationStatus
 		} else if isAborted {
-			// Rolout was just aborted
+			// Rollout was just aborted
 			completionStatus := durationStatus.GetCompletionStatus()
 			if completionStatus == "" {
 				completionStatus = v1alpha1.CompletionStatusAborted
@@ -547,12 +557,12 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
 				WithField("reason", "new revision detected").
 				Info("Rollout started")
 		} else if isRetry {
-			// Rolout retried after being aborted, start a new rollout
+			// Rollout retried after being aborted, start a new rollout
 			durationStatus = &v1alpha1.RolloutDurationStatus{
 				RolloutStartedAt: &now,
 			}
 			c.log.WithField("event", "rollout_started").
-				WithField("reason", "rety after abort").
+				WithField("reason", "retry after abort").
 				Info("Rollout retried")
 		}
 	}
