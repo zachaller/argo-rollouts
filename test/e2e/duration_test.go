@@ -146,7 +146,7 @@ func (s *DurationSuite) TestCanaryDuration_IndefinitePauseStep() {
 		Assert(func(t *fixtures.Then) {
 			ro := t.GetRollout()
 			assertDurationFieldsConsistency(s.T(), ro)
-			assert.NotNil(s.T(), ro.Status.Duration.ManualPauseStartedAt, "ManualPauseStartedAt should be nil for step pause")
+			assert.NotNil(s.T(), ro.Status.Duration.ManualPauseStartedAt, "ManualPauseStartedAt should be set for an indefinite step pause")
 		}).
 		When().
 		Sleep(2*time.Second).
@@ -179,6 +179,8 @@ func (s *DurationSuite) TestCanaryDuration_FullyPromoted() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		// Full promote (skip all remaining steps)
 		PromoteRolloutFull().
 		WaitForRolloutStatus("Healthy", 10*time.Second).
@@ -189,7 +191,7 @@ func (s *DurationSuite) TestCanaryDuration_FullyPromoted() {
 			assertDurationFieldsConsistency(s.T(), ro)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusFastPromoted, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0))
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -206,6 +208,8 @@ func (s *DurationSuite) TestCanaryDuration_Abort() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		AbortRollout().
 		WaitForRolloutStatus("Degraded", 10*time.Second).
 		Then().
@@ -215,7 +219,7 @@ func (s *DurationSuite) TestCanaryDuration_Abort() {
 			assertDurationFieldsConsistency(s.T(), ro)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusAborted, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0))
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -233,6 +237,8 @@ func (s *DurationSuite) TestCanaryDuration_Retry() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		AbortRollout().
 		WaitForRolloutStatus("Degraded").
 		Then().
@@ -312,6 +318,8 @@ func (s *DurationSuite) TestCanaryDuration_SupersededRollback() {
 			initialStartedAt = *ro.Status.Duration.RolloutStartedAt
 		}).
 		When().
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		// Supersede with rollback to revision 1
 		UpdateVersion("1").
 		// should be a fast rollback
@@ -324,7 +332,7 @@ func (s *DurationSuite) TestCanaryDuration_SupersededRollback() {
 			assert.Equal(s.T(), initialStartedAt, *ro.Status.Duration.RolloutStartedAt)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusFastRollbacked, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0))
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -376,7 +384,7 @@ func (s *DurationSuite) TestCanaryDuration_RollbackInsideWindow() {
 - pause: {}`
 
 	s.Given().
-		RolloutTemplate("@functional/canary-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "canary-duration-rollback-outside"}).
+		RolloutTemplate("@functional/canary-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "canary-duration-rollback-inside"}).
 		SetSteps(canarySteps).
 		SetVersion("1").
 		RevisionHistoryLimit(5).
@@ -518,6 +526,8 @@ func (s *DurationSuite) TestBlueGreenDuration_ManualPromotion() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		PromoteRollout().
 		WaitForRolloutStatus("Healthy", 10*time.Second).
 		Then().
@@ -526,7 +536,7 @@ func (s *DurationSuite) TestBlueGreenDuration_ManualPromotion() {
 			assertDurationFieldsConsistency(s.T(), ro)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusPromoted, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "TotalManualPauseDuration should be greater than 0")
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -539,6 +549,8 @@ func (s *DurationSuite) TestBlueGreenDuration_FullyPromoted() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		PromoteRolloutFull().
 		WaitForRolloutStatus("Healthy", 10*time.Second).
 		Then().
@@ -547,7 +559,7 @@ func (s *DurationSuite) TestBlueGreenDuration_FullyPromoted() {
 			assertDurationFieldsConsistency(s.T(), ro)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusFastPromoted, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "TotalManualPauseDuration should be greater than 0")
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -560,6 +572,8 @@ func (s *DurationSuite) TestBlueGreenDuration_Abort() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		AbortRollout().
 		WaitForRolloutStatus("Degraded", 10*time.Second).
 		Then().
@@ -569,7 +583,7 @@ func (s *DurationSuite) TestBlueGreenDuration_Abort() {
 			assertDurationFieldsConsistency(s.T(), ro)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusAborted, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0))
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
@@ -583,6 +597,8 @@ func (s *DurationSuite) TestBlueGreenDuration_Retry() {
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		WaitForRolloutStatus("Paused").
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		AbortRollout().
 		WaitForRolloutStatus("Degraded").
 		Then().
@@ -657,6 +673,8 @@ func (s *DurationSuite) TestBlueGreenDuration_SupersededRollbackToStable() {
 			initialStartedAt = *ro.Status.Duration.RolloutStartedAt
 		}).
 		When().
+		// dwell in the manual pause so its duration is measurable in whole seconds
+		Sleep(2*time.Second).
 		// Supersede with rollback to revision 1
 		UpdateVersion("1").
 		// should be a fast rollback
@@ -669,7 +687,7 @@ func (s *DurationSuite) TestBlueGreenDuration_SupersededRollbackToStable() {
 			assert.Equal(s.T(), initialStartedAt, *ro.Status.Duration.RolloutStartedAt)
 			assert.Equal(s.T(), v1alpha1.CompletionStatusFastRollbacked, *ro.Status.Duration.CompletionStatus)
 			assert.NotNil(s.T(), ro.Status.Duration.FinishedAt)
-			assert.GreaterOrEqual(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0))
+			assert.Greater(s.T(), *ro.Status.Duration.TotalManualPauseDuration, int64(0), "manual pause time should have been recorded")
 		})
 }
 
