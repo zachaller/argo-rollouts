@@ -831,6 +831,8 @@ func TestBlueGreenHandlePause(t *testing.T) {
 		r2.Spec.Strategy.BlueGreen.ScaleDownDelaySeconds = ptr.To[int32](10)
 		r2 = updateBlueGreenRolloutStatus(r2, rs2PodHash, rs1PodHash, rs1PodHash, 1, 1, 2, 1, false, true, false)
 		r2.Status.ControllerPause = true
+		// a resume only mutates status, so the generation is already observed
+		r2.Status.ObservedGeneration = strconv.Itoa(int(r2.Generation))
 		completedCondition, _ := newCompletedCondition(false)
 		conditions.SetRolloutCondition(&r2.Status, completedCondition)
 		pausedCondition, _ := newProgressingCondition(conditions.RolloutPausedReason, rs2, "")
@@ -850,14 +852,34 @@ func TestBlueGreenHandlePause(t *testing.T) {
 		f.serviceLister = append(f.serviceLister, activeSvc, previewSvc)
 
 		servicePatchIndex := f.expectPatchServiceAction(activeSvc, rs2PodHash)
+		unpausePatchIndex := f.expectPatchRolloutAction(r2)
 		f.expectGetRolloutAction(r2) // second reconciliation
 		patchRolloutIndex := f.expectPatchRolloutAction(r2)
 		f.runWithSyncs(getKey(r2, t), 2)
 
 		f.verifyPatchedService(servicePatchIndex, rs2PodHash, "")
 
+		// The first reconciliation patches the resumed conditions and finalizes
+		// the manual pause tracking in the duration status.
+		unpausePatch := f.getPatchedRollout(unpausePatchIndex)
+		_, availableCondition := newAvailableCondition(true)
+		_, progressingCondition := newProgressingCondition(conditions.RolloutResumedReason, rs2, "")
+		_, compCondition := newCompletedCondition(false)
+		unpauseConditions := fmt.Sprintf("[%s, %s, %s]", availableCondition, compCondition, progressingCondition)
+		expectedUnpausePatch := `{
+			"status": {
+				"conditions": %s,
+				"duration": {
+					"totalManualPauseDuration": %d,
+					"manualPauseStartedAt": null
+				}
+			}
+		}`
+		assert.JSONEq(t, cleanPatch(fmt.Sprintf(expectedUnpausePatch, unpauseConditions, pausedDuration)), unpausePatch)
+
 		// By the second reconciliation the rollout has fully promoted to the new ReplicaSet
-		// and become healthy. observedGeneration was already persisted in the unpause patch.
+		// and become healthy. The manual pause duration was already persisted in the
+		// unpause patch, so only the completion fields change here.
 		_, available2ndCondition := newAvailableCondition(true)
 		_, healthy2ndCondition := newHealthyCondition(true)
 		_, progressing2ndCondition := newProgressingCondition(conditions.NewRSAvailableReason, rs2, "")
@@ -875,8 +897,6 @@ func TestBlueGreenHandlePause(t *testing.T) {
 				"phase": "Healthy",
 				"message": null,
 				"duration": {
-					"totalManualPauseDuration": %d,
-					"manualPauseStartedAt": null,
 					"finishedAt": "%s",
 					"completionStatus": "promoted"
 				}
@@ -884,7 +904,7 @@ func TestBlueGreenHandlePause(t *testing.T) {
 		}`
 		now := timeutil.MetaNow().UTC().Format(time.RFC3339)
 		newSelector := metav1.FormatLabelSelector(rs2.Spec.Selector)
-		expected2ndPatch := cleanPatch(fmt.Sprintf(expected2ndPatchWithoutSubs, rs2PodHash, rs2PodHash, generatedConditions, newSelector, pausedDuration, now))
+		expected2ndPatch := cleanPatch(fmt.Sprintf(expected2ndPatchWithoutSubs, rs2PodHash, rs2PodHash, generatedConditions, newSelector, now))
 		rollout2ndPatch := f.getPatchedRollout(patchRolloutIndex)
 		assert.Equal(t, expected2ndPatch, rollout2ndPatch)
 	})
