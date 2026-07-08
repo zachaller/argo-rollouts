@@ -647,7 +647,6 @@ func (s *CanarySuite) TestCanaryDynamicStableScale() {
 		MarkPodsReady("1", 2). // mark 2 stable pods as ready (3/4 stable are ready)
 		WaitForRevisionPodCount("2", 1).
 		WaitForRevisionPodCount("1", 4).
-		When().
 		MarkPodsReady("1", 1). // mark last remaining stable pod as ready (4/4 stable are ready)
 		WaitForRevisionPodCount("2", 0).
 		Sleep(2*time.Second). //WaitForRevisionPodCount does not wait for terminating pods and so ExpectServiceSelector fails sleep a bit for the terminating pods to be deleted
