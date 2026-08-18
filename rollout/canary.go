@@ -250,6 +250,9 @@ func (c *rolloutContext) completedCurrentCanaryStep() bool {
 	if c.rollout.Spec.Paused {
 		return false
 	}
+	if c.podsRestartedThisPass {
+		return false
+	}
 	// ReconcileSucceeded=False this pass: advancing now risks persisting state the cluster does not
 	// match (#3602-class hazard).
 	if c.anyStageConditionFalse() {
