@@ -830,6 +830,9 @@ func (c *rolloutContext) evaluateProgressDeadlineAbort(newStatus *v1alpha1.Rollo
 	if c.pauseContext == nil || c.pauseContext.IsAborted() {
 		return
 	}
+	if c.podsRestartedThisPass {
+		return
+	}
 	// Progress-deadline abort only applies to an in-flight update. Once the rollout is fully
 	// promoted, the update already succeeded; a later availability drop should not abort
 	// a rollout that already completed.
@@ -1265,6 +1268,9 @@ func (c *rolloutContext) shouldFullPromote(newStatus v1alpha1.RolloutStatus) str
 		return "Initial deploy"
 	} else if c.rollout.Spec.Strategy.Canary != nil {
 		if c.pauseContext.IsAborted() {
+			return ""
+		}
+		if c.podsRestartedThisPass {
 			return ""
 		}
 		// ReconcileSucceeded=False this pass; hold promotion.
