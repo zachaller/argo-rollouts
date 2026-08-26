@@ -6,6 +6,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	patchtypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
@@ -15,7 +16,9 @@ import (
 	"github.com/argoproj/argo-rollouts/utils/annotations"
 	"github.com/argoproj/argo-rollouts/utils/aws"
 	"github.com/argoproj/argo-rollouts/utils/conditions"
+	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	"github.com/argoproj/argo-rollouts/utils/defaults"
+	"github.com/argoproj/argo-rollouts/utils/diff"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
 	"github.com/argoproj/argo-rollouts/utils/record"
 	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
@@ -64,8 +67,18 @@ func (c rolloutContext) switchServiceSelector(service *corev1.Service, newRollou
 		return nil
 	}
 	patch := generatePatch(service, newRolloutUniqueLabelValue, r)
-	_, err := c.kubeclientset.CoreV1().Services(service.Namespace).Patch(ctx, service.Name, patchtypes.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
+	patchBytes, err := diff.InjectResourceVersion([]byte(patch), service.ResourceVersion)
 	if err != nil {
+		return err
+	}
+	_, err = c.kubeclientset.CoreV1().Services(service.Namespace).Patch(ctx, service.Name, patchtypes.StrategicMergePatchType, patchBytes, metav1.PatchOptions{})
+	if err != nil {
+		if k8serrors.IsConflict(err) {
+			// The Service was modified concurrently since we read it from cache; requeue and retry
+			// against fresh state rather than clobbering the concurrent change.
+			c.log.Infof("Conflict while switching selector for service %q, requeuing: %v", service.Name, err)
+			return controllerutil.StaleCacheError
+		}
 		return err
 	}
 	msg := fmt.Sprintf("Switched selector for service '%s' from '%s' to '%s'", service.Name, oldPodHash, newRolloutUniqueLabelValue)

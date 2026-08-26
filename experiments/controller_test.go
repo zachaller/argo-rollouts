@@ -19,6 +19,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +39,7 @@ import (
 	"github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned/fake"
 	informers "github.com/argoproj/argo-rollouts/pkg/client/informers/externalversions"
 	"github.com/argoproj/argo-rollouts/utils/conditions"
+	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	"github.com/argoproj/argo-rollouts/utils/record"
 )
 
@@ -918,4 +920,47 @@ func TestRun(t *testing.T) {
 		cancel()
 	}()
 	c.Run(ctx, 1)
+}
+
+// TestSyncExperimentStaleCache verifies the syncHandler short-circuits with StaleCacheError when the
+// informer cache is behind a ResourceVersion we previously wrote.
+func TestSyncExperimentStaleCache(t *testing.T) {
+	ex := newExperiment("test", nil, "")
+	ex.ResourceVersion = "100"
+
+	f := newFixture(t, ex)
+	defer f.Close()
+
+	c, i, k8sI := f.newController(noResyncPeriodFunc)
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+	i.Start(stopCh)
+	k8sI.Start(stopCh)
+	assert.True(t, cache.WaitForCacheSync(stopCh, c.experimentSynced))
+
+	c.experimentVersionTracker.Record("default/test", "200")
+
+	err := c.syncHandler(context.Background(), "default/test")
+	assert.ErrorIs(t, err, controllerutil.StaleCacheError)
+}
+
+// TestPersistExperimentStatusConflictRequeue verifies a 409 Conflict on the status patch is mapped to
+// StaleCacheError so the item is requeued rather than treated as a fatal error.
+func TestPersistExperimentStatusConflictRequeue(t *testing.T) {
+	f := newFixture(t)
+	defer f.Close()
+
+	orig := newExperiment("test", nil, "")
+	orig.ResourceVersion = "100"
+
+	c, _, _ := f.newController(noResyncPeriodFunc)
+	f.client.PrependReactor("patch", "experiments", func(action core.Action) (bool, runtime.Object, error) {
+		return true, nil, k8serrors.NewConflict(schema.GroupResource{Group: "argoproj.io", Resource: "experiments"}, orig.Name, fmt.Errorf("conflict"))
+	})
+
+	newStatus := orig.Status.DeepCopy()
+	newStatus.Phase = v1alpha1.AnalysisPhaseRunning
+
+	err := c.persistExperimentStatus(orig, newStatus)
+	assert.ErrorIs(t, err, controllerutil.StaleCacheError)
 }
