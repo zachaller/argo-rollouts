@@ -35,6 +35,7 @@ import (
 	"github.com/argoproj/argo-rollouts/utils/diff"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
 	"github.com/argoproj/argo-rollouts/utils/record"
+	resourceversionutil "github.com/argoproj/argo-rollouts/utils/resourceversion"
 	timeutil "github.com/argoproj/argo-rollouts/utils/time"
 	unstructuredutil "github.com/argoproj/argo-rollouts/utils/unstructured"
 )
@@ -79,6 +80,10 @@ type Controller struct {
 	// Kubernetes API.
 	recorder     record.EventRecorder
 	resyncPeriod time.Duration
+
+	// experimentVersionTracker remembers ResourceVersions from our last successful writes so
+	// syncHandler can requeue when the informer cache hasn't caught up yet.
+	experimentVersionTracker *resourceversionutil.Tracker
 }
 
 // ControllerConfig describes the data required to instantiate a new experiments controller
@@ -126,6 +131,8 @@ func NewController(cfg ControllerConfig) *Controller {
 		clusterAnalysisTemplateSynced: cfg.ClusterAnalysisTemplateInformer.Informer().HasSynced,
 		recorder:                      cfg.Recorder,
 		resyncPeriod:                  cfg.ResyncPeriod,
+
+		experimentVersionTracker: resourceversionutil.NewTracker(),
 	}
 
 	controller.enqueueExperiment = func(obj any) {
@@ -255,10 +262,15 @@ func (ec *Controller) syncHandler(ctx context.Context, key string) error {
 	experiment, err := ec.experimentsLister.Experiments(namespace).Get(name)
 	if k8serrors.IsNotFound(err) {
 		logCtx.Info("Experiment has been deleted")
+		ec.experimentVersionTracker.Forget(key)
 		return nil
 	}
 	if err != nil {
 		return err
+	}
+
+	if ec.experimentVersionTracker.IsCacheStale(key, experiment.ResourceVersion) {
+		return controllerutil.StaleCacheError
 	}
 
 	defer func() {
@@ -322,13 +334,13 @@ func (ec *Controller) persistExperimentStatus(orig *v1alpha1.Experiment, newStat
 	prevStatus := orig.Status
 	ctx := context.TODO()
 	logCtx := logutil.WithExperiment(orig)
-	patch, modified, err := diff.CreateTwoWayMergePatch(
+	patch, modified, err := diff.CreateTwoWayMergePatchWithResourceVersion(
 		&v1alpha1.Experiment{
 			Status: orig.Status,
 		},
 		&v1alpha1.Experiment{
 			Status: *newStatus,
-		}, v1alpha1.Experiment{})
+		}, v1alpha1.Experiment{}, orig.ResourceVersion)
 	if err != nil {
 		logCtx.Errorf("Error constructing app status patch: %v", err)
 		return err
@@ -340,9 +352,16 @@ func (ec *Controller) persistExperimentStatus(orig *v1alpha1.Experiment, newStat
 	logCtx.Debugf("Experiment Patch: %s", patch)
 	patched, err := ec.argoProjClientset.ArgoprojV1alpha1().Experiments(orig.Namespace).Patch(ctx, orig.Name, patchtypes.MergePatchType, patch, metav1.PatchOptions{})
 	if err != nil {
+		if k8serrors.IsConflict(err) {
+			// A concurrent write landed since we read from cache; requeue and retry against fresh
+			// state rather than clobbering it.
+			logCtx.Infof("Conflict while patching experiment, requeuing: %v", err)
+			return controllerutil.StaleCacheError
+		}
 		logCtx.Warningf("Error updating experiment: %v", err)
 		return err
 	}
+	ec.experimentVersionTracker.Record(orig.Namespace+"/"+orig.Name, patched.ResourceVersion)
 	logCtx.Info("Patch status successfully")
 	ec.recordEvent(patched, prevStatus, newStatus)
 	return nil
