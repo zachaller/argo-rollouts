@@ -106,8 +106,8 @@ func TestStagePipelineSemantics(t *testing.T) {
 		assertStrategyWouldSyncStatus(t, ctx, err, true)
 	})
 
-	t.Run("stageFatal halts pipeline and returns error", func(t *testing.T) {
-		fatalErr := errors.New("stage failed")
+	t.Run("stageStop with error halts pipeline and returns error", func(t *testing.T) {
+		stageErr := errors.New("stage failed")
 		ran := []string{}
 		stages := []strategyStage{
 			{"a", func(c *rolloutContext) stageResult {
@@ -116,7 +116,7 @@ func TestStagePipelineSemantics(t *testing.T) {
 			}},
 			{"b", func(c *rolloutContext) stageResult {
 				ran = append(ran, "b")
-				return stageResult{outcome: stageFatal, err: fatalErr}
+				return stageResult{outcome: stageStop, err: stageErr}
 			}},
 			{"c", func(c *rolloutContext) stageResult {
 				ran = append(ran, "c")
@@ -125,10 +125,10 @@ func TestStagePipelineSemantics(t *testing.T) {
 		}
 		ctx := newTestContext()
 		err := ctx.runStages(stages)
-		assert.ErrorIs(t, err, fatalErr)
+		assert.ErrorIs(t, err, stageErr)
 		assert.False(t, ctx.skipStatusSync)
 		assert.Equal(t, []string{"a", "b"}, ran)
-		assertStrategyWouldSyncStatus(t, ctx, err, false)
+		assertStrategyWouldSyncStatus(t, ctx, err, true)
 	})
 
 	t.Run("stageStopNoStatus with nil error skips status sync", func(t *testing.T) {
@@ -169,6 +169,6 @@ func TestStagePipelineSemantics(t *testing.T) {
 // assertStrategyWouldSyncStatus mirrors the rolloutCanary/rolloutBlueGreen wrapper contract.
 func assertStrategyWouldSyncStatus(t *testing.T, ctx *rolloutContext, stageErr error, wantSync bool) {
 	t.Helper()
-	gotSync := !ctx.skipStatusSync && stageErr == nil
+	gotSync := !ctx.skipStatusSync
 	assert.Equal(t, wantSync, gotSync)
 }

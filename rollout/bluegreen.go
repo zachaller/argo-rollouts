@@ -1,6 +1,7 @@
 package rollout
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -15,25 +16,27 @@ import (
 	serviceutil "github.com/argoproj/argo-rollouts/utils/service"
 )
 
-// rolloutBlueGreen implements the logic for rolling a new replica set.
+// rolloutBlueGreen implements the logic for rolling a new replica set. Status is synced, exactly
+// once, even when a stage fails: syncRolloutStatusBlueGreen is where progressDeadline/abort
+// evaluation lives, and skipping it is how a rollout gets wedged in Progressing forever (#4626)
+// — mirroring rolloutCanary. The only exceptions are the prerequisites (service lookup and
+// ReplicaSet sync), without which a meaningful status cannot be computed.
 func (c *rolloutContext) rolloutBlueGreen() error {
 	previewSvc, activeSvc, err := c.getPreviewAndActiveServices()
 	if err != nil {
 		return err
 	}
-	c.newRS, err = c.getAllReplicaSetsAndSyncRevision()
+	newRS, err := c.getAllReplicaSetsAndSyncRevision()
 	if err != nil {
 		return fmt.Errorf("failed to getAllReplicaSetsAndSyncRevision in rolloutBlueGreen create true: %w", err)
 	}
+	c.newRS = newRS
 
 	stageErr := c.runBlueGreenStages()
 	if c.skipStatusSync {
 		return stageErr
 	}
-	if stageErr != nil {
-		return stageErr
-	}
-	return c.syncRolloutStatusBlueGreen(previewSvc, activeSvc)
+	return errors.Join(stageErr, c.syncRolloutStatusBlueGreen(previewSvc, activeSvc))
 }
 
 func (c *rolloutContext) reconcileBlueGreenStableReplicaSet() error {

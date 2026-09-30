@@ -1,6 +1,7 @@
 package rollout
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -17,15 +18,18 @@ import (
 	rolloututil "github.com/argoproj/argo-rollouts/utils/rollout"
 )
 
+// rolloutCanary is the top-level canary reconcile. Status is synced, exactly once, even when a
+// stage fails: syncRolloutStatusCanary is where progressDeadline/abort evaluation and
+// condition/phase calculation live, and skipping it is how a rollout gets wedged in Progressing
+// forever (#4626). The only exceptions are the pod-restart early exit and ReplicaSet-sync
+// failures (stageStopNoStatus with err), where c.newRS is unreliable and a status computed from it
+// would persist corrupted values.
 func (c *rolloutContext) rolloutCanary() error {
 	stageErr := c.runCanaryStages()
 	if c.skipStatusSync {
 		return stageErr
 	}
-	if stageErr != nil {
-		return stageErr
-	}
-	return c.syncRolloutStatusCanary()
+	return errors.Join(stageErr, c.syncRolloutStatusCanary())
 }
 
 func (c *rolloutContext) reconcileCanaryStableReplicaSet() (bool, error) {
