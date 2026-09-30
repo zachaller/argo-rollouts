@@ -66,6 +66,7 @@ var blueGreenStages = []strategyStage{
 	{"targetGroups", blueGreenStageTargetGroups},
 	{"analysis", blueGreenStageAnalysis},
 	{"ephemeralMetadata", blueGreenStageEphemeralMetadata},
+	{"revisionHistory", blueGreenStageRevisionHistory},
 }
 
 func (c *rolloutContext) runCanaryStages() error {
@@ -160,14 +161,14 @@ func canaryStagePodRestart(c *rolloutContext) stageResult {
 
 func canaryStageEphemeralMetadata(c *rolloutContext) stageResult {
 	if err := c.reconcileEphemeralMetadata(); err != nil {
-		return stageResult{outcome: stageStop, err: err}
+		return stageResult{outcome: stageContinueWithError, err: err}
 	}
 	return stageResult{outcome: stageContinue}
 }
 
 func canaryStageRevisionHistory(c *rolloutContext) stageResult {
 	if err := c.reconcileRevisionHistoryLimit(c.otherRSs); err != nil {
-		return stageResult{outcome: stageStop, err: err}
+		return stageResult{outcome: stageContinueWithError, err: err}
 	}
 	return stageResult{outcome: stageContinue}
 }
@@ -340,14 +341,14 @@ func blueGreenStageAnalysis(c *rolloutContext) stageResult {
 
 func blueGreenStageEphemeralMetadata(c *rolloutContext) stageResult {
 	if err := c.reconcileEphemeralMetadata(); err != nil {
-		return stageResult{outcome: stageStop, err: err}
+		return stageResult{outcome: stageContinueWithError, err: err}
 	}
 	return stageResult{outcome: stageContinue}
 }
 
 func blueGreenStageRevisionHistory(c *rolloutContext) stageResult {
 	if err := c.reconcileRevisionHistoryLimit(c.otherRSs); err != nil {
-		return stageResult{outcome: stageStop, err: err}
+		return stageResult{outcome: stageContinueWithError, err: err}
 	}
 	return stageResult{outcome: stageContinue}
 }
