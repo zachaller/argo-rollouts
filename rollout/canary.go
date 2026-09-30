@@ -26,9 +26,16 @@ import (
 // would persist corrupted values.
 func (c *rolloutContext) rolloutCanary() error {
 	stageErr := c.runCanaryStages()
+	if stageErr != nil {
+		c.ensureReconcileFailureCondition(stageErr)
+	}
 	if c.skipStatusSync {
+		// Pod-restart early exit and ReplicaSet-sync failures set this; see runStages.
 		return stageErr
 	}
+	// errors.Join (rather than kerrors.NewAggregate) so that errors.As/Is-based checks like
+	// k8serrors.IsNotFound still see through the combined error in processNextWorkItem; the
+	// apimachinery aggregate implements Is but not Unwrap/As. Join returns nil when both are nil.
 	return errors.Join(stageErr, c.syncRolloutStatusCanary())
 }
 
@@ -51,6 +58,9 @@ func (c *rolloutContext) reconcileCanaryStableReplicaSet() (bool, error) {
 		// Therefore, we send c.rollout.Status.Canary.Weights so that the stable scaling happens in
 		// a *susbsequent*, follow-up reconciliation, lagging behind the setWeight and service switch.
 		_, desiredStableRSReplicaCount = replicasetutil.CalculateReplicaCountsForTrafficRoutedCanary(c.rollout, c.newRS, c.stableRS, c.rollout.Status.Canary.Weights)
+		// Never scale down the stable ReplicaSet based on weights the traffic provider has not
+		// verified yet (e.g. ALB load balancer weights still propagating): the provider may
+		// still be routing traffic to stable. Scale-up is still allowed.
 	}
 	scaled, _, err := c.scaleReplicaSetAndRecordEvent(c.stableRS, desiredStableRSReplicaCount)
 	if err != nil {
@@ -233,6 +243,11 @@ func (c *rolloutContext) canProceedWithScaleDownAnnotation(oldRSs []*appsv1.Repl
 
 func (c *rolloutContext) completedCurrentCanaryStep() bool {
 	if c.rollout.Spec.Paused {
+		return false
+	}
+	// ReconcileSucceeded=False this pass: advancing now risks persisting state the cluster does not
+	// match (#3602-class hazard).
+	if c.anyStageConditionFalse() {
 		return false
 	}
 	currentStep, currentStepIndex := replicasetutil.GetCurrentCanaryStep(c.rollout)

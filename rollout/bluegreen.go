@@ -28,11 +28,16 @@ func (c *rolloutContext) rolloutBlueGreen() error {
 	}
 	newRS, err := c.getAllReplicaSetsAndSyncRevision()
 	if err != nil {
+		// Leave c.newRS untouched and skip the status sync: a status computed from a nil/stale
+		// newRS would persist corrupted values.
 		return fmt.Errorf("failed to getAllReplicaSetsAndSyncRevision in rolloutBlueGreen create true: %w", err)
 	}
 	c.newRS = newRS
 
 	stageErr := c.runBlueGreenStages()
+	if stageErr != nil {
+		c.ensureReconcileFailureCondition(stageErr)
+	}
 	if c.skipStatusSync {
 		return stageErr
 	}

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/dynamic/dynamicinformer"
@@ -109,7 +109,14 @@ func TestReconcileTrafficRoutingSetWeightErr(t *testing.T) {
 	f.fakeTrafficRouting.On("SetWeight", mock.Anything, mock.Anything).Return(errors.New("Error message"))
 	patchIndex := f.expectPatchRolloutAction(ro)
 	f.runExpectError(getKey(ro, t), true)
-	assert.NotEmpty(t, f.getPatchedRollout(patchIndex), "status must sync even when SetWeight fails (#4626)")
+
+	patchedRollout := f.getPatchedRolloutAsObject(patchIndex)
+	assert.Nil(t, patchedRollout.Status.CurrentStepIndex,
+		"SetWeight error must not complete the setWeight step (currentStepIndex must not advance); patched status: %+v", patchedRollout.Status)
+	eventsStr := strings.Join(f.events, " ")
+	assert.Contains(t, eventsStr, "TrafficRoutingError",
+		"SetWeight error must be surfaced as an event; events: %v", f.events)
+	assert.NotContains(t, eventsStr, "RolloutStepCompleted", "SetWeight error must not emit a step-completed event")
 }
 
 // TestCanaryProgressDeadlineAbortNotBlockedByTrafficRoutingError reproduces the user-facing
@@ -2085,7 +2092,13 @@ func TestTrafficRoutingErrorsWhenNewCanaryHasNoReplicas(t *testing.T) {
 			f.runExpectError(getKey(r2, t), true)
 
 			f.fakeTrafficRouting.AssertCalled(t, tc.expectedCall, mock.Anything, mock.Anything)
-			assert.NotEmpty(t, f.getPatchedRollout(patchIndex), "status must sync even when traffic routing fails (#4626)")
+			patchedRollout := f.getPatchedRolloutAsObject(patchIndex)
+			if patchedRollout.Status.CurrentStepIndex != nil {
+				assert.Equal(t, int32(0), *patchedRollout.Status.CurrentStepIndex,
+					"traffic routing error must not complete the current step")
+			}
+			eventsStr := strings.Join(f.events, " ")
+			assert.Contains(t, eventsStr, "TrafficRoutingError", "traffic routing error must be surfaced as an event")
 		})
 	}
 }
@@ -2205,8 +2218,8 @@ spec:
 	f.expectUpdateReplicaSetAction(rs3)
 	f.expectUpdateRolloutAction(r6)
 	f.expectPatchRolloutAction(r6)
-	f.expectGetRolloutAction(r6) // re-seed between syncs
-	// Sync 2 returns error "delaying destination rule switch" and does not complete, so we do NOT expect update rs6 or second patch.
+	f.expectGetRolloutAction(r6)   // re-seed between syncs
+	f.expectPatchRolloutAction(r6) // sync 2: status sync despite delaying destination rule switch error
 
 	assert.Nil(t, f.fakeTrafficRouting, "test must use real Istio reconciler (fakeTrafficRouting=nil)")
 
@@ -2216,7 +2229,9 @@ spec:
 	f.reseedRolloutMutator = func(ro *v1alpha1.Rollout) {
 		ro.Status.CurrentStepIndex = &stepCount
 	}
-	f.allowErrorOnLastSync = true // sync 2 returns "delaying destination rule switch" and does not complete
+	// The delayed destination-rule switch surfaces as a reconcile error on the second sync
+	// (traffic-routing errors propagate for workqueue backoff instead of being swallowed).
+	f.allowErrorOnLastSync = true
 
 	prevLog := log.StandardLogger().Out
 	defer log.SetOutput(prevLog)

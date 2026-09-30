@@ -60,9 +60,19 @@ type rolloutContext struct {
 	// Used to detect fast rollbacks where we skip pause/analysis steps.
 	newRSWithinDelay bool
 
-	// skipStatusSync preserves the historical pod-restart early exit and ReplicaSet-sync
-	// failures, which intentionally end the pass without a status sync.
+	// skipStatusSync ends the pass without a status sync. Set only by ReplicaSet-sync failures
+	// (stageStopNoStatus with err), where c.newRS is unreliable and a status computed from it
+	// would persist corrupted values.
 	skipStatusSync bool
+	// stageConditions holds the in-memory ReconcileSucceeded condition when reconcile work fails
+	// this pass. Merged into newStatus by mergeStageConditions; read by progression gates via
+	// stageConditionFalse.
+	stageConditions map[v1alpha1.RolloutConditionType]v1alpha1.RolloutCondition
+
+	// stageSuccesses records that reconcile work completed without error this pass.
+	// mergeStageConditions only lets a previously-False ReconcileSucceeded recover to True when
+	// stageSuccesses is set.
+	stageSuccesses map[v1alpha1.RolloutConditionType]bool
 }
 
 func (c *rolloutContext) reconcile() error {
