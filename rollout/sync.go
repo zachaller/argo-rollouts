@@ -30,6 +30,7 @@ import (
 	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
 	rolloututil "github.com/argoproj/argo-rollouts/utils/rollout"
 	timeutil "github.com/argoproj/argo-rollouts/utils/time"
+	"github.com/argoproj/argo-rollouts/utils/weightutil"
 )
 
 // getAllReplicaSetsAndSyncRevision returns all the replica sets for the provided rollout (new and all old), with new RS's and rollout's revision updated.
@@ -1269,6 +1270,13 @@ func (c *rolloutContext) shouldFullPromote(newStatus v1alpha1.RolloutStatus) str
 		// ReconcileSucceeded=False this pass; hold promotion.
 		if c.anyStageConditionFalse() {
 			c.warnPromoteFullHeld("a stage failed to apply changes during this reconciliation")
+			return ""
+		}
+		// The desired traffic weight was applied but has not been verified with the underlying
+		// provider yet (e.g. ALB load balancer weights still propagating). This is the canary
+		// equivalent of the blue-green areTargetsVerified() check below.
+		if weightutil.VerificationPending(newStatus.Canary.Weights) {
+			c.warnPromoteFullHeld("desired traffic weights have not been verified by the traffic provider")
 			return ""
 		}
 		// Block promotion only when canary has fewer available than desired (e.g. still scaling up).
