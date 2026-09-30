@@ -64,6 +64,12 @@ type rolloutContext struct {
 	// (stageStopNoStatus with err), where c.newRS is unreliable and a status computed from it
 	// would persist corrupted values.
 	skipStatusSync bool
+
+	// podsRestartedThisPass is set when this reconcile evicted pods. Availability counts are
+	// stale-high for the rest of the pass, so step completion, promotion, and deadline abort
+	// must not fire on them (#4221 guard through the status side).
+	podsRestartedThisPass bool
+
 	// stageConditions holds the in-memory ReconcileSucceeded condition when reconcile work fails
 	// this pass. Merged into newStatus by mergeStageConditions; read by progression gates via
 	// stageConditionFalse.

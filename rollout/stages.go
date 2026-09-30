@@ -154,7 +154,8 @@ func canaryStagePodRestart(c *rolloutContext) stageResult {
 	}
 	if restarted > 0 {
 		c.log.Infof("Finished reconciliation due to %d restarted pods", restarted)
-			return stageResult{outcome: stageStopNoStatus}
+		c.podsRestartedThisPass = true
+		return stageResult{outcome: stageStop}
 	}
 	return stageResult{outcome: stageContinue}
 }
@@ -281,7 +282,8 @@ func blueGreenStagePodRestart(c *rolloutContext) stageResult {
 	}
 	if restarted > 0 {
 		c.log.Infof("Finished reconciliation due to %d restarted pods", restarted)
-			return stageResult{outcome: stageStopNoStatus}
+		c.podsRestartedThisPass = true
+		return stageResult{outcome: stageStop}
 	}
 	return stageResult{outcome: stageContinue}
 }
