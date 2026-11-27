@@ -16,7 +16,7 @@ import (
 // destinationRuleSerial is why the tests that use a DestinationRule run one at
 // a time, before the parallel tests start. When the Rollout that manages a
 // DestinationRule is deleted, the controller can crash on an update conflict,
-// and it did so in 2 of 13 runs with these tests in parallel. With the
+// and it did so in 2 of 17 runs with these tests in parallel. With the
 // controller idle, as in the serial suite these tests come from, it did not in
 // 68 runs. Remove the option once the controller is fixed.
 const destinationRuleSerial = "a controller defect makes deleting a rollout with a DestinationRule unsafe under load; see test/migration-reports/fix-plans/istio-destinationrule-sync-error-crashes-controller.md"

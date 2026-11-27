@@ -31,9 +31,28 @@ exit status 2
 
 The e2e run in progress was stopped at that point.
 
+It happened again in the same test in fork workflow run 46080392030, job
+`parallel 16, job 4` (commit `5acb458b`), this time with nothing else wrong.
+The log shows the worker's own two steps:
+
+```
+msg="cleaning destinationrule: rollout does not exist" destinationrule=istio-subset-split-destrule
+msg="cleaned destination rule" destinationrule=istio-subset-split-destrule
+level=error msg="destinationrule syncHandler error: Operation cannot be fulfilled on
+  destinationrules.networking.istio.io \"istio-subset-split-destrule\": the object has been modified; ..."
+panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked]
+```
+
+The first sync cleaned the DestinationRule. The update it made queued the rule
+again, the second sync read a copy from before that update, tried the same
+clean-up, and got the conflict.
+
 It did not happen in 68 runs of the unconverted, serial suites that were
-collected for the migration. It happened in 1 of the first 5 runs of the
-converted suite at parallelism 4 to 16. See "How it was reached" for why.
+collected for the migration. It happened in 2 of 17 runs of the converted
+tests at parallelism 8 and 16, where the controller is busier and its caches
+lag further behind. Since then the four e2e tests that use a DestinationRule
+run one at a time (`fixtures.Serial` in `test/e2e/istio_test.go`), which is to
+be undone when this is fixed.
 
 ## Root cause
 
@@ -63,9 +82,9 @@ earlier.
 NotFound, a DestinationRule that does not decode, and a failed update of the
 DestinationRule. Any of those is enough.
 
-## How it was reached
+## How it was reached the first time
 
-Three things lined up in that run:
+Three things lined up in the first run:
 
 1. The Experiment of `TestIstioSubsetSplitExperimentStep` lost its Service name
    and pod-template hash from its status (see
@@ -87,8 +106,9 @@ with the names in place the subset has a name and is matched on the next
 reconcile. Whether the router should refuse to write a subset without a name
 is worth a look when that defect is fixed.
 
-Step 3 does not need steps 1 and 2. Any conflict on a DestinationRule update is
-enough; the loop only made one very likely.
+Step 3 does not need steps 1 and 2, as the second run showed. Any conflict on a
+DestinationRule update is enough, including the one the worker causes itself
+when it syncs a rule twice in quick succession.
 
 ## Proposed change
 
