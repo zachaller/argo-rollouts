@@ -30,3 +30,16 @@ func TestLabelValue(t *testing.T) {
 		assert.Empty(t, validation.IsValidLabelValue(labelValue(name)), name)
 	}
 }
+
+func TestRunPatternNames(t *testing.T) {
+	const name = "TestCanaryAbortSwitchesCanaryServiceOnce"
+	assert.True(t, runPatternNames(name, name))
+	assert.True(t, runPatternNames("^"+name+"$", name))
+	assert.True(t, runPatternNames("TestOther|^"+name+"$", name))
+	assert.True(t, runPatternNames("^("+name+")$", name))
+	// Matching along with other tests is not asking for it by name.
+	assert.False(t, runPatternNames("", name))
+	assert.False(t, runPatternNames("TestCanary", name))
+	assert.False(t, runPatternNames("Test", name))
+	assert.False(t, runPatternNames(name+"Extra", name))
+}
