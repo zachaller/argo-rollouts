@@ -11,11 +11,6 @@ TestCanaryDynamicStableScaleAbortScaleDownDelay: >-
   Replaced one Sleep(2s) with WaitForRolloutCanaryWeight(0) before the final
   assertions. The canary weight was still 25 after the sleep in 2 of 20 runs at
   parallelism 8. The assertions that follow are unchanged.
-TestCanaryScaleDownOnAbort: >-
-  Added WaitForServiceSelector before the selector check. The check ran with no
-  wait as soon as the rollout reported Degraded, and failed 4 times in 40 runs
-  at parallelism 8 and 16 because the canary Service was still on the canary.
-  The asserted selector is unchanged.
 TestRolloutWithMaxSurgeScalingDuringUpdate: >-
   The update now sets command: [/bad-command] instead of changing the CPU
   request, as TestRolloutScalingDuringUpdate already does. The asserted pod
