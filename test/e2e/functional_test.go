@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -24,21 +23,16 @@ import (
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type FunctionalSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestFunctionalSuite(t *testing.T) {
-	suite.Run(t, new(FunctionalSuite))
-}
-
-func (s *FunctionalSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newFunctionalTest sets up one test. It does what FunctionalSuite.SetupSuite did once for the whole suite.
+func newFunctionalTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	// shared analysis templates for suite
 	s.ApplyManifests("@functional/analysistemplate-sleep-job.yaml")
+	return s
 }
 
-func (s *FunctionalSuite) TestRolloutAbortRetryPromote() {
+func TestRolloutAbortRetryPromote(t *testing.T) {
+	s := newFunctionalTest(t)
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	s.Given().
@@ -118,7 +112,8 @@ spec:
 // 1. at a pause step with duration
 // 2. in the middle of analysis
 // 3. full promotion after abort
-func (s *FunctionalSuite) TestCanaryPromoteFull() {
+func TestCanaryPromoteFull(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -189,7 +184,8 @@ spec:
 }
 
 // TestBlueGreenPromoteFull verifies behavior when performing full promotion with a blue-green strategy
-func (s *FunctionalSuite) TestBlueGreenPromoteFull() {
+func TestBlueGreenPromoteFull(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-promote-full-active", "bluegreen-promote-full")).
 		RolloutObjects(`
@@ -240,7 +236,8 @@ spec:
 		ExpectAnalysisRunCount(1)
 }
 
-func (s *FunctionalSuite) TestRolloutRestart() {
+func TestRolloutRestart(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 ---
@@ -290,7 +287,8 @@ spec:
 }
 
 // Test which verifies pod restart honors PodDisruptionBudget
-func (s *FunctionalSuite) TestRolloutPDBRestart() {
+func TestRolloutPDBRestart(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 ---
@@ -353,7 +351,8 @@ spec:
 }
 
 // Test which verifies an array named 'items' is deployable. Example test is in the 'volumes' spec
-func (s *FunctionalSuite) TestRolloutPodVolumesItemsSpec() {
+func TestRolloutPodVolumesItemsSpec(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 ---
@@ -420,19 +419,22 @@ spec:
 `)
 }
 
-func (s *FunctionalSuite) TestMalformedRollout() {
+func TestMalformedRollout(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`@expectedfailures/malformed-rollout.yaml`)
 }
 
-func (s *FunctionalSuite) TestMalformedRolloutEphemeralCtr() {
+func TestMalformedRolloutEphemeralCtr(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`@expectedfailures/malformed-rollout-ephemeral.yaml`)
 }
 
 // TestContainerResourceFormats verifies resource requests are accepted in multiple formats and not
 // rejected by validation
-func (s *FunctionalSuite) TestContainerResourceFormats() {
+func TestContainerResourceFormats(t *testing.T) {
+	s := newFunctionalTest(t)
 	millicore, _ := resource.ParseQuantity("1m")
 	podsHaveCorrectCPU := func(pods *corev1.PodList) bool {
 		return pods.Items[0].Spec.Containers[0].Resources.Requests.Cpu().Equal(millicore)
@@ -480,7 +482,8 @@ spec:
 
 // TestRolloutGoodToBadUpdate updates a healthy rollout to a bad image and verifies it honors maxSurge, maxUnavailable
 // It then updates it to a second bad image, and verifies it balances between revision 1 and revision 3.
-func (s *FunctionalSuite) TestRolloutGoodToBadUpdate() {
+func TestRolloutGoodToBadUpdate(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -538,7 +541,8 @@ spec:
 
 // TestRolloutBadToGoodUpdate deploys a rollout which crashes, then updates it to a working image
 // and verifies it is able to eventually make progress
-func (s *FunctionalSuite) TestRolloutBadToGoodUpdate() {
+func TestRolloutBadToGoodUpdate(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1
@@ -587,7 +591,8 @@ spec:
 
 // TestRolloutBadToBadUpdate deploys a rollout which crashes, then updates it to another bad
 // image that crashes, and verifies it still honors maxSurge/maxUnavailable.
-func (s *FunctionalSuite) TestRolloutBadToBadUpdate() {
+func TestRolloutBadToBadUpdate(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1
@@ -636,7 +641,8 @@ spec:
 
 // TestRolloutBadToGoodSetWeightUpdate deploys a rollout which crashes, then updates it to a working
 // image with a canary weight of 50%
-func (s *FunctionalSuite) TestRolloutBadToGoodSetWeightUpdate() {
+func TestRolloutBadToGoodSetWeightUpdate(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1
@@ -687,7 +693,8 @@ spec:
 }
 
 // TestBlueGreenUpdate
-func (s *FunctionalSuite) TestBlueGreenUpdate() {
+func TestBlueGreenUpdate(t *testing.T) {
+	s := newFunctionalTest(t)
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	s.Given().
@@ -723,7 +730,8 @@ func (s *FunctionalSuite) TestBlueGreenUpdate() {
 }
 
 // TestBlueGreenToCanary tests behavior when migrating from bluegreen to canary
-func (s *FunctionalSuite) TestBlueGreenToCanary() {
+func TestBlueGreenToCanary(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-to-canary", "bluegreen-to-canary")).
 		HealthyRollout(`
@@ -775,7 +783,8 @@ spec:
 }
 
 // TestFixInvalidSpec verifies we recover from an InvalidSpec after applying
-func (s *FunctionalSuite) TestFixInvalidSpec() {
+func TestFixInvalidSpec(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1
@@ -831,7 +840,8 @@ spec:
 }
 
 // TestBlueGreenScaleDownDelay verifies the scaleDownDelay feature
-func (s *FunctionalSuite) TestBlueGreenScaleDownDelay() {
+func TestBlueGreenScaleDownDelay(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-scaledowndelay-active", "bluegreen-scaledowndelay")).
 		RolloutObjects(`
@@ -903,7 +913,8 @@ spec:
 }
 
 // TestBlueGreenAbortExceedProgressDeadline verifies the AbortExceedProgressDeadline feature
-func (s *FunctionalSuite) TestBlueGreenExceedProgressDeadlineAbort() {
+func TestBlueGreenExceedProgressDeadlineAbort(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-scaledowndelay-active", "bluegreen-scaledowndelay")).
 		RolloutObjects(`
@@ -974,7 +985,8 @@ spec:
 }
 
 // TestBlueGreenScaleDownOnAbort verifies the scaleDownOnAbort feature
-func (s *FunctionalSuite) TestBlueGreenScaleDownOnAbort() {
+func TestBlueGreenScaleDownOnAbort(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-preview-replicas-active", "bluegreen-preview-replicas")).
 		RolloutObjects(newService("bluegreen-preview-replicas-preview", "bluegreen-preview-replicas")).
@@ -1025,7 +1037,8 @@ spec:
 		ExpectRevisionPodCount("2", 0)
 }
 
-func (s *FunctionalSuite) TestKubectlWaitForPaused() {
+func TestKubectlWaitForPaused(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 kind: Service
@@ -1087,7 +1100,8 @@ spec:
 		ExpectActiveRevision("2")
 }
 
-func (s *FunctionalSuite) TestCompleteRolloutRestart() {
+func TestCompleteRolloutRestart(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -1124,7 +1138,8 @@ spec:
 		WatchRolloutStatus("Healthy")
 }
 
-func (s *FunctionalSuite) TestKubectlWaitForCompleted() {
+func TestKubectlWaitForCompleted(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 kind: Service
@@ -1189,7 +1204,8 @@ spec:
 		ExpectActiveRevision("2")
 }
 
-func (s *FunctionalSuite) TestWorkloadRefTemplate() {
+func TestWorkloadRefTemplate(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 ---
@@ -1243,7 +1259,8 @@ spec:
 		})
 }
 
-func (s *FunctionalSuite) TestWorkloadRef() {
+func TestWorkloadRef(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1402,13 +1419,15 @@ spec:
 }
 
 // TestControllerMetrics is a basic test to verify prometheus /metrics endpoint is functional
-func (s *FunctionalSuite) TestControllerMetrics() {
+func TestControllerMetrics(t *testing.T) {
+	s := newFunctionalTest(t)
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/metrics", controller.DefaultMetricsPort))
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), http.StatusOK, resp.StatusCode)
 }
 
-func (s *FunctionalSuite) TestRolloutPauseDurationGreaterThanProgressDeadlineSeconds() {
+func TestRolloutPauseDurationGreaterThanProgressDeadlineSeconds(t *testing.T) {
+	s := newFunctionalTest(t)
 	(s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -1449,7 +1468,8 @@ spec:
 		ExpectRolloutStatus("Healthy"))
 }
 
-func (s *FunctionalSuite) TestScaleDownOnSuccess() {
+func TestScaleDownOnSuccess(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1504,7 +1524,8 @@ spec:
 		ExpectDeploymentReplicasCount("The deployment has been scaled to 0 replicas", "rollout-ref-deployment", 0)
 }
 
-func (s *FunctionalSuite) TestScaleDownProgressively() {
+func TestScaleDownProgressively(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1561,7 +1582,8 @@ spec:
 
 // TestScaleDownProgressivelyCompleted verifies that deployment stays at 0 replicas
 // after Rollout is complete, even during scaling events (like KEDA scaling)
-func (s *FunctionalSuite) TestScaleDownProgressivelyCompleted() {
+func TestScaleDownProgressivelyCompleted(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1654,7 +1676,8 @@ spec:
 
 // TestScaleDownProgressivelyCompletedCanary verifies that deployment stays at 0 replicas
 // after Canary Rollout is complete, even during scaling events (like KEDA scaling)
-func (s *FunctionalSuite) TestScaleDownProgressivelyCompletedCanary() {
+func TestScaleDownProgressivelyCompletedCanary(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1752,7 +1775,8 @@ spec:
 		ExpectDeploymentReplicasCount("Deployment should remain at 0 replicas after canary update", "rollout-ref-canary", 0)
 }
 
-func (s *FunctionalSuite) TestNeverScaleDown() {
+func TestNeverScaleDown(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -1809,7 +1833,8 @@ spec:
 		ExpectDeploymentReplicasCount("The deployment has not been scaled", "rollout-ref-deployment", 2)
 }
 
-func (s *FunctionalSuite) TestSpecAndReplicaChangeSameTime() {
+func TestSpecAndReplicaChangeSameTime(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1

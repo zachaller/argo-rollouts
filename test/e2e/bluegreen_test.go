@@ -335,7 +335,8 @@ spec:
 }
 
 // TestBlueGreenPreviewReplicaCountPromoteFull verifies promote full works with previewReplicaCount
-func (s *FunctionalSuite) TestBlueGreenPreviewReplicaCountPromoteFull() {
+func TestBlueGreenPreviewReplicaCountPromoteFull(t *testing.T) {
+	s := newFunctionalTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-preview-replicas-active", "bluegreen-preview-replicas-promote-full")).
 		RolloutObjects(`
