@@ -27,7 +27,7 @@ type Then struct {
 }
 
 func (t *Then) Assert(assertFunc func(t *Then)) *Then {
-	assertFunc(t)
+	t.guard(func() { assertFunc(t) })
 	return t
 }
 
@@ -36,7 +36,7 @@ type RolloutExpectation func(*rov1.Rollout) bool
 func (t *Then) ExpectRollout(expectation string, expectFunc RolloutExpectation) *Then {
 	ro, err := t.rolloutClient.ArgoprojV1alpha1().Rollouts(t.namespace).Get(t.Context, t.rollout.GetName(), metav1.GetOptions{})
 	t.CheckError(err)
-	if !expectFunc(ro) {
+	if !t.guardBool(func() bool { return expectFunc(ro) }) {
 		t.log.Errorf("Rollout expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -99,7 +99,7 @@ func (t *Then) ExpectPods(expectation string, expectFunc PodExpectation) *Then {
 	t.CheckError(err)
 	pods, err := t.kubeClient.CoreV1().Pods(t.namespace).List(t.Context, metav1.ListOptions{LabelSelector: selector.String()})
 	t.CheckError(err)
-	if !expectFunc(pods) {
+	if !t.guardBool(func() bool { return expectFunc(pods) }) {
 		t.log.Errorf("Pod expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -110,7 +110,7 @@ func (t *Then) ExpectPods(expectation string, expectFunc PodExpectation) *Then {
 func (t *Then) ExpectRevisionPods(expectation string, revision string, expectFunc PodExpectation) *Then {
 	t.t.Helper()
 	pods := t.GetPodsByRevision(revision)
-	if !expectFunc(pods) {
+	if !t.guardBool(func() bool { return expectFunc(pods) }) {
 		t.log.Errorf("Pod expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -164,7 +164,7 @@ func (t *Then) ExpectRS(expectation string, name string, expectFunc ReplicasetEx
 	rs, err := t.kubeClient.AppsV1().ReplicaSets(t.namespace).Get(t.Context, name, metav1.GetOptions{})
 	// List(t.Context, metav1.ListOptions{LabelSelector: selector.String()})
 	t.CheckError(err)
-	if !expectFunc(rs) {
+	if !t.guardBool(func() bool { return expectFunc(rs) }) {
 		t.log.Errorf("rs expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -202,7 +202,7 @@ func (t *Then) ExpectReplicaSets(expectation string, expectFunc ReplicaSetExpect
 	t.CheckError(err)
 	replicasets, err := t.kubeClient.AppsV1().ReplicaSets(t.namespace).List(t.Context, metav1.ListOptions{LabelSelector: selector.String()})
 	t.CheckError(err)
-	if !expectFunc(replicasets) {
+	if !t.guardBool(func() bool { return expectFunc(replicasets) }) {
 		t.log.Errorf("Replicaset expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -216,7 +216,7 @@ func (t *Then) ExpectExperimentTemplateReplicaSet(expectation string, experiment
 	ex, err := t.rolloutClient.ArgoprojV1alpha1().Experiments(t.namespace).Get(t.Context, experiment, metav1.GetOptions{})
 	t.CheckError(err)
 	rs := t.GetReplicaSetFromExperiment(ex, template)
-	if !expectFunc(rs) {
+	if !t.guardBool(func() bool { return expectFunc(rs) }) {
 		t.log.Errorf("Experiment template replicaset '%s' expectation '%s' failed", rs.Name, expectation)
 		t.t.FailNow()
 	}
@@ -282,7 +282,7 @@ type AnalysisRunExpectation func(*rov1.AnalysisRun) bool
 func (t *Then) ExpectAnalysisRuns(expectation string, expectFunc AnalysisRunListExpectation) *Then {
 	t.t.Helper()
 	aruns := t.GetRolloutAnalysisRuns()
-	if !expectFunc(&aruns) {
+	if !t.guardBool(func() bool { return expectFunc(&aruns) }) {
 		t.log.Errorf("AnalysisRun expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -300,7 +300,7 @@ func (t *Then) ExpectAnalysisRunCount(expectedCount int) *Then {
 func (t *Then) ExpectBackgroundAnalysisRun(expectation string, expectFunc AnalysisRunExpectation) *Then {
 	t.t.Helper()
 	bgArun := t.GetBackgroundAnalysisRun()
-	if !expectFunc(bgArun) {
+	if !t.guardBool(func() bool { return expectFunc(bgArun) }) {
 		t.log.Errorf("Background AnalysisRun expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -320,7 +320,7 @@ func (t *Then) ExpectBackgroundAnalysisRunPhase(phase string) *Then {
 func (t *Then) ExpectInlineAnalysisRun(expectation string, expectFunc AnalysisRunExpectation) *Then {
 	t.t.Helper()
 	bgArun := t.GetInlineAnalysisRun()
-	if !expectFunc(bgArun) {
+	if !t.guardBool(func() bool { return expectFunc(bgArun) }) {
 		t.log.Errorf("Inline AnalysisRun expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -446,7 +446,7 @@ func (t *Then) ExpectExperimentServices(expectation string, experiment string, e
 		err = experiments.GetServiceForExperiment(ex, newSvc, templateToService)
 		t.CheckError(err)
 	}
-	if !expectFunc(templateToService) {
+	if !t.guardBool(func() bool { return expectFunc(templateToService) }) {
 		t.log.Errorf("Experiment expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -468,7 +468,7 @@ func (t *Then) ExpectExperimentServiceCount(experimentName string, expectedCount
 
 func (t *Then) ExpectExperiments(expectation string, expectFunc ExperimentListExpectation) *Then {
 	exps := t.GetRolloutExperiments()
-	if !expectFunc(&exps) {
+	if !t.guardBool(func() bool { return expectFunc(&exps) }) {
 		t.log.Errorf("Experiment expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}
@@ -484,7 +484,7 @@ func (t *Then) ExpectExperimentCount(expectedCount int) *Then {
 
 func (t *Then) ExpectExperimentByRevision(expectation string, revision string, expectFunc ExperimentExpectation) *Then {
 	exp := t.GetExperimentByRevision(revision)
-	if !expectFunc(exp) {
+	if !t.guardBool(func() bool { return expectFunc(exp) }) {
 		t.log.Errorf("Experiment expectation '%s' failed", expectation)
 		t.t.FailNow()
 	}

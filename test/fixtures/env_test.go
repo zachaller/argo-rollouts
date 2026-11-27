@@ -43,3 +43,35 @@ func TestRunPatternNames(t *testing.T) {
 	assert.False(t, runPatternNames("Test", name))
 	assert.False(t, runPatternNames(name+"Extra", name))
 }
+
+func TestGuardTurnsPanicIntoTestFailure(t *testing.T) {
+	// The guarded callback runs under a T of its own, in its own goroutine, as
+	// a test would: FailNow ends the goroutine it is called from.
+	run := func(f func(c *Common)) (failed, finished bool) {
+		inner := &testing.T{}
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			f(&Common{t: inner})
+			finished = true
+		}()
+		<-done
+		return inner.Failed(), finished
+	}
+
+	failed, finished := run(func(c *Common) {
+		c.guard(func() {
+			var empty []int
+			_ = empty[0]
+		})
+	})
+	assert.True(t, failed, "a panic in the callback fails the test")
+	assert.False(t, finished, "and stops it, like FailNow")
+
+	failed, finished = run(func(c *Common) {
+		assert.True(t, c.guardBool(func() bool { return true }))
+		assert.False(t, c.guardBool(func() bool { return false }))
+	})
+	assert.False(t, failed)
+	assert.True(t, finished)
+}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"testing"
@@ -107,6 +108,32 @@ func (l *eventLog) snapshot() ([]corev1.Event, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return append([]corev1.Event(nil), l.events...), l.err
+}
+
+// guard calls f, which is code of the test handed to a fixture, and turns a
+// panic in it into a failure of that test.
+//
+// A plain test function has nothing around it that recovers: a panic stops the
+// whole test binary, and with it every test running in parallel and every test
+// that has not started. The testify suite these tests were written for
+// recovered panics per test, and many assertions rely on that: they index an
+// empty list or follow a nil pointer when the state they expect is not there.
+// All such code in the tests is in callbacks given to the fixtures, so
+// guarding the callbacks covers it.
+func (c *Common) guard(f func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			c.t.Errorf("test panicked: %v\n%s", r, debug.Stack())
+			c.t.FailNow()
+		}
+	}()
+	f()
+}
+
+// guardBool is guard for a callback that reports a condition.
+func (c *Common) guardBool(f func() bool) (ok bool) {
+	c.guard(func() { ok = f() })
+	return ok
 }
 
 func (c *Common) CheckError(err error) {

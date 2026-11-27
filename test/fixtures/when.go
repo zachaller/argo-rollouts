@@ -327,7 +327,7 @@ func (w *When) UpdateResource(gvr schema.GroupVersionResource, name string, upda
 		client := w.dynamicClient.Resource(gvr).Namespace(w.namespace)
 		res, err := client.Get(w.Context, name, metav1.GetOptions{})
 		w.CheckError(err)
-		err = update(res)
+		w.guard(func() { err = update(res) })
 		w.CheckError(err)
 		_, err = client.Update(w.Context, res, metav1.UpdateOptions{})
 		return err
@@ -569,7 +569,7 @@ func (w *When) WaitForRolloutCondition(test func(ro *rov1.Rollout) bool, conditi
 		case event := <-retryWatcher.ResultChan():
 			ro, ok := event.Object.(*rov1.Rollout)
 			if ok {
-				if test(ro) {
+				if w.guardBool(func() bool { return test(ro) }) {
 					//w.PrintRollout(ro)
 					w.log.Infof("Condition '%s' met after %v", condition, time.Since(start).Truncate(time.Second))
 					return w
@@ -609,7 +609,7 @@ func (w *When) WaitForRolloutConditionToNotExist(test func(ro *rov1.Rollout) boo
 		case event := <-retryWatcher.ResultChan():
 			ro, ok := event.Object.(*rov1.Rollout)
 			if ok {
-				if test(ro) {
+				if w.guardBool(func() bool { return test(ro) }) {
 					//w.PrintRollout(ro)
 					w.log.Infof("Condition '%s' met after %v", condition, time.Since(start).Truncate(time.Second))
 					w.t.Fatal("not ok")
@@ -653,7 +653,7 @@ func (w *When) WaitForExperimentCondition(name string, test func(ex *rov1.Experi
 		case event := <-retryWatcher.ResultChan():
 			ex, ok := event.Object.(*rov1.Experiment)
 			if ok {
-				if test(ex) {
+				if w.guardBool(func() bool { return test(ex) }) {
 					w.log.Infof("Condition '%s' met after %v", condition, time.Since(start).Truncate(time.Second))
 					return w
 				}
@@ -690,7 +690,7 @@ func (w *When) WaitForAnalysisRunCondition(name string, test func(ar *rov1.Analy
 		case event := <-retryWatcher.ResultChan():
 			ar, ok := event.Object.(*rov1.AnalysisRun)
 			if ok {
-				if test(ar) {
+				if w.guardBool(func() bool { return test(ar) }) {
 					w.log.Infof("Condition '%s' met after %v", condition, time.Since(start).Truncate(time.Second))
 					return w
 				}
