@@ -168,7 +168,7 @@ a `dynamicStableScale` abort.
   it on purpose with:
 
   ```
-  make test-e2e E2E_TEST_OPTIONS="-run '^TestCanaryAbortSwitchesCanaryServiceOnce$'"
+  make test-e2e E2E_TEST_OPTIONS="-run TestCanaryAbortSwitchesCanaryServiceOnce"
   ```
 
 - **Already there:** `TestCanaryScaleDownOnAbort` should stop failing
