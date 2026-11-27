@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -510,6 +511,41 @@ func (w *When) WaitForRolloutReplicas(count int32, timeout ...time.Duration) *Wh
 		return ro.Status.Replicas == count
 	}
 	return w.WaitForRolloutCondition(checkStatus, fmt.Sprintf("status.replicas=%d", count), timeout...)
+}
+
+// WaitForRolloutCanaryWeight waits until the rollout reports the given canary traffic weight.
+func (w *When) WaitForRolloutCanaryWeight(weight int32, timeout ...time.Duration) *When {
+	checkStatus := func(ro *rov1.Rollout) bool {
+		return ro.Status.Canary.Weights != nil && ro.Status.Canary.Weights.Canary.Weight == weight
+	}
+	return w.WaitForRolloutCondition(checkStatus, fmt.Sprintf("status.canary.weights.canary.weight=%d", weight), timeout...)
+}
+
+// WaitForServiceSelector waits until the Service has exactly the given selector.
+// A Service changes without the rollout changing, so this polls the Service
+// instead of watching the rollout.
+func (w *When) WaitForServiceSelector(service string, selector map[string]string, timeouts ...time.Duration) *When {
+	w.t.Helper()
+	timeout := E2EWaitTimeout
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+	start := time.Now()
+	w.log.Infof("Waiting for %s selector: %v", service, selector)
+	var last map[string]string
+	err := wait.PollUntilContextTimeout(w.Context, 250*time.Millisecond, timeout, true, func(ctx context.Context) (bool, error) {
+		svc, err := w.kubeClient.CoreV1().Services(w.namespace).Get(ctx, service, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		last = svc.Spec.Selector
+		return reflect.DeepEqual(last, selector), nil
+	})
+	if err != nil {
+		w.t.Fatalf("timeout after %v waiting for %s selector %v. Last seen: %v (%v)", timeout, service, selector, last, err)
+	}
+	w.log.Infof("%s selector met after %v", service, time.Since(start).Truncate(time.Second))
+	return w
 }
 
 func (w *When) WaitForActiveRevision(revision string, timeout ...time.Duration) *When {
