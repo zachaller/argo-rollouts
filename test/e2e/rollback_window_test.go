@@ -6,27 +6,20 @@ package e2e
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type RollbackSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestRollbackSuite(t *testing.T) {
-	suite.Run(t, new(RollbackSuite))
-}
-
-func (s *RollbackSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newRollbackTest sets up one test. It does what RollbackSuite.SetupSuite did once for the whole suite.
+func newRollbackTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	// shared analysis templates for suite
 	s.ApplyManifests("@functional/analysistemplate-sleep-job.yaml")
 	s.ApplyManifests("@functional/rollout-rollback-window.yaml")
+	return s
 }
 
-func (s *RollbackSuite) TestRollbackAnalysisWithinWindow() {
+func TestRollbackAnalysisWithinWindow(t *testing.T) {
+	s := newRollbackTest(t)
 	s.Given().
 		HealthyRollout("@functional/rollout-rollback-window.yaml").
 		When().
@@ -83,7 +76,8 @@ spec:
 		ExpectAnalysisRunCount(3) // fast rollback, no analysis run
 }
 
-func (s *RollbackSuite) TestRollbackAnalysisOutsideWindow() {
+func TestRollbackAnalysisOutsideWindow(t *testing.T) {
+	s := newRollbackTest(t)
 	s.Given().
 		HealthyRollout("@functional/rollout-rollback-window.yaml").
 		When().
