@@ -17,6 +17,11 @@ go run ./hack/testmigration <command> -base <baseline-ref> [flags]
 | `bodydiff` | a test body differs from the baseline and is not listed in the exceptions file |
 | `junitdiff` | a test fails, is newly skipped, skips without being on the expected-skip list, or has no result |
 | `killmatrix` | a test that failed under a seeded bug in the baseline passes under the same bug now |
+| `convert` | the suite cannot be converted mechanically (it has helper methods or suite hooks other than `SetupSuite`) |
+
+`convert -file <test file> -suite <SuiteType>` rewrites one testify suite into
+plain test functions in place. It edits only the declarations, as text, and
+leaves every test body byte-for-byte as it was.
 
 ## How tests are matched
 

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -456,4 +457,106 @@ func TestCompareKills(t *testing.T) {
 
 	assert.True(t, findings[2].Missing)
 	assert.False(t, findings[2].ok())
+}
+
+const suiteSrc = `package e2e
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+// CanarySuite tests canaries.
+type CanarySuite struct {
+	fixtures.E2ESuite
+}
+
+func TestCanarySuite(t *testing.T) {
+	suite.Run(t, new(CanarySuite))
+}
+
+func (s *CanarySuite) SetupSuite() {
+	s.E2ESuite.SetupSuite()
+	s.ApplyManifests("@functional/analysistemplate-sleep-job.yaml")
+}
+
+// TestScale checks scaling.
+func (s *CanarySuite) TestScale() {
+	s.Given().
+		HealthyRollout("@a.yaml").
+		Then().
+		Assert(func(t *fixtures.Then) {
+			s.T().Log("checked")
+		})
+}
+
+func (s *CanarySuite) TestEphemeralMetadata() {
+	s.T().Log("canary")
+}
+`
+
+func TestConvertSuite(t *testing.T) {
+	renames := map[string]string{"TestCanarySuite/TestEphemeralMetadata": "TestCanaryEphemeralMetadata"}
+	out, err := convertSuite("test/e2e/x_test.go", []byte(suiteSrc), "CanarySuite", renames)
+	require.NoError(t, err)
+
+	assert.Equal(t, `package e2e
+
+import (
+	"testing"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+// newCanaryTest sets up one test. It does what CanarySuite.SetupSuite did once for the whole suite.
+func newCanaryTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	s.ApplyManifests("@functional/analysistemplate-sleep-job.yaml")
+	return s
+}
+
+// TestScale checks scaling.
+func TestScale(t *testing.T) {
+	s := newCanaryTest(t)
+	s.Given().
+		HealthyRollout("@a.yaml").
+		Then().
+		Assert(func(t *fixtures.Then) {
+			s.T().Log("checked")
+		})
+}
+
+func TestCanaryEphemeralMetadata(t *testing.T) {
+	s := newCanaryTest(t)
+	s.T().Log("canary")
+}
+`, string(out))
+
+	// The checks the migration relies on accept the generated code as is.
+	base := inv(t, suiteSrc)
+	head, err := buildInventory([]sourceFile{{Path: "test/e2e/x_test.go", Src: out}})
+	require.NoError(t, err)
+	m := mapTests(base, head, renames)
+	assert.True(t, m.ok())
+	findings, _ := compareBodies(m, nil)
+	assert.Empty(t, findings)
+}
+
+func TestConvertSuiteRefusals(t *testing.T) {
+	t.Run("helper method", func(t *testing.T) {
+		_, err := convertSuite("x_test.go", []byte(suiteSrc+"\nfunc (s *CanarySuite) helper() {}\n"), "CanarySuite", nil)
+		assert.ErrorContains(t, err, "has method helper")
+	})
+	t.Run("unknown suite", func(t *testing.T) {
+		_, err := convertSuite("x_test.go", []byte(suiteSrc), "OtherSuite", nil)
+		assert.ErrorContains(t, err, "not found")
+	})
+	t.Run("setup that does not call the embedded setup first", func(t *testing.T) {
+		src := strings.Replace(suiteSrc, "\ts.E2ESuite.SetupSuite()\n", "", 1)
+		_, err := convertSuite("x_test.go", []byte(src), "CanarySuite", nil)
+		assert.ErrorContains(t, err, "does not start with")
+	})
 }

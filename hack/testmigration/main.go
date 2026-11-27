@@ -93,6 +93,8 @@ func main() {
 		ok, err = cmdJUnitDiff(os.Stdout, args)
 	case "killmatrix":
 		ok, err = cmdKillMatrix(os.Stdout, args)
+	case "convert":
+		ok, err = cmdConvert(os.Stdout, args)
 	default:
 		usage()
 		os.Exit(2)
@@ -115,6 +117,7 @@ commands:
   bodydiff        fail if a test body differs from the baseline without a listed reason
   junitdiff       compare pass/fail/skip results before and after
   killmatrix      compare which tests catch each seeded bug before and after
+  convert         rewrite one testify suite into plain test functions
 
 Run a command with -h for its flags.
 `)
@@ -345,4 +348,32 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 		ok = ok && f.ok()
 	}
 	return ok, nil
+}
+
+func cmdConvert(w io.Writer, args []string) (bool, error) {
+	fs := flag.NewFlagSet("convert", flag.ExitOnError)
+	file := fs.String("file", "", "test file to rewrite in place (required)")
+	suiteType := fs.String("suite", "", "suite type to convert, for example CanarySuite (required)")
+	renamesFile := fs.String("renames", "test/e2e/renames.yaml", "YAML map of baseline test name to new test name")
+	_ = fs.Parse(args)
+	if *file == "" || *suiteType == "" {
+		return false, fmt.Errorf("-file and -suite are required")
+	}
+	src, err := os.ReadFile(*file)
+	if err != nil {
+		return false, err
+	}
+	renames, err := loadStringMap(*renamesFile)
+	if err != nil {
+		return false, err
+	}
+	out, err := convertSuite(*file, src, *suiteType, renames)
+	if err != nil {
+		return false, err
+	}
+	if err := os.WriteFile(*file, out, 0o644); err != nil {
+		return false, err
+	}
+	fmt.Fprintf(w, "converted %s in %s\n", *suiteType, *file)
+	return true, nil
 }
