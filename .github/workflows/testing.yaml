@@ -136,6 +136,31 @@ jobs:
           name: coverage-output-unit
           path: coverage-output-unit
 
+  # Checks that the e2e tests are still the tests upstream had before they were
+  # converted from testify suites: none lost, and no body changed without a
+  # reason recorded in test/e2e/body-exceptions.yaml. Delete this job, and
+  # hack/testmigration with it, once the conversion has been reviewed and merged.
+  test-migration:
+    name: Check the e2e test migration
+    needs: [changes]
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    env:
+      # The upstream commit the conversion started from.
+      BASELINE: b8d4cc3e1d79f1545702bf79d366d36d54214183
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Every baseline test still exists
+        run: go run ./hack/testmigration inventory-diff -base "$BASELINE"
+      - name: No test body changed without a recorded reason
+        run: go run ./hack/testmigration bodydiff -base "$BASELINE"
+
   test-ui:
     name: Run UI unit tests
     needs: [changes]
@@ -276,6 +301,13 @@ jobs:
           E2E_CONTROLLER: ${{ inputs.e2e_controller || 'on' }}
         run: ./hack/run-e2e.sh
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true') }}
+      - name: Check for unexpected skips
+        # A test that skips looks like a test that passes. Every skip has to be
+        # listed, with its reason, in test/e2e/expected-skips.txt. The list uses
+        # the current test names, so the check is not run on the tests of an
+        # earlier commit.
+        if: ${{ !cancelled() && inputs.e2e_tests_ref == '' && hashFiles('junit-e2e-test.xml') != '' }}
+        run: go run ./hack/testmigration skips -junit junit-e2e-test.xml
       - name: Stop e2e tests controller
         run: |
           pgrep -f go-build -a

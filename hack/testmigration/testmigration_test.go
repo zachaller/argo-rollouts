@@ -846,3 +846,19 @@ func TestDropImport(t *testing.T) {
 		assert.Equal(t, c[1], dropImport(c[0], drop), name)
 	}
 }
+
+func TestCheckSkips(t *testing.T) {
+	results, err := parseJUnit([]byte(`<testsuites><testsuite>
+<testcase name="TestRuns"/>
+<testcase name="TestNeedsALB"><skipped/></testcase>
+<testcase name="TestTable"><skipped/></testcase>
+<testcase name="TestTable/case_one"><skipped/></testcase>
+<testcase name="TestSurprise"><skipped/></testcase>
+<testcase name="TestMixed/skipped_case"><skipped/></testcase>
+</testsuite></testsuites>`))
+	require.NoError(t, err)
+
+	unexpected, unused := checkSkips(results, []string{"TestNeedsALB", "TestTable", "TestStepPlugin*"})
+	assert.Equal(t, []string{"TestMixed/skipped_case", "TestSurprise"}, unexpected)
+	assert.Equal(t, []string{"TestStepPlugin*"}, unused)
+}

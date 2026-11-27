@@ -160,6 +160,43 @@ func matchAny(patterns []string, name string) (string, bool) {
 	return "", false
 }
 
+// checkSkips looks at one JUnit file on its own. It returns the tests that
+// were skipped without being on the expected-skip list, and the patterns of
+// that list that matched no skipped test. A subtest is expected to skip when
+// it, or a test it belongs to, is on the list.
+func checkSkips(results map[string]result, expected []string) (unexpected, unused []string) {
+	used := map[string]bool{}
+	for name, r := range results {
+		if r.Status != statusSkip {
+			continue
+		}
+		matched := false
+		for prefix := name; ; {
+			if pattern, ok := matchAny(expected, prefix); ok {
+				used[pattern] = true
+				matched = true
+				break
+			}
+			i := strings.LastIndex(prefix, "/")
+			if i < 0 {
+				break
+			}
+			prefix = prefix[:i]
+		}
+		if !matched {
+			unexpected = append(unexpected, name)
+		}
+	}
+	for _, pattern := range expected {
+		if !used[pattern] {
+			unused = append(unused, pattern)
+		}
+	}
+	sort.Strings(unexpected)
+	sort.Strings(unused)
+	return unexpected, unused
+}
+
 // junitReport compares the outcome of every mapped test before and after.
 type junitReport struct {
 	Compared int

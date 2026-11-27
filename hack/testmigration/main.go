@@ -94,6 +94,8 @@ func main() {
 		ok, err = cmdJUnitDiff(os.Stdout, args)
 	case "killmatrix":
 		ok, err = cmdKillMatrix(os.Stdout, args)
+	case "skips":
+		ok, err = cmdSkips(os.Stdout, args)
 	case "convert":
 		ok, err = cmdConvert(os.Stdout, args)
 	default:
@@ -118,6 +120,7 @@ commands:
   bodydiff        fail if a test body differs from the baseline without a listed reason
   junitdiff       compare pass/fail/skip results before and after
   killmatrix      compare which tests catch each seeded bug before and after
+  skips           fail if a run skipped a test that is not on the expected-skip list
   convert         rewrite one testify suite into plain test functions
 
 Run a command with -h for its flags.
@@ -349,6 +352,35 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 		ok = ok && f.ok()
 	}
 	return ok, nil
+}
+
+func cmdSkips(w io.Writer, args []string) (bool, error) {
+	fs := flag.NewFlagSet("skips", flag.ExitOnError)
+	junitFile := fs.String("junit", "", "JUnit file of the run to check (required)")
+	skipsFile := fs.String("expected-skips", "test/e2e/expected-skips.txt", "glob patterns of tests that are allowed to skip")
+	_ = fs.Parse(args)
+	if *junitFile == "" {
+		return false, fmt.Errorf("-junit is required")
+	}
+	results, err := parseJUnitFile(*junitFile)
+	if err != nil {
+		return false, err
+	}
+	expected, err := loadPatterns(*skipsFile)
+	if err != nil {
+		return false, err
+	}
+	unexpected, unused := checkSkips(results, expected)
+	skipped := 0
+	for _, r := range results {
+		if r.Status == statusSkip {
+			skipped++
+		}
+	}
+	printList(w, "UNEXPECTED SKIP ", unexpected)
+	printList(w, "did not skip    ", unused)
+	fmt.Fprintf(w, "%d tests, %d skipped, %d of them not on the expected-skip list\n", len(results), skipped, len(unexpected))
+	return len(unexpected) == 0, nil
 }
 
 func cmdConvert(w io.Writer, args []string) (bool, error) {
