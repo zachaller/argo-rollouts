@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"testing"
 	"text/tabwriter"
 	"time"
@@ -63,7 +64,34 @@ type Common struct {
 	rollout *unstructured.Unstructured
 	objects []*unstructured.Unstructured
 
+	// events is shared by pointer: Common is copied by value for every Given(),
+	// and the watcher goroutine appends while the test goroutine reads.
+	events *eventLog
+}
+
+// eventLog collects the events seen by StartEventWatch.
+type eventLog struct {
+	mu     sync.Mutex
 	events []corev1.Event
+	err    error
+}
+
+func (l *eventLog) add(event corev1.Event) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.events = append(l.events, event)
+}
+
+func (l *eventLog) fail(err error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.err = err
+}
+
+func (l *eventLog) snapshot() ([]corev1.Event, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return append([]corev1.Event(nil), l.events...), l.err
 }
 
 func (c *Common) CheckError(err error) {
@@ -652,19 +680,31 @@ func (c *Common) StartEventWatch(ctx context.Context) {
 	c.events = nil
 	c.CheckError(err)
 	c.log.Infof("Event watcher started")
+	events := &eventLog{}
+	c.events = events
+	logCtx := c.log
 
+	// The goroutine must not touch c.t: failing a test from another goroutine is
+	// not allowed, and the watcher can outlive the test. A broken watch is
+	// recorded and reported by GetRolloutEventReasons instead.
 	go func() {
 		for {
 			select {
-			case watchEvent := <-watchEventsIf.ResultChan():
-				event, ok := watchEvent.Object.(*corev1.Event)
-				if ok {
-					c.events = append(c.events, *event)
-				} else {
-					c.t.Fatalf("received non-event from event watch: %v", watchEvent)
+			case watchEvent, open := <-watchEventsIf.ResultChan():
+				if !open {
+					if ctx.Err() == nil {
+						events.fail(fmt.Errorf("event watch closed unexpectedly"))
+					}
+					return
 				}
+				event, ok := watchEvent.Object.(*corev1.Event)
+				if !ok {
+					events.fail(fmt.Errorf("received non-event from event watch: %v", watchEvent))
+					return
+				}
+				events.add(*event)
 			case <-ctx.Done():
-				c.log.Infof("Event watcher stopped")
+				logCtx.Infof("Event watcher stopped")
 				return
 			}
 		}
@@ -674,8 +714,13 @@ func (c *Common) StartEventWatch(ctx context.Context) {
 func (c *Common) GetRolloutEventReasons() []string {
 	ro, err := c.rolloutClient.ArgoprojV1alpha1().Rollouts(c.namespace).Get(c.Context, c.rollout.GetName(), metav1.GetOptions{})
 	c.CheckError(err)
+	if c.events == nil {
+		return nil
+	}
+	events, err := c.events.snapshot()
+	c.CheckError(err)
 	var reasons []string
-	for _, event := range c.events {
+	for _, event := range events {
 		if event.InvolvedObject.UID == ro.UID {
 			reasons = append(reasons, event.Reason)
 		}
