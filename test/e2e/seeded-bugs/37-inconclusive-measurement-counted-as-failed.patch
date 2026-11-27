@@ -1,0 +1,13 @@
+diff --git a/analysis/analysis.go b/analysis/analysis.go
+index ab248c6d..ddf01dda 100644
+--- a/analysis/analysis.go
++++ b/analysis/analysis.go
+@@ -438,7 +438,7 @@ func (c *Controller) runMeasurements(run *v1alpha1.AnalysisRun, tasks []metricTa
+ 					metricResult.ConsecutiveError = 0
+ 					metricResult.ConsecutiveSuccess = 0
+ 				case v1alpha1.AnalysisPhaseInconclusive:
+-					metricResult.Inconclusive++
++					metricResult.Failed++
+ 					metricResult.Count++
+ 					metricResult.ConsecutiveError = 0
+ 					metricResult.ConsecutiveSuccess = 0

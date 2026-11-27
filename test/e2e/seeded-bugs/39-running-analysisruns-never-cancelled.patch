@@ -1,0 +1,13 @@
+diff --git a/rollout/analysis.go b/rollout/analysis.go
+index 3aa39a11..14bdbf27 100644
+--- a/rollout/analysis.go
++++ b/rollout/analysis.go
+@@ -449,7 +449,7 @@ func (c *rolloutContext) cancelAnalysisRuns(analysisRuns []*v1alpha1.AnalysisRun
+ 	ctx := context.TODO()
+ 	for i := range analysisRuns {
+ 		ar := analysisRuns[i]
+-		isNotCompleted := ar == nil || !ar.Status.Phase.Completed()
++		isNotCompleted := ar == nil || ar.Status.Phase.Completed()
+ 		if ar != nil && !ar.Spec.Terminate && isNotCompleted {
+ 			c.log.WithField(logutil.AnalysisRunKey, ar.Name).Infof("Canceling the analysis run '%s'", ar.Name)
+ 			_, err := c.argoprojclientset.ArgoprojV1alpha1().AnalysisRuns(ar.Namespace).Patch(ctx, ar.Name, patchtypes.MergePatchType, []byte(cancelAnalysisRun), metav1.PatchOptions{})

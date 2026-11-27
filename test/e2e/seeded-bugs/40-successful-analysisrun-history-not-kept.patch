@@ -1,0 +1,13 @@
+diff --git a/utils/analysis/filter.go b/utils/analysis/filter.go
+index ce34f048..4e53f385 100644
+--- a/utils/analysis/filter.go
++++ b/utils/analysis/filter.go
+@@ -165,7 +165,7 @@ func FilterAnalysisRunsToDelete(ars []*v1alpha1.AnalysisRun, allRSs []*appsv1.Re
+ 		}
+ 
+ 		if ar.Status.Phase == v1alpha1.AnalysisPhaseSuccessful {
+-			if retainedSuccessful < limitSuccessful {
++			if retainedSuccessful > limitSuccessful {
+ 				retainedSuccessful++
+ 			} else {
+ 				arsToDelete = append(arsToDelete, ar)

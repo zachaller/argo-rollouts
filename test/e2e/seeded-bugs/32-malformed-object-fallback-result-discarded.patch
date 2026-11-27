@@ -1,16 +1,15 @@
 diff --git a/utils/tolerantinformer/tollerantinformer.go b/utils/tolerantinformer/tollerantinformer.go
-index 48c22638..6878a7b5 100644
+index 48c22638..0ff846f7 100644
 --- a/utils/tolerantinformer/tollerantinformer.go
 +++ b/utils/tolerantinformer/tollerantinformer.go
-@@ -82,7 +82,10 @@ func coerceToTyped[T runtime.Object](obj any, newFn func() T) (T, error) {
+@@ -81,8 +81,8 @@ func coerceToTyped[T runtime.Object](obj any, newFn func() T) (T, error) {
+ 		// past invalid fields so we can return a mostly complete, still-usable object
  		// (PR #666 / issues #389, #517). Ignore the JSON error: even a partially
  		// filled or empty object is preferred over dropping it from the cache.
- 		typed = newFn()
+-		typed = newFn()
 -		_ = fromUnstructuredViaJSON(un.Object, typed)
-+		if err := fromUnstructuredViaJSON(un.Object, typed); err != nil {
-+			var zero T
-+			return zero, err
-+		}
++		fallback := newFn()
++		_ = fromUnstructuredViaJSON(un.Object, fallback)
  	}
  	return typed, nil
  }

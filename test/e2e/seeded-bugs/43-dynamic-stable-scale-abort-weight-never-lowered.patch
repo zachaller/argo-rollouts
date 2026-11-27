@@ -1,0 +1,13 @@
+diff --git a/rollout/trafficrouting.go b/rollout/trafficrouting.go
+index cdf90950..2395ac19 100644
+--- a/rollout/trafficrouting.go
++++ b/rollout/trafficrouting.go
+@@ -379,7 +379,7 @@ func (c *rolloutContext) calculateDesiredWeightOnAbortOrStableRollback() int32 {
+ 	if desiredCanaryWeight <= 0 {
+ 		// This ensures that if we are already at a lower weight, then we will not
+ 		// increase the weight because stable availability is flapping (e.g. pod restarts)
+-		return minInt(expectedCanaryWeight, currentCanaryWeight)
++		return maxInt(expectedCanaryWeight, currentCanaryWeight)
+ 	}
+ 
+ 	// this logic __heavily__ relies on the fact that CalculateReplicaCountsForTrafficRoutedCanary.

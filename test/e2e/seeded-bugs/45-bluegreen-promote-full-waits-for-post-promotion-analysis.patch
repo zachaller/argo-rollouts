@@ -1,0 +1,14 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..f4395fe6 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -1292,9 +1292,6 @@ func (c *rolloutContext) shouldFullPromote(newStatus v1alpha1.RolloutStatus) str
+ 			// active selector is pointing to desired RS, but we have not verify the target group yet
+ 			return ""
+ 		}
+-		if c.rollout.Status.PromoteFull {
+-			return "Full promotion requested"
+-		}
+ 		if c.isFastRollback() {
+ 			if c.isRollbackWithinWindow() {
+ 				return "Rollback within window"

@@ -1,0 +1,13 @@
+diff --git a/analysis/analysis.go b/analysis/analysis.go
+index ab248c6d..ec5c324a 100644
+--- a/analysis/analysis.go
++++ b/analysis/analysis.go
+@@ -581,7 +581,7 @@ func (c *Controller) assessRunStatus(run *v1alpha1.AnalysisRun, metrics []v1alph
+ 					case v1alpha1.AnalysisPhaseError:
+ 						dryRunSummary.Error++
+ 					case v1alpha1.AnalysisPhaseFailed:
+-						dryRunSummary.Failed++
++						runSummary.Failed++
+ 					case v1alpha1.AnalysisPhaseInconclusive:
+ 						dryRunSummary.Inconclusive++
+ 					case v1alpha1.AnalysisPhaseSuccessful:

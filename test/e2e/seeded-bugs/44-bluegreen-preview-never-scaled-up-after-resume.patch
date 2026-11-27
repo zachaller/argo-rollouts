@@ -1,0 +1,13 @@
+diff --git a/rollout/bluegreen.go b/rollout/bluegreen.go
+index 89e69e97..3afbaacd 100644
+--- a/rollout/bluegreen.go
++++ b/rollout/bluegreen.go
+@@ -299,7 +299,7 @@ func (c *rolloutContext) calculateScaleUpPreviewCheckPoint(newStatus v1alpha1.Ro
+ 		// do not set the checkpoint unless prePromotionAnalysis was successful and we completed our pause
+ 		return false
+ 	}
+-	previewCountAvailable := *c.rollout.Spec.Strategy.BlueGreen.PreviewReplicaCount == replicasetutil.GetAvailableReplicaCountForReplicaSets([]*appsv1.ReplicaSet{c.newRS})
++	previewCountAvailable := defaults.GetReplicasOrDefault(c.rollout.Spec.Replicas) == replicasetutil.GetAvailableReplicaCountForReplicaSets([]*appsv1.ReplicaSet{c.newRS})
+ 	if prevValue != previewCountAvailable {
+ 		c.log.Infof("setting scaleUpPreviewCheckPoint to %v: preview replica count availability is %v", previewCountAvailable, previewCountAvailable)
+ 	}

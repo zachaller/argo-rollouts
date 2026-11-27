@@ -1,0 +1,13 @@
+diff --git a/metricproviders/job/job.go b/metricproviders/job/job.go
+index 25f94277..31a66b64 100644
+--- a/metricproviders/job/job.go
++++ b/metricproviders/job/job.go
+@@ -219,7 +219,7 @@ func (p *JobProvider) Resume(run *v1alpha1.AnalysisRun, metric v1alpha1.Metric,
+ 			measurement.Phase = v1alpha1.AnalysisPhaseSuccessful
+ 		case batchv1.JobFailed:
+ 			measurement.FinishedAt = &now
+-			measurement.Phase = v1alpha1.AnalysisPhaseFailed
++			measurement.Phase = v1alpha1.AnalysisPhaseSuccessful
+ 		}
+ 	}
+ 	if measurement.Phase.Completed() {

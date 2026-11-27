@@ -1,0 +1,12 @@
+diff --git a/rollout/controller.go b/rollout/controller.go
+index 66f59735..a43b7f7a 100644
+--- a/rollout/controller.go
++++ b/rollout/controller.go
+@@ -595,7 +595,6 @@ func (c *Controller) newRolloutContext(rollout *v1alpha1.Rollout) (*rolloutConte
+ 
+ 	if rolloututil.IsFullyPromoted(rollout) && roCtx.pauseContext.IsAborted() {
+ 		logCtx.Warnf("Removing abort condition from fully promoted rollout")
+-		roCtx.pauseContext.RemoveAbort()
+ 	}
+ 	// carry over existing recorded weights
+ 	roCtx.newStatus.Canary.Weights = rollout.Status.Canary.Weights
