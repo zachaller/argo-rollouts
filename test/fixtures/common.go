@@ -512,8 +512,14 @@ func (c *Common) applyObject(obj *unstructured.Unstructured) {
 	objBytes, err := json.Marshal(obj)
 	c.CheckError(err)
 	// The namespace is passed explicitly: with a namespace per test, the
-	// kubeconfig's current namespace is not the one the test owns.
-	cmd := exec.Command("kubectl", "apply", "-n", c.namespace, "-f", "-")
+	// kubeconfig's current namespace is not the one the test owns. An object
+	// that names its own namespace keeps it; kubectl rejects a -n that
+	// disagrees with the object.
+	args := []string{"apply", "-f", "-"}
+	if obj.GetNamespace() == "" {
+		args = []string{"apply", "-n", c.namespace, "-f", "-"}
+	}
+	cmd := exec.Command("kubectl", args...)
 	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewReader(objBytes)
 	out, err := cmd.CombinedOutput()
