@@ -7,3 +7,7 @@ TestExperimentSuite/TestRolloutWithExperimentAndAnalysis: >-
 TestCanarySetCanaryScale: >-
   Removed s.T().Parallel(), for the same reason. The harness constructor marks
   the converted test parallel, and Go panics if Parallel is called twice.
+TestCanaryDynamicStableScaleAbortScaleDownDelay: >-
+  Replaced one Sleep(2s) with WaitForRolloutCanaryWeight(0) before the final
+  assertions. The canary weight was still 25 after the sleep in 2 of 20 runs at
+  parallelism 8. The assertions that follow are unchanged.

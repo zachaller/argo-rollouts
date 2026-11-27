@@ -720,7 +720,7 @@ func TestCanaryDynamicStableScaleAbortScaleDownDelay(t *testing.T) {
 		MarkPodsReady("1", 2).           // mark 2 new stable pods as ready (3/4 stable are ready)
 		WaitForRevisionPodCount("1", 4). // weight steps down to 25, stable scales up for the rest
 		MarkPodsReady("1", 1).           // mark last remaining stable pod as ready (4/4 stable are ready)
-		Sleep(2*time.Second).
+		WaitForRolloutCanaryWeight(0).   // all traffic is back on stable
 		Then().
 		// All traffic is back on stable, and only now should the canary get its scale-down
 		// deadline. It still holds its pods for the duration of abortScaleDownDelaySeconds.
