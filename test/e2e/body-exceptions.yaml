@@ -8,9 +8,11 @@ TestCanarySetCanaryScale: >-
   Removed s.T().Parallel(), for the same reason. The harness constructor marks
   the converted test parallel, and Go panics if Parallel is called twice.
 TestCanaryDynamicStableScaleAbortScaleDownDelay: >-
-  Replaced one Sleep(2s) with WaitForRolloutCanaryWeight(0) before the final
-  assertions. The canary weight was still 25 after the sleep in 2 of 20 runs at
-  parallelism 8. The assertions that follow are unchanged.
+  Added WaitForRolloutCanaryWeight(0) in front of the Sleep(2s) that precedes
+  the final assertions. The canary weight was still 25 after the sleep alone in
+  2 of 20 runs at parallelism 8. The sleep stays: it is what shows the canary
+  keeps its pods for a while after traffic is back on stable. The assertions
+  are unchanged.
 TestRolloutWithMaxSurgeScalingDuringUpdate: >-
   The update now sets command: [/bad-command] instead of changing the CPU
   request, as TestRolloutScalingDuringUpdate already does. The asserted pod
