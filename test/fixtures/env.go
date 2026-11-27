@@ -243,6 +243,10 @@ func (e *Test) deleteNamespace() {
 // SweepTestNamespaces deletes the namespaces earlier runs left behind, for
 // example after a crash or with E2E_DEBUG=true. It does not wait for the
 // deletions to finish. Call it once before the tests start.
+//
+// It cannot tell a leftover namespace from one that another test process is
+// using right now, so do not run two test processes against one cluster at
+// the same time.
 func SweepTestNamespaces(ctx context.Context) error {
 	sh, err := getShared()
 	if err != nil {
