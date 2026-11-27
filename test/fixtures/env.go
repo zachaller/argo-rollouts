@@ -120,8 +120,8 @@ func (e *Test) Namespace() string {
 	return e.namespace
 }
 
-// Given starts a scenario. As with E2ESuite, every call starts from a fresh
-// copy of the state, so one test can set up more than one rollout.
+// Given starts a scenario. Every call starts from a fresh copy of the state,
+// so one test can set up more than one rollout.
 func (e *Test) Given() *Given {
 	c := e.Common
 	return &Given{
@@ -159,9 +159,9 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 	return ns.Name
 }
 
-// dumpOnFailure prints the rollouts and experiments of a failed test, as
-// E2ESuite.AfterTest does. It writes to the test's own output, so the dump
-// stays with the test that failed when tests run in parallel.
+// dumpOnFailure prints the rollouts and experiments of a failed test. It
+// writes to the test's own output, so the dump stays with the test that
+// failed when tests run in parallel.
 func (e *Test) dumpOnFailure() {
 	if !e.t.Failed() {
 		return

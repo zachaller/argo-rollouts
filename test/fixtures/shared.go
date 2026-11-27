@@ -6,6 +6,10 @@ import (
 	smiclientset "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	// Auth plugins for the kubeconfigs people run the tests with.
+	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
 
 	clientset "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned"
@@ -22,7 +26,7 @@ import (
 type sharedEnv struct {
 	kubernetesHost string
 	// defaultNamespace is the kubeconfig's current namespace. API capabilities
-	// are probed there, as E2ESuite does.
+	// are probed there.
 	defaultNamespace string
 
 	kubeClient    kubernetes.Interface
