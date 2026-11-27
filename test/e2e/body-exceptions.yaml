@@ -16,3 +16,9 @@ TestCanaryScaleDownOnAbort: >-
   wait as soon as the rollout reported Degraded, and failed 4 times in 40 runs
   at parallelism 8 and 16 because the canary Service was still on the canary.
   The asserted selector is unchanged.
+TestRolloutWithMaxSurgeScalingDuringUpdate: >-
+  The update now sets command: [/bad-command] instead of changing the CPU
+  request, as TestRolloutScalingDuringUpdate already does. The asserted pod
+  counts exist only while no new pod is ready; with a working update that
+  lasted a second or two, and the test failed in 14 of 60 runs at parallelism
+  4, 8 and 16. The asserted counts are unchanged.

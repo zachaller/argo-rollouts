@@ -140,16 +140,16 @@ spec:
             memory: 16Mi
             cpu: 1m`).
 		When().
+		// The new pods never become ready, which holds the rollout in the middle of
+		// the update. With pods that do become ready, the counts asserted below
+		// last only until the first of them is ready.
 		PatchSpec(`
 spec:
   template:
     spec:
       containers:
       - name: updatescaling
-        resources:
-          requests:
-            memory: 16Mi
-            cpu: 2m`).
+        command: [/bad-command]`).
 		WaitForRolloutReplicas(7).
 		Then().
 		ExpectCanaryStablePodCount(4, 3).
