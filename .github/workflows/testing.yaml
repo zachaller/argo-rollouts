@@ -39,8 +39,8 @@ on:
         type: choice
         options: ['on', 'off']
         default: 'on'
-      e2e_controller_flags:
-        description: 'Extra flags for the controller under test'
+      e2e_tests_ref:
+        description: 'Commit whose e2e tests and fixtures to run, against the controller and seeded bugs of this ref. Empty runs the tests of this ref.'
         default: ''
       e2e_wait_timeout:
         description: 'Seconds an e2e test waits for a condition'
@@ -204,6 +204,21 @@ jobs:
         with:
           go-version: '1.26.10'
       - uses: actions/checkout@v7
+      - name: Use the e2e tests of another commit
+        if: ${{ inputs.e2e_tests_ref != '' }}
+        env:
+          TESTS_REF: ${{ inputs.e2e_tests_ref }}
+        run: |
+          # Takes test/e2e and test/fixtures from TESTS_REF and keeps everything
+          # else, including the seeded bugs, from the checked-out ref. This is how
+          # a "before" result is taken for tests that have since been converted.
+          git fetch --depth 1 origin "$TESTS_REF"
+          cp -r test/e2e/seeded-bugs "$RUNNER_TEMP/seeded-bugs"
+          rm -rf test/e2e test/fixtures
+          git checkout FETCH_HEAD -- test/e2e test/fixtures
+          rm -rf test/e2e/seeded-bugs
+          cp -r "$RUNNER_TEMP/seeded-bugs" test/e2e/seeded-bugs
+          git status --short
       - name: Setup k3s
         env:
           INSTALL_K3S_VERSION: v${{ matrix.kubernetes.k3s_version }}
@@ -242,8 +257,6 @@ jobs:
           done
       - name: Start controller
         if: ${{ inputs.e2e_controller != 'off' }}
-        env:
-          E2E_CONTROLLER_FLAGS: ${{ inputs.e2e_controller_flags }}
         run: |
           make start-e2e 2>&1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g" > /tmp/e2e-controller.log &
           # Wait until it serves /healthz, so that building it is not part of any test's timing.
