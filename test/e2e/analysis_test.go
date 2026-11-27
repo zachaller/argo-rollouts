@@ -12,22 +12,14 @@ import (
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type AnalysisSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestAnalysisSuite(t *testing.T) {
-	suite.Run(t, new(AnalysisSuite))
-}
-
-func (s *AnalysisSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newAnalysisTest sets up one test. It does what AnalysisSuite.SetupSuite did once for the whole suite.
+func newAnalysisTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	// shared analysis templates for suite
 	s.ApplyManifests("@functional/analysistemplate-web-background.yaml")
 	s.ApplyManifests("@functional/analysistemplate-web-background-inconclusive.yaml")
@@ -37,6 +29,7 @@ func (s *AnalysisSuite) SetupSuite() {
 	s.ApplyManifests("@functional/analysistemplate-long-running-job.yaml")
 	s.ApplyManifests("@functional/analysistemplate-invalid-image-job.yaml")
 	s.ApplyManifests("@functional/analysistemplate-long-running-job-deadline.yaml")
+	return s
 }
 
 // convenience to generate a new service with a given name
@@ -55,7 +48,8 @@ spec:
 `, name, label)
 }
 
-func (s *AnalysisSuite) TestCanaryBackgroundAnalysis() {
+func TestCanaryBackgroundAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-background-analysis.yaml").
 		When().
@@ -75,7 +69,8 @@ func (s *AnalysisSuite) TestCanaryBackgroundAnalysis() {
 		WaitForBackgroundAnalysisRunPhase("Successful")
 }
 
-func (s *AnalysisSuite) TestCanaryInconclusiveBackgroundAnalysis() {
+func TestCanaryInconclusiveBackgroundAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-background-analysis-inconclusive.yaml").
 		When().
@@ -97,7 +92,8 @@ func (s *AnalysisSuite) TestCanaryInconclusiveBackgroundAnalysis() {
 		ExpectRolloutMessage("InconclusiveAnalysisRun")
 }
 
-func (s *AnalysisSuite) TestCanaryInlineAnalysis() {
+func TestCanaryInlineAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-inline-analysis.yaml").
 		When().
@@ -118,7 +114,8 @@ func (s *AnalysisSuite) TestCanaryInlineAnalysis() {
 		ExpectAnalysisRunCount(3)
 }
 
-func (s *AnalysisSuite) TestCanaryInlineMultipleAnalysis() {
+func TestCanaryInlineMultipleAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-inline-multiple-analysis.yaml").
 		When().
@@ -141,7 +138,8 @@ func (s *AnalysisSuite) TestCanaryInlineMultipleAnalysis() {
 		ExpectAnalysisRunCount(1)
 }
 
-func (s *AnalysisSuite) TestCanaryFailInlineMultipleAnalysis() {
+func TestCanaryFailInlineMultipleAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-degraded-inline-multiple-analysis.yaml").
 		When().
@@ -164,7 +162,8 @@ func (s *AnalysisSuite) TestCanaryFailInlineMultipleAnalysis() {
 }
 
 // TestBlueGreenAnalysis tests blue-green with pre/post analysis and then fast-tracked rollback
-func (s *AnalysisSuite) TestBlueGreenAnalysis() {
+func TestBlueGreenAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	original := `
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -261,7 +260,8 @@ spec:
 }
 
 // TestBlueGreenPrePromotionFail test rollout behavior when pre promotion analysis fails
-func (s *AnalysisSuite) TestBlueGreenPrePromotionFail() {
+func TestBlueGreenPrePromotionFail(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects(newService("pre-promotion-fail-active", "pre-promotion-fail")).
 		RolloutObjects(newService("pre-promotion-fail-preview", "pre-promotion-fail")).
@@ -342,7 +342,8 @@ spec:
 		ExpectPreviewRevision("2")
 }
 
-func (s *AnalysisSuite) TestBlueGreenPostPromotionFail() {
+func TestBlueGreenPostPromotionFail(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects(newService("post-promotion-fail-active", "post-promotion-fail")).
 		RolloutObjects(newService("post-promotion-fail-preview", "post-promotion-fail")).
@@ -415,7 +416,8 @@ spec:
 // 2. deploy rev 2 which fails analysis
 // 3. deploy rev 3 which passes analysis
 // verifies
-func (s *AnalysisSuite) TestBlueGreenAbortAndUpdate() {
+func TestBlueGreenAbortAndUpdate(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-abort-and-update-active", "bluegreen-abort-and-update")).
 		RolloutObjects(newService("bluegreen-abort-and-update-preview", "bluegreen-abort-and-update")).
@@ -502,7 +504,8 @@ spec:
 }
 
 // TestBlueGreenKitchenSink various features of blue-green strategy
-func (s *AnalysisSuite) TestBlueGreenKitchenSink() {
+func TestBlueGreenKitchenSink(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-kitchensink-active", "bluegreen-kitchensink")).
 		RolloutObjects(newService("bluegreen-kitchensink-preview", "bluegreen-kitchensink")).
@@ -593,7 +596,8 @@ spec:
 }
 
 // TestMultipleAnalysis verifies we merge analysis templates properly when multiple are specified
-func (s *AnalysisSuite) TestMultipleAnalysis() {
+func TestMultipleAnalysis(t *testing.T) {
+	s := newAnalysisTest(t)
 	// Local web metric endpoint (the e2e controller runs on the same host as the tests).
 	// Only succeeds when the rollout's args override the templates' SHOULD-NOT-USE defaults.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -693,7 +697,8 @@ spec:
 		ExpectAnalysisRunCount(1)
 }
 
-func (s *AnalysisSuite) TestAnalysisWithSecret() {
+func TestAnalysisWithSecret(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-secret.yaml").
 		When().
@@ -723,7 +728,8 @@ func (s *AnalysisSuite) TestAnalysisWithSecret() {
 // resolves a secretKeyRef marked sharedSecret: true from the controller's configured
 // --analysis-shared-secret-namespace (argo-rollouts) rather than its own namespace. The secret carries
 // the argo-rollouts.argoproj.io/shared-secret label so it passes the default strict-mode check.
-func (s *AnalysisSuite) TestAnalysisWithSharedSecret() {
+func TestAnalysisWithSharedSecret(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-shared-secret.yaml").
 		When().
@@ -749,7 +755,8 @@ func (s *AnalysisSuite) TestAnalysisWithSharedSecret() {
 		ExpectStableRevision("2")
 }
 
-func (s *AnalysisSuite) TestAnalysisWithArgs() {
+func TestAnalysisWithArgs(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-secret-withArgs.yaml").
 		When().
@@ -775,7 +782,8 @@ func (s *AnalysisSuite) TestAnalysisWithArgs() {
 		ExpectStableRevision("2")
 }
 
-func (s *AnalysisSuite) TestBackgroundAnalysisWithArgs() {
+func TestBackgroundAnalysisWithArgs(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-bg-analysis-withArgs.yaml").
 		When().
@@ -796,7 +804,8 @@ func (s *AnalysisSuite) TestBackgroundAnalysisWithArgs() {
 		WaitForBackgroundAnalysisRunPhase("Successful")
 }
 
-func (s *AnalysisSuite) TestCanaryInlineAnalysisLongRunningJobWithDeadline() {
+func TestCanaryInlineAnalysisLongRunningJobWithDeadline(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-inline-long-running-job-deadline.yaml").
 		When().
@@ -827,7 +836,8 @@ func (s *AnalysisSuite) TestCanaryInlineAnalysisLongRunningJobWithDeadline() {
 		})
 }
 
-func (s *AnalysisSuite) TestCanaryBackgroundAnalysisLongRunningJobWithDeadline() {
+func TestCanaryBackgroundAnalysisLongRunningJobWithDeadline(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-background-long-running-job-deadline.yaml").
 		When().
@@ -858,7 +868,8 @@ func (s *AnalysisSuite) TestCanaryBackgroundAnalysisLongRunningJobWithDeadline()
 		})
 }
 
-func (s *AnalysisSuite) TestCanaryBackgroundAnalysisLongRunningJob() {
+func TestCanaryBackgroundAnalysisLongRunningJob(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-background-long-running-job.yaml").
 		When().
@@ -893,7 +904,8 @@ func (s *AnalysisSuite) TestCanaryBackgroundAnalysisLongRunningJob() {
 		})
 }
 
-func (s *AnalysisSuite) TestCanaryInlineAnalysisInvalidImageJob() {
+func TestCanaryInlineAnalysisInvalidImageJob(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-inline-invalid-image-job.yaml").
 		When().
@@ -924,7 +936,8 @@ func (s *AnalysisSuite) TestCanaryInlineAnalysisInvalidImageJob() {
 		})
 }
 
-func (s *AnalysisSuite) TestCanaryBackgroundAnalysisInvalidImageJob() {
+func TestCanaryBackgroundAnalysisInvalidImageJob(t *testing.T) {
+	s := newAnalysisTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-background-invalid-job.yaml").
 		When().
