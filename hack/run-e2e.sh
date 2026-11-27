@@ -38,6 +38,9 @@ fi
 status=0
 for i in $(seq 1 "$repeat"); do
 	start=$(date +%s)
+	# A run that is cut short writes no JUnit file. Remove the previous one so
+	# that it is not kept as this run's result.
+	rm -f junit-e2e-test.xml
 	if make test-e2e; then result=pass; else
 		result=fail
 		status=1
