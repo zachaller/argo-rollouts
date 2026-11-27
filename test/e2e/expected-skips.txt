@@ -3,20 +3,30 @@
 # One glob pattern per line (path.Match syntax). '#' starts a comment.
 
 # Need a real AWS load balancer (E2E_ALB_INGESS_ANNOTATIONS).
-TestAWSSuite/TestALBBlueGreenUpdate
-TestAWSSuite/TestALBCanaryUpdate
-TestAWSSuite/TestALBCanaryUpdateMultiIngress
+TestALBBlueGreenUpdate
+TestALBCanaryUpdate
+TestALBCanaryUpdateMultiIngress
 
 # App Mesh CRDs are not installed in CI.
-TestAppMeshSuite/*
+TestAppMeshCanaryRollout
 
 # Skipped by accident today. Remove these entries once the cause is fixed.
 # SMI is detected by listing TrafficSplits at v1alpha1, but the CRD that CI
 # installs (test/e2e/crds/split.yaml) only serves v1alpha4.
-TestSMISuite/*
-TestSMIIngressSuite/*
-# CI never runs `make setup-e2e`, so the step plugin is not configured.
-TestStepPluginSuite/*
+TestSMIExperimentStep
+TestSMIIngressCanaryStep
+# The step-plugin tests. CI never runs `make setup-e2e`, so the step plugin is
+# not configured.
+TestRolloutCompletesWhenStepSuccessful
+TestRolloutAbortWhenStepFails
+TestRolloutAbortStepsWhenAborted
+TestRolloutRetryAbortedRollout
+TestRolloutCompletesWhenPromotedAndStepRunning
+TestRolloutRetriesUntilDeadlineWhenRunning
+TestRolloutRetriesUntilDeadlineWhenError
+TestRolloutStatusIsNotUsedOnNewRollout
+TestRolloutErrorWhenStepPluginNotConfigured
+TestRolloutSkipPluginWhenDisabled
 
 # Known failures, skipped by fixtures.KnownFailure until the defect is fixed.
 # The canary Service flaps after an abort with traffic routing; see
