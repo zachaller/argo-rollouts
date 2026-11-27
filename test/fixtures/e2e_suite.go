@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	a6util "github.com/argoproj/argo-rollouts/utils/apisix"
@@ -128,12 +129,22 @@ type E2ESuite struct {
 	ApisixEnabled  bool
 }
 
-func (s *E2ESuite) SetupSuite() {
-	if level := os.Getenv(EnvVarE2EKLogLevel); level != "" {
-		if s, err := strconv.ParseInt(level, 10, 32); err == nil {
-			logutil.SetKLogLevel(int(s))
+var klogLevelOnce sync.Once
+
+// setKLogLevelFromEnv applies E2E_KLOG_LEVEL once per process. SetKLogLevel
+// registers the klog flags, which panics if it is done a second time.
+func setKLogLevelFromEnv() {
+	klogLevelOnce.Do(func() {
+		if level := os.Getenv(EnvVarE2EKLogLevel); level != "" {
+			if v, err := strconv.ParseInt(level, 10, 32); err == nil {
+				logutil.SetKLogLevel(int(v))
+			}
 		}
-	}
+	})
+}
+
+func (s *E2ESuite) SetupSuite() {
+	setKLogLevelFromEnv()
 
 	var err error
 	s.Common.t = s.Suite.T()
