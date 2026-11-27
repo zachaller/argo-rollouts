@@ -26,7 +26,6 @@ type ExperimentSuite struct {
 //   - valueFrom.podTemplateHashValue: Latest
 //   - templates.XXXXX.podTemplateHash
 func (s *ExperimentSuite) TestRolloutWithExperimentAndAnalysis() {
-	s.T().Parallel()
 	s.Given().
 		RolloutObjects("@functional/rollout-experiment-analysis.yaml").
 		When().
