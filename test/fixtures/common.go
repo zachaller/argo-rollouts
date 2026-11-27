@@ -511,7 +511,9 @@ func (c *Common) applyObject(obj *unstructured.Unstructured) {
 
 	objBytes, err := json.Marshal(obj)
 	c.CheckError(err)
-	cmd := exec.Command("kubectl", "apply", "-f", "-")
+	// The namespace is passed explicitly: with a namespace per test, the
+	// kubeconfig's current namespace is not the one the test owns.
+	cmd := exec.Command("kubectl", "apply", "-n", c.namespace, "-f", "-")
 	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewReader(objBytes)
 	out, err := cmd.CombinedOutput()
@@ -526,7 +528,7 @@ func (c *Common) applyObject(obj *unstructured.Unstructured) {
 }
 
 func (c *Common) deleteObject(kind, name string) {
-	cmd := exec.Command("kubectl", "delete", kind, name)
+	cmd := exec.Command("kubectl", "delete", "-n", c.namespace, kind, name)
 	cmd.Env = os.Environ()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
