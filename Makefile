@@ -27,6 +27,16 @@ E2E_INSTANCE_ID ?= argo-rollouts-e2e
 E2E_TEST_OPTIONS ?=
 E2E_PARALLEL ?= 1
 E2E_WAIT_TIMEOUT ?= 90
+# How many times gotestsum reruns a failed e2e test. 0 turns reruns off, which
+# is what you want when measuring how flaky the tests are.
+E2E_RERUN_FAILS ?= 5
+# Extra flags for the controller started by start-e2e
+E2E_CONTROLLER_FLAGS ?=
+ifeq ($(E2E_RERUN_FAILS),0)
+E2E_RERUN_ARGS =
+else
+E2E_RERUN_ARGS = --rerun-fails-report=rerunreport.txt --rerun-fails=$(E2E_RERUN_FAILS)
+endif
 GOPATH ?= $(shell go env GOPATH)
 
 # Global toolchain configuration
@@ -272,11 +282,11 @@ setup-e2e:
 .PHONY: start-e2e
 start-e2e: ## start e2e test environment
 	mkdir -p coverage-output-e2e
-	GOCOVERDIR=coverage-output-e2e go run -cover ./cmd/rollouts-controller/main.go --instance-id ${E2E_INSTANCE_ID} --loglevel debug --kloglevel 6 --analysis-shared-secret-namespace argo-rollouts
+	GOCOVERDIR=coverage-output-e2e go run -cover ./cmd/rollouts-controller/main.go --instance-id ${E2E_INSTANCE_ID} --loglevel debug --kloglevel 6 --analysis-shared-secret-namespace argo-rollouts ${E2E_CONTROLLER_FLAGS}
 
 .PHONY: test-e2e
 test-e2e: install-devtools-local
-	${DIST_DIR}/gotestsum --rerun-fails-report=rerunreport.txt --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" --rerun-fails=5 -- -timeout 60m -count 1 --tags e2e -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -v --short ./test/e2e ${E2E_TEST_OPTIONS}
+	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 --tags e2e -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -v --short ./test/e2e ${E2E_TEST_OPTIONS}
 
 .PHONY: test-unit
  test-unit: install-devtools-local ## run unit tests

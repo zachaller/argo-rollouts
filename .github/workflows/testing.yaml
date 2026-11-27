@@ -9,14 +9,54 @@ on:
     branches:
       - 'master'
       - 'release-*'
+  # The inputs only affect the e2e job. They exist to measure the e2e tests:
+  # how long they take at a given parallelism, how often they fail, and which
+  # tests catch a deliberately broken controller.
   workflow_dispatch:
+    inputs:
+      e2e_parallel:
+        description: 'go test -parallel for the e2e tests. A comma-separated list runs one configuration per value.'
+        default: '1'
+      e2e_test_options:
+        description: 'Extra go test flags for the e2e tests, for example: -skip Suite'
+        default: ''
+      e2e_repeat:
+        description: 'How many times each e2e job runs the tests, one run after another'
+        default: '1'
+      e2e_jobs:
+        description: 'Identical e2e jobs per configuration, to collect more samples'
+        default: '1'
+      e2e_rerun_fails:
+        description: 'How many times a failed e2e test is rerun. 0 turns reruns off.'
+        default: '5'
+      e2e_kubernetes:
+        description: 'Kubernetes versions to run the e2e tests on'
+        type: choice
+        options: ['all', 'latest']
+        default: 'all'
+      e2e_controller:
+        description: 'off runs the e2e tests with no controller: every test that needs one must fail'
+        type: choice
+        options: ['on', 'off']
+        default: 'on'
+      e2e_controller_flags:
+        description: 'Extra flags for the controller under test'
+        default: ''
+      e2e_wait_timeout:
+        description: 'Seconds an e2e test waits for a condition'
+        default: '90'
+      e2e_seeded_bugs:
+        description: 'none, all, or a comma-separated list of patches under test/e2e/seeded-bugs to apply to the controller'
+        default: 'none'
 
 env:
   # Golang version to use across CI steps
   GOLANG_VERSION: '1.26.10'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Manually dispatched runs do not cancel each other: several are started on
+  # the same branch to compare configurations.
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'workflow_dispatch' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: true
 
 permissions:
@@ -26,7 +66,8 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend_any_changed }}
+      # A manual dispatch always runs the backend jobs.
+      backend: ${{ github.event_name == 'workflow_dispatch' && 'true' || steps.filter.outputs.backend_any_changed }}
       frontend: ${{ steps.filter.outputs.frontend_any_changed }}
     steps:
       - uses: actions/checkout@v7
@@ -123,26 +164,39 @@ jobs:
         working-directory: ui
         run: pnpm test
 
+  # Builds the matrix of the e2e job. By default that is one job per Kubernetes
+  # version; a manual dispatch can add parallelism levels, repeated jobs and
+  # seeded bugs. See hack/e2e-matrix.sh.
+  e2e-plan:
+    name: Plan end-to-end jobs
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: plan
+        env:
+          VERSIONS: >-
+            [
+              {"version": "1.34", "k3s_version": "1.34.4+k3s1", "latest": false},
+              {"version": "1.35", "k3s_version": "1.35.1+k3s1", "latest": false},
+              {"version": "1.36", "k3s_version": "1.36.4+k3s1", "latest": false},
+              {"version": "1.37", "k3s_version": "1.37.0+k3s1", "latest": true}
+            ]
+          KUBERNETES: ${{ inputs.e2e_kubernetes || 'all' }}
+          PARALLEL: ${{ inputs.e2e_parallel || '1' }}
+          JOBS: ${{ inputs.e2e_jobs || '1' }}
+          BUGS: ${{ inputs.e2e_seeded_bugs || 'none' }}
+        run: echo "matrix=$(./hack/e2e-matrix.sh)" >> "$GITHUB_OUTPUT"
+
   test-e2e:
-    needs: [changes]
+    needs: [changes, e2e-plan]
     if: needs.changes.outputs.backend == 'true'
     strategy:
       fail-fast: false
       matrix:
-        kubernetes:
-          - version: '1.34'
-            k3s_version: '1.34.4+k3s1'
-            latest: false
-          - version: '1.35'
-            k3s_version: '1.35.1+k3s1'
-            latest: false
-          - version: '1.36'
-            k3s_version: '1.36.4+k3s1'
-            latest: false
-          - version: '1.37'
-            k3s_version: '1.37.0+k3s1'
-            latest: true
-    name: Run end-to-end tests (${{ matrix.kubernetes.version }}, ${{ matrix.kubernetes.latest }})
+        kubernetes: ${{ fromJSON(needs.e2e-plan.outputs.matrix) }}
+    name: Run end-to-end tests (${{ matrix.kubernetes.version }}, ${{ matrix.kubernetes.latest }}${{ matrix.kubernetes.label }})
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
@@ -153,6 +207,8 @@ jobs:
       - name: Setup k3s
         env:
           INSTALL_K3S_VERSION: v${{ matrix.kubernetes.k3s_version }}
+          # A node takes 110 pods by default, which parallel e2e tests exceed.
+          INSTALL_K3S_EXEC: --kubelet-arg=max-pods=250
         run: |
           curl -sfL https://get.k3s.io | sh -
           sudo mkdir ~/.kube
@@ -173,11 +229,34 @@ jobs:
           # --server-side bypasses the 262KB annotation limit for large CRDs with field descriptions
           kubectl apply --server-side --force-conflicts -k  manifests/crds
           kubectl apply --server-side --force-conflicts -f  test/e2e/crds
-      - name: Start controller
-        run: make start-e2e 2>&1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g" > /tmp/e2e-controller.log &
-      - name: Run e2e tests
+      - name: Apply seeded bug
+        if: ${{ matrix.kubernetes.bug != '' }}
+        env:
+          BUG: ${{ matrix.kubernetes.bug }}
+        run: git apply --verbose "test/e2e/seeded-bugs/$BUG.patch"
+      - name: Pull the images the tests use
         run: |
-          make test-e2e
+          # Pulled up front so that image pulls are not part of any test's timing.
+          for image in nginx:1.19-alpine alpine:3.8 argoproj/rollouts-demo:blue argoproj/rollouts-demo:green argoproj/rollouts-demo:red argoproj/rollouts-demo:yellow; do
+            sudo k3s crictl pull "$image" || echo "::warning::could not pre-pull $image"
+          done
+      - name: Start controller
+        if: ${{ inputs.e2e_controller != 'off' }}
+        env:
+          E2E_CONTROLLER_FLAGS: ${{ inputs.e2e_controller_flags }}
+        run: |
+          make start-e2e 2>&1 | sed -r "s/[[:cntrl:]]\[[0-9]{1,3}m//g" > /tmp/e2e-controller.log &
+          # Wait until it serves /healthz, so that building it is not part of any test's timing.
+          timeout 600 bash -c 'until curl -sf http://localhost:8080/healthz >/dev/null; do sleep 2; done'
+      - name: Run e2e tests
+        env:
+          E2E_PARALLEL: ${{ matrix.kubernetes.parallel }}
+          E2E_TEST_OPTIONS: ${{ inputs.e2e_test_options }}
+          E2E_RERUN_FAILS: ${{ inputs.e2e_rerun_fails || '5' }}
+          E2E_WAIT_TIMEOUT: ${{ inputs.e2e_wait_timeout || '90' }}
+          E2E_REPEAT: ${{ inputs.e2e_repeat || '1' }}
+          E2E_CONTROLLER: ${{ inputs.e2e_controller || 'on' }}
+        run: ./hack/run-e2e.sh
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true') }}
       - name: Stop e2e tests controller
         run: |
@@ -186,7 +265,7 @@ jobs:
           sleep 5
           echo "done stopping process"
           ls -lah coverage-output-e2e/
-        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' && matrix.kubernetes.latest)}}
+        if: ${{ inputs.e2e_controller != 'off' && !(github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' && matrix.kubernetes.latest)}}
       - name: Output Rerun Overview
         run: |
           [[ -f rerunreport.txt ]] && cat rerunreport.txt || echo "No rerun report found"
@@ -194,13 +273,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: E2E Test Results (k8s ${{ matrix.kubernetes.version }})
+          name: E2E Test Results (k8s ${{ matrix.kubernetes.version }}${{ matrix.kubernetes.label }})
           path: |
             junit-e2e-test.xml
+            junit-e2e-run-*.xml
+            e2e-timings.txt
+            rerunreport.txt
       - name: Upload e2e-controller logs
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-controller-k8s-${{ matrix.kubernetes.version }}.log
+          name: e2e-controller-k8s-${{ matrix.kubernetes.version }}${{ matrix.kubernetes.label }}.log
           path: /tmp/e2e-controller.log
         if: ${{ always() }}
       - name: Upload code coverage artifacts
@@ -208,7 +290,7 @@ jobs:
         with:
           name: coverage-output-e2e
           path: coverage-output-e2e
-        if: ${{ matrix.kubernetes.latest }}
+        if: ${{ matrix.kubernetes.latest && matrix.kubernetes.label == '' }}
 
   # workaround for status checks -- check this one job instead of each individual E2E job in the matrix
   # this allows us to skip the entire matrix when it doesn't need to run while still having accurate status checks
@@ -240,7 +322,8 @@ jobs:
       - changes
       - test-unit
       - test-e2e
-    if: needs.changes.outputs.backend == 'true'
+    # A manual dispatch measures the e2e tests and may not produce coverage.
+    if: needs.changes.outputs.backend == 'true' && github.event_name != 'workflow_dispatch'
     steps:
       - name: Set up Go
         uses: actions/setup-go@v7.0.0
