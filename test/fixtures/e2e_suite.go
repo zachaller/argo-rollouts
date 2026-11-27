@@ -186,6 +186,14 @@ func (s *E2ESuite) SetupSuite() {
 }
 
 func (s *E2ESuite) TearDownSuite() {
+	s.DeleteResources()
+}
+
+// DeleteResources deletes every object the suite's tests have applied and
+// waits until they are gone. Besides the end of the suite, a test that
+// applies several sets of manifests one after another calls it between them.
+// With E2E_DEBUG=true it does nothing.
+func (s *E2ESuite) DeleteResources() {
 	if os.Getenv(EnvVarE2EDebug) == "true" {
 		s.log.Info("skipping resource cleanup")
 		return
@@ -226,8 +234,11 @@ func (s *E2ESuite) AfterTest(suiteName, testName string) {
 	s.deleteResources(req, metav1.DeletePropagationBackground)
 }
 
-func (s *E2ESuite) deleteResources(req *labels.Requirement, propagationPolicy metav1.DeletionPropagation) {
-	s.log.Infof("Deleting %s", req.String())
+// deleteResources deletes the objects that match req, in the namespace of c
+// and, for cluster-scoped kinds, in the whole cluster. It waits until they
+// are gone.
+func (c *Common) deleteResources(req *labels.Requirement, propagationPolicy metav1.DeletionPropagation) {
+	c.log.Infof("Deleting %s", req.String())
 	ctx := context.TODO()
 	resources := []schema.GroupVersionResource{
 		rov1.RolloutGVR,
@@ -250,12 +261,12 @@ func (s *E2ESuite) deleteResources(req *labels.Requirement, propagationPolicy me
 		var err error
 		var lst *unstructured.UnstructuredList
 		if gvr == rov1.ClusterAnalysisTemplateGVR {
-			lst, err = s.dynamicClient.Resource(gvr).List(ctx, listOpts)
+			lst, err = c.dynamicClient.Resource(gvr).List(ctx, listOpts)
 		} else {
-			lst, err = s.dynamicClient.Resource(gvr).Namespace(s.namespace).List(ctx, listOpts)
+			lst, err = c.dynamicClient.Resource(gvr).Namespace(c.namespace).List(ctx, listOpts)
 		}
 		if err != nil && !k8serrors.IsNotFound(err) {
-			s.CheckError(err)
+			c.CheckError(err)
 		}
 		if lst == nil {
 			return nil
@@ -269,27 +280,27 @@ func (s *E2ESuite) deleteResources(req *labels.Requirement, propagationPolicy me
 	for _, gvr := range resources {
 		switch gvr {
 		case rov1.ClusterAnalysisTemplateGVR:
-			err = s.dynamicClient.Resource(gvr).DeleteCollection(ctx, deleteOpts, listOpts)
+			err = c.dynamicClient.Resource(gvr).DeleteCollection(ctx, deleteOpts, listOpts)
 		case serviceGVR:
 			// Services do not support deletecollection
 			for _, obj := range listResources(gvr) {
 				if obj.GetDeletionTimestamp() != nil {
 					continue
 				}
-				err = s.dynamicClient.Resource(gvr).Namespace(s.namespace).Delete(ctx, obj.GetName(), deleteOpts)
-				s.CheckError(err)
+				err = c.dynamicClient.Resource(gvr).Namespace(c.namespace).Delete(ctx, obj.GetName(), deleteOpts)
+				c.CheckError(err)
 			}
 		default:
 			// NOTE: deletecollection does not appear to work without supplying a namespace.
 			// It errors with: the server could not find the requested resource
-			err = s.dynamicClient.Resource(gvr).Namespace(s.namespace).DeleteCollection(ctx, deleteOpts, listOpts)
+			err = c.dynamicClient.Resource(gvr).Namespace(c.namespace).DeleteCollection(ctx, deleteOpts, listOpts)
 		}
 		if err != nil && !k8serrors.IsNotFound(err) {
-			s.log.Fatalf("could not delete %v: %v", gvr, err)
+			c.t.Fatalf("could not delete %v: %v", gvr, err)
 		}
 		count := len(listResources(gvr))
 		if count > 0 {
-			s.log.Infof("Waiting for %d %s to delete", count, gvr.Resource)
+			c.log.Infof("Waiting for %d %s to delete", count, gvr.Resource)
 			resourcesRemaining = append(resourcesRemaining, gvr)
 		}
 	}

@@ -13,6 +13,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -194,6 +196,23 @@ func (e *Test) dumpOnFailure() {
 		}
 	}
 	fmt.Fprintf(out, "=== END %s\n\n", e.t.Name())
+}
+
+// DeleteResources deletes every object the test has applied so far and waits
+// until they are gone. A test that applies several sets of manifests one
+// after another calls it between them. With E2E_DEBUG=true it does nothing,
+// like the namespace deletion at the end of the test.
+func (e *Test) DeleteResources() {
+	if os.Getenv(EnvVarE2EDebug) == "true" {
+		e.log.Info("skipping resource cleanup")
+		return
+	}
+	// The label value applyObject gives the objects of a top-level test.
+	// Matching it, and not just the label, keeps this off the cluster-scoped
+	// objects of tests that run at the same time.
+	req, err := labels.NewRequirement(E2ELabelKeyTestName, selection.Equals, []string{e.t.Name()})
+	e.CheckError(err)
+	e.deleteResources(req, metav1.DeletePropagationBackground)
 }
 
 // deleteNamespace removes everything the test created. It does not wait for
