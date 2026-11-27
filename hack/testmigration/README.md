@@ -42,13 +42,16 @@ of the body to be byte-identical to the old method body.
 - `test/e2e/expected-skips.txt`: glob patterns of tests allowed to skip.
 - `hack/testmigration/baseline/`: results of the unconverted serial suite.
 
+The repository's `.gitignore` ignores `junit*`. Do not give a file that has to
+be committed a name starting with `junit`; git skips it without a word.
+
 ## Examples
 
 ```
 go run ./hack/testmigration inventory-diff -base upstream/master
 go run ./hack/testmigration bodydiff -base upstream/master
 go run ./hack/testmigration junitdiff -base upstream/master \
-    -base-junit hack/testmigration/baseline/junit-e2e-k8s1.37.xml \
+    -base-junit hack/testmigration/baseline/e2e-results-k8s1.37.xml \
     -new-junit junit-e2e-test.xml -only '^TestCanary'
 go run ./hack/testmigration killmatrix -base upstream/master \
     -base-dir baseline-bugs -new-dir new-bugs -only '^TestCanary'

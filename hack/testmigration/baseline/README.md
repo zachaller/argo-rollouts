@@ -5,7 +5,7 @@ migration checks.
 
 | File | What it is |
 |---|---|
-| `junit-e2e-k8s1.37.xml` | JUnit results of the e2e job on Kubernetes 1.37 |
+| `e2e-results-k8s1.37.xml` | JUnit results of the e2e job on Kubernetes 1.37 |
 | `e2e-coverage-func-k8s1.37.txt` | Per-function coverage of the controller during that job (`go tool covdata func`, paths made repository-relative) |
 | `seeded-bugs-canary/<bug>.xml` | Results of the unconverted Canary suite with one seeded bug applied (see below) |
 
