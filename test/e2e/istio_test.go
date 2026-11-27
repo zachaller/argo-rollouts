@@ -7,29 +7,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type IstioSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestIstioSuite(t *testing.T) {
-	suite.Run(t, new(IstioSuite))
-}
-
-func (s *IstioSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newIstioTest sets up one test. It does what IstioSuite.SetupSuite did once for the whole suite.
+func newIstioTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !s.IstioEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *IstioSuite) TestIstioHostSplit() {
+func TestIstioHostSplit(t *testing.T) {
+	s := newIstioTest(t)
 
 	tests := []struct {
 		filename string
@@ -111,7 +105,8 @@ func (s *IstioSuite) TestIstioHostSplit() {
 	}
 }
 
-func (s *IstioSuite) TestIstioHostSplitOnlyTls() {
+func TestIstioHostSplitOnlyTls(t *testing.T) {
+	s := newIstioTest(t)
 
 	tests := []struct {
 		filename string
@@ -174,7 +169,8 @@ func (s *IstioSuite) TestIstioHostSplitOnlyTls() {
 	}
 }
 
-func (s *IstioSuite) TestIstioSubsetSplit() {
+func TestIstioSubsetSplit(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-subset-split.yaml").
 		When().
@@ -244,7 +240,8 @@ spec:
 		ExpectRevisionPodCount("1", 0) // since we moved back to basic canary, we should scale down older RSs
 }
 
-func (s *IstioSuite) TestIstioSubsetSplitSingleRoute() {
+func TestIstioSubsetSplitSingleRoute(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-subset-split-single-route.yaml").
 		When().
@@ -294,7 +291,8 @@ func (s *IstioSuite) TestIstioSubsetSplitSingleRoute() {
 		ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 }
 
-func (s *IstioSuite) TestIstioAbortUpdate() {
+func TestIstioAbortUpdate(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-host-split.yaml").
 		When().
@@ -321,7 +319,8 @@ func (s *IstioSuite) TestIstioAbortUpdate() {
 		ExpectRevisionPodCount("2", 1)
 }
 
-func (s *IstioSuite) TestIstioUpdateInMiddleZeroCanaryReplicas() {
+func TestIstioUpdateInMiddleZeroCanaryReplicas(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-host-split-update-in-middle.yaml").
 		When().
@@ -341,7 +340,8 @@ func (s *IstioSuite) TestIstioUpdateInMiddleZeroCanaryReplicas() {
 		ExpectRevisionPodCount("3", 1)
 }
 
-func (s *IstioSuite) TestIstioAbortUpdateDeleteAllCanaryPods() {
+func TestIstioAbortUpdateDeleteAllCanaryPods(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-rollout-abort-delete-all-canary-pods.yaml").
 		When().
@@ -367,7 +367,8 @@ func (s *IstioSuite) TestIstioAbortUpdateDeleteAllCanaryPods() {
 		ExpectRevisionScaleDown("2", true) // but have a scale down delay
 }
 
-func (s *IstioSuite) TestIstioHostSplitExperimentStep() {
+func TestIstioHostSplitExperimentStep(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-host-split-experiment-step.yaml").
 		When().
@@ -433,7 +434,8 @@ func (s *IstioSuite) TestIstioHostSplitExperimentStep() {
 	s.DeleteResources()
 }
 
-func (s *IstioSuite) TestIstioSubsetSplitExperimentStep() {
+func TestIstioSubsetSplitExperimentStep(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-subset-split-experiment-step.yaml").
 		When().
@@ -494,7 +496,8 @@ func (s *IstioSuite) TestIstioSubsetSplitExperimentStep() {
 	s.DeleteResources()
 }
 
-func (s *IstioSuite) TestIstioPingPongUpdate() {
+func TestIstioPingPongUpdate(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-host-split-ping-pong.yaml").
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -545,7 +548,8 @@ func (s *IstioSuite) TestIstioPingPongUpdate() {
 		})
 }
 
-func (s *IstioSuite) TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort() {
+func TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort(t *testing.T) {
+	s := newIstioTest(t)
 	s.Given().
 		RolloutObjects("@istio/istio-subset-split-in-stable-downscale-after-canary-abort.yaml").
 		When().
