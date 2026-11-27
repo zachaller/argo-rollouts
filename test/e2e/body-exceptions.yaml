@@ -27,8 +27,10 @@ TestKubectlWaitForCompleted: >-
   The two direct kubectl wait calls now pass -n with the rollout's namespace,
   for the same reason. The conditions waited for are unchanged.
 TestIstioHostSplit: >-
-  s.TearDownSuite() at the end of each case became s.DeleteResources(), the
-  same cleanup under the name the per-test harness also has.
+  s.TearDownSuite() at the end of each case became s.DeleteResources(). It
+  runs the same deletion code. The suite's version selected every object with
+  the e2e label in the shared namespace; this one selects the objects labelled
+  with this test's name, which in a namespace per test are the same objects.
 TestIstioHostSplitOnlyTls: >-
   s.TearDownSuite() at the end of each case became s.DeleteResources().
 TestIstioHostSplitExperimentStep: >-
@@ -53,3 +55,8 @@ TestBlueGreenPromoteFull: >-
   16 the controller had not created it after the five seconds. The test now
   allows the run up to the usual wait timeout to appear, where it used to
   allow five seconds. Everything it asserts afterwards is unchanged.
+TestControllerMetrics: >-
+  assert.NoError became require.NoError. When the metrics endpoint is not
+  reachable the response is nil, and the next line dereferenced it. Under the
+  testify suite that panic failed this test; in a plain test function it stops
+  the whole test binary. The test fails in the same situations as before.

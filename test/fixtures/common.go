@@ -118,8 +118,9 @@ func (l *eventLog) snapshot() ([]corev1.Event, error) {
 // that has not started. The testify suite these tests were written for
 // recovered panics per test, and many assertions rely on that: they index an
 // empty list or follow a nil pointer when the state they expect is not there.
-// All such code in the tests is in callbacks given to the fixtures, so
-// guarding the callbacks covers it.
+// In the tests that code is in callbacks given to the fixtures, so guarding
+// the callbacks covers it. Test code outside a callback has no such cover and
+// must not rely on a panic to fail.
 func (c *Common) guard(f func()) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -545,10 +546,10 @@ func (c *Common) applyObject(obj *unstructured.Unstructured) {
 	}
 	testNameSplit := strings.SplitN(c.t.Name(), "/", 2)
 	if len(testNameSplit) > 1 {
-		// when test name is the SuiteName/TestName
+		// a subtest: TestName/SubtestName
 		labels[E2ELabelKeyTestName] = testNameSplit[1]
 	} else {
-		// when test name is the SuiteName
+		// a top-level test
 		labels[E2ELabelKeyTestName] = testNameSplit[0]
 	}
 	obj.SetLabels(labels)
