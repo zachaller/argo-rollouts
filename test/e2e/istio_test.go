@@ -107,7 +107,7 @@ func (s *IstioSuite) TestIstioHostSplit() {
 			}).
 			ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 
-		s.TearDownSuite()
+		s.DeleteResources()
 	}
 }
 
@@ -170,7 +170,7 @@ func (s *IstioSuite) TestIstioHostSplitOnlyTls() {
 			}).
 			ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 
-		s.TearDownSuite()
+		s.DeleteResources()
 	}
 }
 
@@ -430,7 +430,7 @@ func (s *IstioSuite) TestIstioHostSplitExperimentStep() {
 		}).
 		ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 
-	s.TearDownSuite()
+	s.DeleteResources()
 }
 
 func (s *IstioSuite) TestIstioSubsetSplitExperimentStep() {
@@ -491,7 +491,7 @@ func (s *IstioSuite) TestIstioSubsetSplitExperimentStep() {
 		}).
 		ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 
-	s.TearDownSuite()
+	s.DeleteResources()
 }
 
 func (s *IstioSuite) TestIstioPingPongUpdate() {
@@ -568,5 +568,5 @@ func (s *IstioSuite) TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort() {
 			assert.Equal(s.T(), int64(100), stableWeight)
 		})
 
-	s.TearDownSuite()
+	s.DeleteResources()
 }

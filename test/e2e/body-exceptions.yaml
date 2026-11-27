@@ -26,3 +26,14 @@ TestKubectlWaitForPaused: >-
 TestKubectlWaitForCompleted: >-
   The two direct kubectl wait calls now pass -n with the rollout's namespace,
   for the same reason. The conditions waited for are unchanged.
+TestIstioSuite/TestIstioHostSplit: >-
+  s.TearDownSuite() at the end of each case became s.DeleteResources(), the
+  same cleanup under the name the per-test harness also has.
+TestIstioSuite/TestIstioHostSplitOnlyTls: >-
+  s.TearDownSuite() at the end of each case became s.DeleteResources().
+TestIstioSuite/TestIstioHostSplitExperimentStep: >-
+  s.TearDownSuite() at the end of the test became s.DeleteResources().
+TestIstioSuite/TestIstioSubsetSplitExperimentStep: >-
+  s.TearDownSuite() at the end of the test became s.DeleteResources().
+TestIstioSuite/TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort: >-
+  s.TearDownSuite() at the end of the test became s.DeleteResources().
