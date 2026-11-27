@@ -719,47 +719,43 @@ func (w *When) WaitForExperimentPhase(name string, phase string) *When {
 	return w.WaitForExperimentCondition(name, checkExperimentPhase(phase), fmt.Sprintf("phase=%s", phase), E2EWaitTimeout)
 }
 
-// waitForAnalysisRunOfType waits until the rollout owns an AnalysisRun with the
-// given type label. The WaitFor...AnalysisRunPhase helpers call it before they
-// look the run up: the controller creates the run some time after the update
-// or promotion that asks for it, and a lookup before then fails the test at
-// once. When no run shows up in time it returns anyway, and the lookup that
-// follows reports the missing run.
-func (w *When) waitForAnalysisRunOfType(runType string) {
-	deadline := time.Now().Add(E2EWaitTimeout)
-	for {
-		for _, arun := range w.GetRolloutAnalysisRuns().Items {
-			if arun.Labels[rov1.RolloutTypeLabel] == runType {
-				return
-			}
-		}
-		if time.Now().After(deadline) {
-			return
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
-}
-
 func (w *When) WaitForBackgroundAnalysisRunPhase(phase string) *When {
-	w.waitForAnalysisRunOfType(rov1.RolloutTypeBackgroundRunLabel)
 	arun := w.GetBackgroundAnalysisRun()
 	return w.WaitForAnalysisRunCondition(arun.Name, checkAnalysisRunPhase(phase), fmt.Sprintf("phase=%s", phase), E2EWaitTimeout)
 }
 
 func (w *When) WaitForInlineAnalysisRunPhase(phase string) *When {
-	w.waitForAnalysisRunOfType(rov1.RolloutTypeStepLabel)
 	arun := w.GetInlineAnalysisRun()
 	return w.WaitForAnalysisRunCondition(arun.Name, checkAnalysisRunPhase(phase), fmt.Sprintf("phase=%s", phase), E2EWaitTimeout)
 }
 
+// WaitForPrePromotionAnalysisRun waits until the rollout owns a pre-promotion
+// AnalysisRun. WaitForPrePromotionAnalysisRunPhase looks the run up once and
+// fails the test when it is not there yet; a test that cannot know how long
+// the controller takes to create it calls this first.
+func (w *When) WaitForPrePromotionAnalysisRun() *When {
+	w.t.Helper()
+	w.log.Info("Waiting for the pre-promotion AnalysisRun")
+	deadline := time.Now().Add(E2EWaitTimeout)
+	for {
+		for _, arun := range w.GetRolloutAnalysisRuns().Items {
+			if arun.Labels[rov1.RolloutTypeLabel] == rov1.RolloutTypePrePromotionLabel {
+				return w
+			}
+		}
+		if time.Now().After(deadline) {
+			w.t.Fatalf("timeout after %v waiting for the pre-promotion AnalysisRun", E2EWaitTimeout)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
 func (w *When) WaitForPrePromotionAnalysisRunPhase(phase string) *When {
-	w.waitForAnalysisRunOfType(rov1.RolloutTypePrePromotionLabel)
 	arun := w.GetPrePromotionAnalysisRun()
 	return w.WaitForAnalysisRunCondition(arun.Name, checkAnalysisRunPhase(phase), fmt.Sprintf("phase=%s", phase), E2EWaitTimeout)
 }
 
 func (w *When) WaitForPostPromotionAnalysisRunPhase(phase string) *When {
-	w.waitForAnalysisRunOfType(rov1.RolloutTypePostPromotionLabel)
 	arun := w.GetPostPromotionAnalysisRun()
 	return w.WaitForAnalysisRunCondition(arun.Name, checkAnalysisRunPhase(phase), fmt.Sprintf("phase=%s", phase), E2EWaitTimeout)
 }

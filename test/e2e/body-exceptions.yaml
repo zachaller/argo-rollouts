@@ -46,3 +46,10 @@ TestBlueGreenDuration_SupersededRollback: >-
   timed out waiting for Healthy: 7 of 20 runs of the unconverted serial suite.
   The assertions are unchanged. See
   test/migration-reports/fix-plans/rollback-not-detected-within-one-second.md.
+TestBlueGreenPromoteFull: >-
+  Added WaitForPrePromotionAnalysisRun() between the Sleep(5s) and
+  WaitForPrePromotionAnalysisRunPhase("Running"). The phase wait looks the
+  AnalysisRun up once and fails when it does not exist yet, and at parallelism
+  16 the controller had not created it after the five seconds. The test now
+  allows the run up to the usual wait timeout to appear, where it used to
+  allow five seconds. Everything it asserts afterwards is unchanged.

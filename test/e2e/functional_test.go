@@ -229,6 +229,7 @@ spec:
 		WaitForRolloutStatus("Healthy").
 		UpdateSpec().
 		Sleep(5 * time.Second).
+		WaitForPrePromotionAnalysisRun().
 		WaitForPrePromotionAnalysisRunPhase("Running").
 		PromoteRolloutFull().
 		WaitForRolloutStatus("Healthy").
