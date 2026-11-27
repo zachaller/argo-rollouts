@@ -9,7 +9,6 @@ import (
 
 	a6 "github.com/argoproj/argo-rollouts/rollout/trafficrouting/apisix"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -20,22 +19,22 @@ const (
 	apisixStableService = "rollout-apisix-canary-stable"
 )
 
-type APISIXSuite struct {
-	fixtures.E2ESuite
+// apisixTest is the environment of one test, with the helpers APISIXSuite had.
+type apisixTest struct {
+	*fixtures.Test
 }
 
-func TestAPISIXSuite(t *testing.T) {
-	suite.Run(t, new(APISIXSuite))
-}
-
-func (a *APISIXSuite) SetupSuite() {
-	a.E2ESuite.SetupSuite()
+// newAPISIXTest sets up one test. It does what APISIXSuite.SetupSuite did once for the whole suite.
+func newAPISIXTest(t *testing.T) *apisixTest {
+	a := &apisixTest{fixtures.New(t)}
 	if !a.ApisixEnabled {
 		a.T().SkipNow()
 	}
+	return a
 }
 
-func (s *APISIXSuite) TestAPISIXCanaryStep() {
+func TestAPISIXCanaryStep(t *testing.T) {
+	s := newAPISIXTest(t)
 
 	s.Given().
 		RolloutObjects("@apisix/rollout-apisix-canary.yaml").
@@ -74,7 +73,8 @@ func (s *APISIXSuite) TestAPISIXCanaryStep() {
 		ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 }
 
-func (s *APISIXSuite) TestAPISIXCanarySetHeaderStep() {
+func TestAPISIXCanarySetHeaderStep(t *testing.T) {
+	s := newAPISIXTest(t)
 
 	s.Given().
 		RolloutObjects("@apisix/rollout-apisix-canary-set-header.yaml").
@@ -121,7 +121,7 @@ func (s *APISIXSuite) TestAPISIXCanarySetHeaderStep() {
 		ExpectRevisionPodCount("1", 1) // don't scale down old replicaset since it will be within scaleDownDelay
 }
 
-func (s *APISIXSuite) check(t *fixtures.Then, stableWeight int64, canaryWeight int64) {
+func (s *apisixTest) check(t *fixtures.Then, stableWeight int64, canaryWeight int64) {
 	ar := t.GetApisixRoute()
 	assert.NotEmpty(s.T(), ar)
 	apisixHttpRoutesObj, isFound, err := unstructured.NestedSlice(ar.Object, "spec", "http")
@@ -155,7 +155,7 @@ func (s *APISIXSuite) check(t *fixtures.Then, stableWeight int64, canaryWeight i
 	}
 }
 
-func (s *APISIXSuite) checkSetHeader(t *fixtures.Then, stableWeight int64, canaryWeight int64) {
+func (s *apisixTest) checkSetHeader(t *fixtures.Then, stableWeight int64, canaryWeight int64) {
 
 	ar := t.GetApisixSetHeaderRoute()
 	assert.NotEmpty(s.T(), ar)
