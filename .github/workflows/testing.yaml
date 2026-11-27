@@ -255,6 +255,11 @@ jobs:
           for image in nginx:1.19-alpine alpine:3.8 argoproj/rollouts-demo:blue argoproj/rollouts-demo:green argoproj/rollouts-demo:red argoproj/rollouts-demo:yellow; do
             sudo k3s crictl pull "$image" || echo "::warning::could not pre-pull $image"
           done
+      - name: Set up the step plugin
+        run: |
+          # Builds the e2e step plugin and applies the controller ConfigMap that
+          # points at it. The controller reads both when it starts.
+          make setup-e2e E2E_K8S_CONTEXT="$(kubectl config current-context)"
       - name: Start controller
         if: ${{ inputs.e2e_controller != 'off' }}
         run: |

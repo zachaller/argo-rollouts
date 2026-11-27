@@ -45,6 +45,7 @@ import (
 	"github.com/argoproj/argo-rollouts/rollout/trafficrouting/appmesh"
 	"github.com/argoproj/argo-rollouts/rollout/trafficrouting/istio"
 	"github.com/argoproj/argo-rollouts/utils/annotations"
+	"github.com/argoproj/argo-rollouts/utils/defaults"
 	istioutil "github.com/argoproj/argo-rollouts/utils/istio"
 	replicasetutil "github.com/argoproj/argo-rollouts/utils/replicaset"
 	unstructuredutil "github.com/argoproj/argo-rollouts/utils/unstructured"
@@ -752,8 +753,11 @@ func (c *Common) GetRolloutEventReasons() []string {
 	return reasons
 }
 
+// GetControllerConfig returns the controller's ConfigMap, or nil when there is
+// none. It is read from the namespace the controller reads it from, which is
+// not the namespace the test runs in.
 func (c *Common) GetControllerConfig() *corev1.ConfigMap {
-	configMap, err := c.kubeClient.CoreV1().ConfigMaps(c.namespace).Get(c.Context, "argo-rollouts-config", metav1.GetOptions{})
+	configMap, err := c.kubeClient.CoreV1().ConfigMaps(defaults.Namespace()).Get(c.Context, "argo-rollouts-config", metav1.GetOptions{})
 	if err != nil {
 		if k8errors.IsNotFound(err) {
 			return nil
