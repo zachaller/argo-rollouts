@@ -10,27 +10,26 @@ import (
 	"time"
 
 	"github.com/argoproj/argo-rollouts/test/fixtures"
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-type AppMeshSuite struct {
-	fixtures.E2ESuite
+// appMeshTest is the environment of one test, with the helpers AppMeshSuite had.
+type appMeshTest struct {
+	*fixtures.Test
 }
 
-func TestAppMeshSuite(t *testing.T) {
-	suite.Run(t, new(AppMeshSuite))
-}
-
-func (s *AppMeshSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newAppMeshTest sets up one test. It does what AppMeshSuite.SetupSuite did once for the whole suite.
+func newAppMeshTest(t *testing.T) *appMeshTest {
+	s := &appMeshTest{fixtures.New(t)}
 	if !s.AppMeshEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *AppMeshSuite) TestAppMeshCanaryRollout() {
+func TestAppMeshCanaryRollout(t *testing.T) {
+	s := newAppMeshTest(t)
 	s.Given().
 		RolloutObjects(`@appmesh/appmesh-canary-rollout.yaml`).
 		When().
@@ -60,7 +59,7 @@ func (s *AppMeshSuite) TestAppMeshCanaryRollout() {
 		WaitForRolloutStatus("Healthy")
 }
 
-func (s *AppMeshSuite) assertWeightedTargets(uVr *unstructured.Unstructured, canaryWeight int64) {
+func (s *appMeshTest) assertWeightedTargets(uVr *unstructured.Unstructured, canaryWeight int64) {
 	wtMap := s.getWeightedTargets(uVr)
 	for routeName, wt := range wtMap {
 		assert.Equal(s.T(), canaryWeight, wt.canaryWeight, fmt.Sprintf("Route %s has wrong weight for canary", routeName))
@@ -68,7 +67,7 @@ func (s *AppMeshSuite) assertWeightedTargets(uVr *unstructured.Unstructured, can
 	}
 }
 
-func (s *AppMeshSuite) getWeightedTargets(uVr *unstructured.Unstructured) map[string]weightedTargets {
+func (s *appMeshTest) getWeightedTargets(uVr *unstructured.Unstructured) map[string]weightedTargets {
 	result := make(map[string]weightedTargets)
 	routesI, _, _ := unstructured.NestedSlice(uVr.Object, "spec", "routes")
 	for _, rI := range routesI {
