@@ -1082,7 +1082,7 @@ spec:
 		UpdateSpec().
 		Then().
 		ExpectRollout("Paused=True", func(r *v1alpha1.Rollout) bool {
-			cmd := exec.Command("kubectl", "wait", "--for=condition=Paused", fmt.Sprintf("rollout/%s", r.Name))
+			cmd := exec.Command("kubectl", "wait", "-n", r.Namespace, "--for=condition=Paused", fmt.Sprintf("rollout/%s", r.Name))
 			out, err := cmd.CombinedOutput()
 			return err == nil && strings.Contains(string(out), fmt.Sprintf("rollout.argoproj.io/%s condition met", r.Name))
 		}).
@@ -1092,7 +1092,7 @@ spec:
 		PromoteRollout().
 		Then().
 		ExpectRollout("Paused=False", func(r *v1alpha1.Rollout) bool {
-			cmd := exec.Command("kubectl", "wait", "--for=condition=Paused=False", fmt.Sprintf("rollout/%s", r.Name))
+			cmd := exec.Command("kubectl", "wait", "-n", r.Namespace, "--for=condition=Paused=False", fmt.Sprintf("rollout/%s", r.Name))
 			out, err := cmd.CombinedOutput()
 			return err == nil && strings.Contains(string(out), fmt.Sprintf("rollout.argoproj.io/%s condition met", r.Name))
 		}).
@@ -1190,14 +1190,14 @@ spec:
 		UpdateSpec().
 		Then().
 		ExpectRollout("Healthy=False", func(r *v1alpha1.Rollout) bool {
-			cmd := exec.Command("kubectl", "wait", "--for=condition=Healthy=False", fmt.Sprintf("rollout/%s", r.Name))
+			cmd := exec.Command("kubectl", "wait", "-n", r.Namespace, "--for=condition=Healthy=False", fmt.Sprintf("rollout/%s", r.Name))
 			out, err := cmd.CombinedOutput()
 			return err == nil && strings.Contains(string(out), fmt.Sprintf("rollout.argoproj.io/%s condition met", r.Name))
 		}).
 		ExpectRolloutStatus("Progressing").
 		ExpectActiveRevision("1").
 		ExpectRollout("Healthy=True", func(r *v1alpha1.Rollout) bool {
-			cmd := exec.Command("kubectl", "wait", "--for=condition=Healthy=True", fmt.Sprintf("rollout/%s", r.Name))
+			cmd := exec.Command("kubectl", "wait", "-n", r.Namespace, "--for=condition=Healthy=True", fmt.Sprintf("rollout/%s", r.Name))
 			out, err := cmd.CombinedOutput()
 			return err == nil && strings.Contains(string(out), fmt.Sprintf("rollout.argoproj.io/%s condition met", r.Name))
 		}).

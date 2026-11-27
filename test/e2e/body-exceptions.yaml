@@ -19,3 +19,10 @@ TestRolloutWithMaxSurgeScalingDuringUpdate: >-
   counts exist only while no new pod is ready; with a working update that
   lasted a second or two, and the test failed in 14 of 60 runs at parallelism
   4, 8 and 16. The asserted counts are unchanged.
+TestKubectlWaitForPaused: >-
+  The two direct kubectl wait calls now pass -n with the rollout's namespace.
+  Without it kubectl looks in the kubeconfig's default namespace, and the test
+  now runs in a namespace of its own. The conditions waited for are unchanged.
+TestKubectlWaitForCompleted: >-
+  The two direct kubectl wait calls now pass -n with the rollout's namespace,
+  for the same reason. The conditions waited for are unchanged.
