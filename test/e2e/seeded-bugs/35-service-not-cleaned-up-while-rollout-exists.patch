@@ -1,0 +1,17 @@
+diff --git a/service/service.go b/service/service.go
+index a94abeee..3cf29142 100644
+--- a/service/service.go
++++ b/service/service.go
+@@ -182,10 +182,8 @@ func (c *Controller) syncService(ctx context.Context, key string) error {
+ 	if hasManagedBy {
+ 		rollout, err := c.argoprojclientset.ArgoprojV1alpha1().Rollouts(svc.Namespace).Get(ctx, rolloutName, metav1.GetOptions{})
+ 		if err == nil {
+-			if serviceutil.CheckRolloutForService(rollout, svc) {
+-				c.enqueueRollout(rollout)
+-				return nil
+-			}
++			c.enqueueRollout(rollout)
++			return nil
+ 		}
+ 	} else {
+ 		// Checks if a service without a managed-by but has a hash selector doesn't have any rollouts reference it. If

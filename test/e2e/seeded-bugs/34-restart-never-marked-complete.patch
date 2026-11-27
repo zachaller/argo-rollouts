@@ -1,0 +1,13 @@
+diff --git a/rollout/context.go b/rollout/context.go
+index 79582c63..f80d39e3 100644
+--- a/rollout/context.go
++++ b/rollout/context.go
+@@ -98,7 +98,7 @@ func (c *rolloutContext) reconcile() error {
+ }
+ 
+ func (c *rolloutContext) SetRestartedAt() {
+-	c.newStatus.RestartedAt = c.rollout.Spec.RestartAt
++	c.newStatus.RestartedAt = c.rollout.Status.RestartedAt
+ }
+ 
+ func (c *rolloutContext) SetCurrentExperiment(ex *v1alpha1.Experiment) {

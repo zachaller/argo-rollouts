@@ -1,0 +1,13 @@
+diff --git a/rollout/trafficrouting/apisix/apisix.go b/rollout/trafficrouting/apisix/apisix.go
+index df415913..8c7a9bec 100644
+--- a/rollout/trafficrouting/apisix/apisix.go
++++ b/rollout/trafficrouting/apisix/apisix.go
+@@ -123,7 +123,7 @@ func (r *Reconciler) processSetWeightRoutes(desiredWeight int32, apisixRoute *un
+ 		}
+ 
+ 		stableBackendName := rollout.Spec.Strategy.Canary.StableService
+-		err = setBackendWeight(stableBackendName, backends, int64(100-desiredWeight))
++		err = setBackendWeight(stableBackendName, backends, int64(100))
+ 		if err != nil {
+ 			return nil, err
+ 		}

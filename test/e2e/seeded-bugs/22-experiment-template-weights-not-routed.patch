@@ -1,0 +1,13 @@
+diff --git a/rollout/trafficrouting.go b/rollout/trafficrouting.go
+index cdf90950..b770c2ba 100644
+--- a/rollout/trafficrouting.go
++++ b/rollout/trafficrouting.go
+@@ -450,7 +450,7 @@ func (c *rolloutContext) calculateWeightDestinationsFromExperiment() []v1alpha1.
+ 			return nil
+ 		}
+ 		for _, templateStatus := range c.currentEx.Status.TemplateStatuses {
+-			templateWeight := getTemplateWeight(templateStatus.Name)
++			templateWeight := getTemplateWeight(templateStatus.ServiceName)
+ 			if templateWeight != nil {
+ 				weightDestinations = append(weightDestinations, v1alpha1.WeightDestination{
+ 					ServiceName:     templateStatus.ServiceName,

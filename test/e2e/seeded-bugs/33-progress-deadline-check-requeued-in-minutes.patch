@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..b683e3f1 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -1107,7 +1107,7 @@ func (c *rolloutContext) requeueStuckRollout(newStatus v1alpha1.RolloutStatus) t
+ 	//
+ 	// lastUpdated + progressDeadlineSeconds - now => 00:00:00 + 00:10:00 - 00:03:00 => 07:00
+ 	progressDeadlineSeconds := defaults.GetProgressDeadlineSecondsOrDefault(c.rollout)
+-	after := currentCond.LastUpdateTime.Time.Add(time.Duration(progressDeadlineSeconds) * time.Second).Sub(nowFn())
++	after := currentCond.LastUpdateTime.Time.Add(time.Duration(progressDeadlineSeconds) * time.Minute).Sub(nowFn())
+ 	// If the remaining time is less than a second, then requeue the deployment immediately.
+ 	// Make it ratelimited so we stay on the safe side, eventually the Deployment should
+ 	// transition either to a Complete or to a TimedOut condition.

@@ -1,0 +1,13 @@
+diff --git a/rollout/trafficrouting.go b/rollout/trafficrouting.go
+index cdf90950..a5434016 100644
+--- a/rollout/trafficrouting.go
++++ b/rollout/trafficrouting.go
+@@ -276,7 +276,7 @@ func (c *rolloutContext) reconcileTrafficRouting() error {
+ 		// We need to check for revision > 1 because when we first install the rollout we run step 0 this prevents that.
+ 		// There is a bigger fix needed for the reasons on why we run step 0 on rollout install, that needs to be explored.
+ 		revision, revisionFound := annotations.GetRevisionAnnotation(c.rollout)
+-		if currentStep != nil && (revisionFound && revision > 1) {
++		if currentStep != nil && (revisionFound && revision > 2) {
+ 			if currentStep.SetHeaderRoute != nil {
+ 				if err = reconciler.SetHeaderRoute(currentStep.SetHeaderRoute); err != nil {
+ 					return err

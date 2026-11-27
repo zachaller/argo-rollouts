@@ -1,0 +1,13 @@
+diff --git a/rollout/scale_utils.go b/rollout/scale_utils.go
+index 6759d1a5..79e3f609 100644
+--- a/rollout/scale_utils.go
++++ b/rollout/scale_utils.go
+@@ -21,7 +21,7 @@ func (c *rolloutContext) scaleDeployment(targetScale *int32) error {
+ 	} else {
+ 		newReplicasCount = *targetScale
+ 	}
+-	if newReplicasCount == *deployment.Spec.Replicas {
++	if newReplicasCount <= *deployment.Spec.Replicas {
+ 		return nil
+ 	}
+ 	c.log.Infof("Scaling deployment %s to %d replicas", deploymentName, newReplicasCount)

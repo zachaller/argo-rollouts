@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..d78226f2 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -469,7 +469,7 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
+ 	}
+ 
+ 	isPromoted := newStatus.StableRS == newStatus.CurrentPodHash
+-	hasReachedDesiredReplicas := c.newRS != nil && c.newRS.Status.AvailableReplicas >= defaults.GetReplicasOrDefault(c.rollout.Spec.Replicas)
++	hasReachedDesiredReplicas := c.newRS != nil && c.newRS.Status.AvailableReplicas > defaults.GetReplicasOrDefault(c.rollout.Spec.Replicas)
+ 	isCompleted := isPromoted && hasReachedDesiredReplicas
+ 	isAborted := c.pauseContext.IsAborted()
+ 

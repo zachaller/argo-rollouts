@@ -1,0 +1,13 @@
+diff --git a/utils/conditions/conditions.go b/utils/conditions/conditions.go
+index 57d8c0f0..82faa5a7 100644
+--- a/utils/conditions/conditions.go
++++ b/utils/conditions/conditions.go
+@@ -217,7 +217,7 @@ func GetRolloutCondition(status v1alpha1.RolloutStatus, condType v1alpha1.Rollou
+ // by returning false. Returns true if the condition was updated
+ func SetRolloutCondition(status *v1alpha1.RolloutStatus, condition v1alpha1.RolloutCondition) bool {
+ 	currentCond := GetRolloutCondition(*status, condition.Type)
+-	if currentCond != nil && currentCond.Status == condition.Status && currentCond.Reason == condition.Reason {
++	if currentCond != nil && currentCond.Reason == condition.Reason {
+ 		return false
+ 	}
+ 	// Do not update lastTransitionTime if the status of the condition doesn't change.

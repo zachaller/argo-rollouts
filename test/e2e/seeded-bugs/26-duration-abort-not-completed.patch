@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..d25842d4 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -528,7 +528,7 @@ func (c *rolloutContext) calculateStatusDuration(newStatus *v1alpha1.RolloutStat
+ 			// We can return immediately because we know that we are not starting a new rollout
+ 			// if we just reached desired replicas.
+ 			return durationStatus
+-		} else if isAborted && !durationStatus.IsCompleted() {
++		} else if isAborted && durationStatus.IsCompleted() {
+ 			// Rollout was just aborted. The IsCompleted check avoids recording the
+ 			// completion twice when the rollout was already completed as superseded
+ 			// in this same reconciliation.

@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..b1254f9d 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -763,7 +763,7 @@ func (c *rolloutContext) patchCondition(r *v1alpha1.Rollout, newStatus *v1alpha1
+ 	// all other status fields that need to be consistent with the conditions.
+ 	// This should most likely be replaced by persistRolloutStatus to avoid discrepancies.
+ 	newStatus.ObservedGeneration = strconv.Itoa(int(c.rollout.Generation))
+-	newStatus.Phase, newStatus.Message = rolloututil.CalculateRolloutPhase(r.Spec, *newStatus)
++	newStatus.Phase, newStatus.Message = rolloututil.CalculateRolloutPhase(r.Spec, r.Status)
+ 	newStatus.Duration = c.calculateStatusDuration(newStatus)
+ 
+ 	logCtx := logutil.WithVersionFields(c.log, r)

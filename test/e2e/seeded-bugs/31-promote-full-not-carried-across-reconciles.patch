@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..4d70bd75 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -420,7 +420,7 @@ func (c *rolloutContext) calculateBaseStatus() v1alpha1.RolloutStatus {
+ 	newStatus.CollisionCount = c.rollout.Status.CollisionCount
+ 	newStatus.Conditions = prevStatus.Conditions
+ 	newStatus.RestartedAt = c.newStatus.RestartedAt
+-	newStatus.PromoteFull = (newStatus.CurrentPodHash != newStatus.StableRS) && prevStatus.PromoteFull
++	newStatus.PromoteFull = (newStatus.CurrentPodHash != newStatus.StableRS) && newStatus.PromoteFull
+ 
+ 	return newStatus
+ }

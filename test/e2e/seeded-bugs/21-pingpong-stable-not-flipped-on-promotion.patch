@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..beed52ee 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -1337,7 +1337,7 @@ func (c *rolloutContext) promoteStable(newStatus *v1alpha1.RolloutStatus, reason
+ 		// only emit this event when we switched stable
+ 		if trafficrouting.IsPingPongEnabled(c.rollout) {
+ 			if trafficrouting.IsStablePing(c.rollout) {
+-				newStatus.Canary.StablePingPong = v1alpha1.PPPong
++				newStatus.Canary.StablePingPong = v1alpha1.PPPing
+ 			} else {
+ 				newStatus.Canary.StablePingPong = v1alpha1.PPPing
+ 			}
