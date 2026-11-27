@@ -7,29 +7,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type SMISuite struct {
-	fixtures.E2ESuite
-}
-
-func TestSMISuite(t *testing.T) {
-	suite.Run(t, new(SMISuite))
-}
-
-func (s *SMISuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newSMITest sets up one test. It does what SMISuite.SetupSuite did once for the whole suite.
+func newSMITest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !s.SMIEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *SMISuite) TestSMIExperimentStep() {
+func TestSMIExperimentStep(t *testing.T) {
+	s := newSMITest(t)
 	s.Given().
 		RolloutObjects("@smi/rollout-smi-experiment.yaml").
 		When().
