@@ -718,6 +718,11 @@ func TestBlueGreenDuration_SupersededRollback(t *testing.T) {
 		When().
 		ApplyManifests().
 		WaitForRolloutStatus("Healthy").
+		// metav1.Time truncates to whole seconds; isRollback compares ReplicaSet
+		// CreationTimestamps, so give revisions 1 and 2 a full second of
+		// separation. Otherwise the update back to revision 1 is not seen as a
+		// rollback and the rollout pauses.
+		Sleep(1 * time.Second).
 		// Complete a rollout to revision 2
 		UpdateVersion("2").
 		WaitForRolloutStatus("Paused").

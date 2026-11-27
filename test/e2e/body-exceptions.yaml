@@ -37,3 +37,12 @@ TestIstioSubsetSplitExperimentStep: >-
   s.TearDownSuite() at the end of the test became s.DeleteResources().
 TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort: >-
   s.TearDownSuite() at the end of the test became s.DeleteResources().
+TestBlueGreenDuration_SupersededRollback: >-
+  Added Sleep(1s) between creating revision 1 and updating to revision 2, as
+  the three RollbackOutsideWindow and RollbackInsideWindow tests already have.
+  The controller tells a rollback by comparing ReplicaSet creation timestamps,
+  which have one-second resolution. When revisions 1 and 2 were created in the
+  same second the update back to revision 1 was not fast-tracked, and the test
+  timed out waiting for Healthy: 7 of 20 runs of the unconverted serial suite.
+  The assertions are unchanged. See
+  test/migration-reports/fix-plans/rollback-not-detected-within-one-second.md.
