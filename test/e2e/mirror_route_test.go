@@ -8,28 +8,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type MirrorRouteSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestMirrorRouteSuite(t *testing.T) {
-	suite.Run(t, new(MirrorRouteSuite))
-}
-
-func (s *MirrorRouteSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newMirrorRouteTest sets up one test. It does what MirrorRouteSuite.SetupSuite did once for the whole suite.
+func newMirrorRouteTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !s.IstioEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *MirrorRouteSuite) TestIstioHostMirrorRoute() {
+func TestIstioHostMirrorRoute(t *testing.T) {
+	s := newMirrorRouteTest(t)
 	s.Given().
 		RolloutObjects("@mirror-route/istio-mirror-host.yaml").
 		When().
@@ -91,7 +85,7 @@ func (s *MirrorRouteSuite) TestIstioHostMirrorRoute() {
 		})
 }
 
-func assertMirrorDestination(s *MirrorRouteSuite, route istio.VirtualServiceHTTPRoute, service string, weight int64) {
+func assertMirrorDestination(s *fixtures.Test, route istio.VirtualServiceHTTPRoute, service string, weight int64) {
 	for _, destination := range route.Route {
 		if destination.Destination.Host == service {
 			assert.Equal(s.T(), weight, destination.Weight)
