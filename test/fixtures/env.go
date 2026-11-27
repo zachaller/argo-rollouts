@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 	"unicode"
@@ -85,6 +84,7 @@ func New(t *testing.T, opts ...Option) *Test {
 		Common: Common{
 			Context:        t.Context(),
 			t:              t,
+			out:            t.Output(),
 			kubernetesHost: sh.kubernetesHost,
 			kubeClient:     sh.kubeClient,
 			dynamicClient:  sh.dynamicClient,
@@ -157,17 +157,13 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 	return ns.Name
 }
 
-// dumpMu keeps the dumps of two failing tests from interleaving.
-var dumpMu sync.Mutex
-
 // dumpOnFailure prints the rollouts and experiments of a failed test, as
-// E2ESuite.AfterTest does.
+// E2ESuite.AfterTest does. It writes to the test's own output, so the dump
+// stays with the test that failed when tests run in parallel.
 func (e *Test) dumpOnFailure() {
 	if !e.t.Failed() {
 		return
 	}
-	dumpMu.Lock()
-	defer dumpMu.Unlock()
 
 	// The test's own context is cancelled by the time cleanups run.
 	ctx, cancel := context.WithTimeout(context.Background(), E2EWaitTimeout)
@@ -175,7 +171,7 @@ func (e *Test) dumpOnFailure() {
 	c := e.Common
 	c.Context = ctx
 
-	out := log.StandardLogger().Out
+	out := c.out
 	fmt.Fprintf(out, "\n=== FAILED %s (namespace %s)\n", e.t.Name(), e.namespace)
 	roList, err := c.rolloutClient.ArgoprojV1alpha1().Rollouts(c.namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {

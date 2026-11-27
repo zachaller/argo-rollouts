@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -67,6 +68,19 @@ type Common struct {
 	// events is shared by pointer: Common is copied by value for every Given(),
 	// and the watcher goroutine appends while the test goroutine reads.
 	events *eventLog
+
+	// out is where the Print* helpers write. Nil means the process-wide
+	// outputs. A test that owns its output sets it, so that what is printed
+	// about a failed test stays with that test when tests run in parallel.
+	out io.Writer
+}
+
+// printOut returns the writer the Print* helpers should use.
+func (c *Common) printOut(fallback io.Writer) io.Writer {
+	if c.out != nil {
+		return c.out
+	}
+	return fallback
 }
 
 // eventLog collects the events seen by StartEventWatch.
@@ -117,7 +131,8 @@ func (c *Common) GetRollout() *rov1.Rollout {
 }
 
 func (c *Common) PrintRollout(name string) {
-	streams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+	// ErrOut stays os.Stderr: NewArgoRolloutsOptions points klog's process-wide output at it.
+	streams := genericclioptions.IOStreams{In: os.Stdin, Out: c.printOut(os.Stdout), ErrOut: os.Stderr}
 	o := options.NewArgoRolloutsOptions(streams)
 	getOptions := get.GetOptions{
 		ArgoRolloutsOptions: *o,
@@ -137,11 +152,12 @@ func (c *Common) PrintRolloutYAML(ro *rov1.Rollout) {
 	ro.ManagedFields = nil
 	yamlBytes, err := yaml.Marshal(ro)
 	c.CheckError(err)
-	fmt.Fprintf(logrus.StandardLogger().Out, "\n---\n%s\n", string(yamlBytes))
+	fmt.Fprintf(c.printOut(logrus.StandardLogger().Out), "\n---\n%s\n", string(yamlBytes))
 }
 
 func (c *Common) PrintExperiment(name string) {
-	streams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+	// ErrOut stays os.Stderr: NewArgoRolloutsOptions points klog's process-wide output at it.
+	streams := genericclioptions.IOStreams{In: os.Stdin, Out: c.printOut(os.Stdout), ErrOut: os.Stderr}
 	o := options.NewArgoRolloutsOptions(streams)
 	getOptions := get.GetOptions{
 		ArgoRolloutsOptions: *o,
@@ -161,7 +177,7 @@ func (c *Common) PrintExperimentYAML(ex *rov1.Experiment) {
 	ex.ManagedFields = nil
 	yamlBytes, err := yaml.Marshal(ex)
 	c.CheckError(err)
-	fmt.Fprintf(logrus.StandardLogger().Out, "\n---\n%s\n", string(yamlBytes))
+	fmt.Fprintf(c.printOut(logrus.StandardLogger().Out), "\n---\n%s\n", string(yamlBytes))
 }
 
 func (c *Common) GetReplicaSetByRevision(revision string) *appsv1.ReplicaSet {
@@ -776,5 +792,5 @@ func (c *Common) PrintObjectEvents(opts metav1.ListOptions) {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", timestamp, event.Type, event.Reason, event.Message)
 	}
 	w.Flush()
-	fmt.Fprintln(logrus.StandardLogger().Out, buf.String())
+	fmt.Fprintln(c.printOut(logrus.StandardLogger().Out), buf.String())
 }
