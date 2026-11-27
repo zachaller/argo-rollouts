@@ -7,26 +7,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type BlueGreenSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestBlueGreenSuite(t *testing.T) {
-	suite.Run(t, new(BlueGreenSuite))
-}
-
-func (s *BlueGreenSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newBlueGreenTest sets up one test. It does what BlueGreenSuite.SetupSuite did once for the whole suite.
+func newBlueGreenTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	return s
 }
 
 // TestEphemeralMetadata tests the ephemeral metadata feature
-func (s *BlueGreenSuite) TestEphemeralMetadata() {
+func TestEphemeralMetadata(t *testing.T) {
+	s := newBlueGreenTest(t)
 	podsHaveActiveMetadata := func(pods *corev1.PodList) bool {
 		for _, pod := range pods.Items {
 			if pod.Labels["role"] != "active" {
@@ -163,7 +157,8 @@ spec:
 		ExpectRevisionPods("revision 2 has active metadata2", "2", podsHaveActiveMetadata2)
 }
 
-func (s *BlueGreenSuite) TestBlueGreenProgressDeadlineExceededWithPause() {
+func TestBlueGreenProgressDeadlineExceededWithPause(t *testing.T) {
+	s := newBlueGreenTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -224,7 +219,8 @@ spec:
 		ExpectActiveRevision("2")
 }
 
-func (s *BlueGreenSuite) TestBlueGreenProgressDeadlineExceededWithoutPause() {
+func TestBlueGreenProgressDeadlineExceededWithoutPause(t *testing.T) {
+	s := newBlueGreenTest(t)
 	s.Given().
 		RolloutObjects(`
 kind: Service
@@ -284,7 +280,8 @@ spec:
 }
 
 // TestBlueGreenPreviewReplicaCount verifies the previewReplicaCount feature
-func (s *BlueGreenSuite) TestBlueGreenPreviewReplicaCount() {
+func TestBlueGreenPreviewReplicaCount(t *testing.T) {
+	s := newBlueGreenTest(t)
 	s.Given().
 		RolloutObjects(newService("bluegreen-preview-replicas-active", "bluegreen-preview-replicas")).
 		RolloutObjects(newService("bluegreen-preview-replicas-preview", "bluegreen-preview-replicas")).
