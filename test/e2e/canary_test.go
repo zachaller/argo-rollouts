@@ -11,7 +11,6 @@ import (
 	"github.com/argoproj/argo-rollouts/utils/conditions"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
@@ -19,20 +18,15 @@ import (
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type CanarySuite struct {
-	fixtures.E2ESuite
-}
-
-func TestCanarySuite(t *testing.T) {
-	suite.Run(t, new(CanarySuite))
-}
-
-func (s *CanarySuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newCanaryTest sets up one test. It does what CanarySuite.SetupSuite did once for the whole suite.
+func newCanaryTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	s.ApplyManifests("@functional/analysistemplate-sleep-job.yaml")
+	return s
 }
 
-func (s *CanarySuite) TestCanarySetCanaryScale() {
+func TestCanarySetCanaryScale(t *testing.T) {
+	s := newCanaryTest(t)
 	canarySteps := `
 - pause: {}
 - setCanaryScale:
@@ -90,7 +84,8 @@ func (s *CanarySuite) TestCanarySetCanaryScale() {
 }
 
 // TestRolloutScalingWhenPaused verifies behavior when scaling a rollout up/down when paused
-func (s *CanarySuite) TestRolloutScalingWhenPaused() {
+func TestRolloutScalingWhenPaused(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`@functional/rollout-basic.yaml`).
 		SetSteps(`
@@ -116,7 +111,8 @@ func (s *CanarySuite) TestRolloutScalingWhenPaused() {
 }
 
 // TestRolloutWithMaxSurgeScalingDuringUpdate verifies behavior when scaling a rollout up/down in middle of update and with maxSurge 100%
-func (s *CanarySuite) TestRolloutWithMaxSurgeScalingDuringUpdate() {
+func TestRolloutWithMaxSurgeScalingDuringUpdate(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -170,7 +166,8 @@ spec:
 }
 
 // TestRolloutScalingDuringUpdate verifies behavior when scaling a rollout up/down in middle of update
-func (s *CanarySuite) TestRolloutScalingDuringUpdate() {
+func TestRolloutScalingDuringUpdate(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -224,7 +221,8 @@ spec:
 }
 
 // TestReduceWeightAndHonorMaxUnavailable verifies we honor maxUnavailable when decreasing weight or aborting
-func (s *CanarySuite) TestReduceWeightAndHonorMaxUnavailable() {
+func TestReduceWeightAndHonorMaxUnavailable(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`
 apiVersion: argoproj.io/v1alpha1
@@ -295,7 +293,8 @@ spec:
 }
 
 // TestEphemeralMetadata tests the ephemeral metadata feature
-func (s *CanarySuite) TestEphemeralMetadata() {
+func TestCanaryEphemeralMetadata(t *testing.T) {
+	s := newCanaryTest(t)
 	podsHaveStableMetadata := func(pods *corev1.PodList) bool {
 		for _, pod := range pods.Items {
 			log.Printf("+%v", pod.Labels)
@@ -417,7 +416,8 @@ spec:
 		ExpectRevisionPods("revision 2 has stable metadata2", "2", podsHaveStableMetadata2)
 }
 
-func (s *CanarySuite) TestCanaryProgressDeadlineExceededWithPause() {
+func TestCanaryProgressDeadlineExceededWithPause(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1
@@ -470,7 +470,8 @@ spec:
 }
 
 // TestCanaryScaleDownDelayWithProgressDeadline verifies that a rollout with a pending scale down doesn't trigger a ProgressDeadlineExceeded event and renders the rollout degraded
-func (s *CanarySuite) TestCanaryScaleDownDelayWithProgressDeadline() {
+func TestCanaryScaleDownDelayWithProgressDeadline(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`@functional/canary-scaledowndelay.yaml`).
 		When().
@@ -496,7 +497,8 @@ spec:
 
 // TestCanaryScaleDownDelay verifies canary uses a scaleDownDelay when traffic routing is used,
 // and verifies the annotation is properly managed
-func (s *CanarySuite) TestCanaryScaleDownDelay() {
+func TestCanaryScaleDownDelay(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`@functional/canary-scaledowndelay.yaml`).
 		When().
@@ -560,7 +562,8 @@ spec:
 }
 
 // TestCanaryScaleDownOnAbort verifies scaledownOnAbort feature for canary
-func (s *CanarySuite) TestCanaryScaleDownOnAbort() {
+func TestCanaryScaleDownOnAbort(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`@functional/canary-scaledownonabort.yaml`).
 		When().
@@ -577,7 +580,8 @@ func (s *CanarySuite) TestCanaryScaleDownOnAbort() {
 		ExpectRevisionPodCount("2", 0)
 }
 
-func (s *CanarySuite) TestCanaryScaleDownOnAbortNoTrafficRouting() {
+func TestCanaryScaleDownOnAbortNoTrafficRouting(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`@functional/canary-scaledownonabortnotrafficrouting.yaml`).
 		When().
@@ -594,7 +598,8 @@ func (s *CanarySuite) TestCanaryScaleDownOnAbortNoTrafficRouting() {
 		ExpectRevisionPodCount("2", 0)
 }
 
-func (s *CanarySuite) TestCanaryWithPausedRollout() {
+func TestCanaryWithPausedRollout(t *testing.T) {
+	s := newCanaryTest(t)
 	(s.Given().
 		HealthyRollout(`@functional/rollout-canary-with-pause.yaml`).
 		When().
@@ -612,7 +617,8 @@ func (s *CanarySuite) TestCanaryWithPausedRollout() {
 		ExpectRevisionPodCount("3", 1))
 }
 
-func (s *CanarySuite) TestCanaryUnScaleDownOnAbort() {
+func TestCanaryUnScaleDownOnAbort(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		HealthyRollout(`@functional/canary-unscaledownonabort.yaml`).
 		When().
@@ -626,7 +632,8 @@ func (s *CanarySuite) TestCanaryUnScaleDownOnAbort() {
 		ExpectRevisionScaleDown("2", false)
 }
 
-func (s *CanarySuite) TestCanaryDynamicStableScale() {
+func TestCanaryDynamicStableScale(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`@functional/canary-dynamic-stable-scale.yaml`).
 		When().
@@ -677,7 +684,8 @@ func (s *CanarySuite) TestCanaryDynamicStableScale() {
 // (2) stays safe: the canary keeps its pods and is not annotated with a scale-down deadline
 // until traffic weight has fully shifted back to stable (weight 0), so the deadline never
 // scales down a canary that is still serving traffic.
-func (s *CanarySuite) TestCanaryDynamicStableScaleAbortScaleDownDelay() {
+func TestCanaryDynamicStableScaleAbortScaleDownDelay(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`@functional/canary-dynamic-stable-scale-abort-delay.yaml`).
 		When().
@@ -738,7 +746,8 @@ func (s *CanarySuite) TestCanaryDynamicStableScaleAbortScaleDownDelay() {
 // TestCanaryDynamicStableScaleRollbackToStable verifies when we rollback to stable with
 // DynamicStableScale enabled, we do so in a safe manner without shifting traffic back to stable
 // before it can handle it
-func (s *CanarySuite) TestCanaryDynamicStableScaleRollbackToStable() {
+func TestCanaryDynamicStableScaleRollbackToStable(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`@functional/canary-dynamic-stable-scale.yaml`).
 		When().
@@ -795,7 +804,8 @@ func (s *CanarySuite) TestCanaryDynamicStableScaleRollbackToStable() {
 }
 
 // TestCanaryWithSpecPause This tests that we do not go into a update loop where we flap back updating condition patches.
-func (s *CanarySuite) TestCanaryWithSpecPause() {
+func TestCanaryWithSpecPause(t *testing.T) {
+	s := newCanaryTest(t)
 	s.Given().
 		RolloutObjects(`
 apiVersion: argoproj.io/v1alpha1

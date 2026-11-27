@@ -4,6 +4,6 @@
 TestExperimentSuite/TestRolloutWithExperimentAndAnalysis: >-
   Removed s.T().Parallel(). Testify suites share one T between methods, so a
   parallel suite method resumes with another test's T once -parallel is above 1.
-TestCanarySuite/TestCanarySetCanaryScale: >-
+TestCanarySetCanaryScale: >-
   Removed s.T().Parallel(), for the same reason. The harness constructor marks
   the converted test parallel, and Go panics if Parallel is called twice.

@@ -1,4 +1,5 @@
 # Baseline test name -> new test name, for conversions that the default rule
 # ("TestXSuite/TestY" becomes "TestY") does not cover.
 # Read by `go run ./hack/testmigration`.
-{}
+# TestEphemeralMetadata exists in both the Canary and the BlueGreen suite.
+TestCanarySuite/TestEphemeralMetadata: TestCanaryEphemeralMetadata
