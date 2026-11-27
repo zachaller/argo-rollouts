@@ -123,14 +123,22 @@ back-off, as for every other worker.
 
 ## Tests
 
-- **Worth adding with the fix:** a unit test that runs `processNextWorkItem`
-  with a sync handler that returns an error and a nil metrics server, and
-  expects no panic and the key back on the queue.
+- **Already written, disabled:**
+  `TestProcessNextWorkItemSyncErrorWithoutMetricsServer` in
+  `utils/controller/controller_test.go`. It runs the worker loop with a sync
+  handler that returns a conflict error and no metrics server, and expects no
+  panic and the key requeued. It is skipped by default. Enabled, it fails today
+  with the same nil-pointer panic as the run above:
+
+  ```
+  RUN_KNOWN_FAILURES=true go test ./utils/controller/ -run TestProcessNextWorkItemSyncErrorWithoutMetricsServer
+  ```
+
 - An e2e test cannot hit this on purpose; it needs an update conflict.
 
 ## How to validate the fix
 
-1. Apply the change and add the unit test.
+1. Apply the change and remove the skip from the unit test.
 2. Run the converted e2e tests repeatedly at parallelism 8 and 16 with reruns
    off (manual dispatch of the `Testing` workflow: `e2e_parallel: 8,16`,
    `e2e_jobs: 4`, `e2e_repeat: 5`, `e2e_rerun_fails: 0`). Expect no

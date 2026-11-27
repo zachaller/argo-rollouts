@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -113,6 +114,27 @@ func TestProcessNextWorkItemSyncHandlerReturnError(t *testing.T) {
 		return fmt.Errorf("error message")
 	}
 	assert.True(t, processNextWorkItem(context.Background(), q, log.RolloutKey, syncHandler, metricServer))
+}
+
+// TestProcessNextWorkItemSyncErrorWithoutMetricsServer shows a known defect: a
+// worker that runs without a metrics server, as the Istio DestinationRule
+// worker does, panics on any sync error and takes the controller down with it.
+// It is skipped so that it does not fail CI. See
+// test/migration-reports/fix-plans/istio-destinationrule-sync-error-crashes-controller.md.
+// Run it with RUN_KNOWN_FAILURES=true.
+func TestProcessNextWorkItemSyncErrorWithoutMetricsServer(t *testing.T) {
+	if os.Getenv("RUN_KNOWN_FAILURES") != "true" {
+		t.Skip("known defect: a sync error panics when the worker has no metrics server")
+	}
+	q := workqueue.NewNamedRateLimitingQueue(queue.DefaultArgoRolloutsRateLimiter(), "DestinationRules")
+	q.Add("default/destination-rule")
+	syncHandler := func(ctx context.Context, key string) error {
+		return fmt.Errorf("the object has been modified; please apply your changes to the latest version and try again")
+	}
+	assert.NotPanics(t, func() {
+		assert.True(t, processNextWorkItem(context.Background(), q, "destinationrule", syncHandler, nil))
+	})
+	assert.Equal(t, 1, q.NumRequeues("default/destination-rule"), "the key is retried")
 }
 
 func TestEnqueue(t *testing.T) {
