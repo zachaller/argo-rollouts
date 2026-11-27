@@ -725,3 +725,124 @@ func TestLowerCamel(t *testing.T) {
 	assert.Equal(t, "smiIngress", lowerCamel("SMIIngress"))
 	assert.Equal(t, "canary", lowerCamel("Canary"))
 }
+
+func TestConvertSuiteAcrossFiles(t *testing.T) {
+	// One of the suite's tests, and a helper function that takes the suite,
+	// live in a second file.
+	other := `package e2e
+
+import "github.com/argoproj/argo-rollouts/test/fixtures"
+
+func (s *CanarySuite) TestElsewhere() {
+	s.T().Log("elsewhere")
+	assertSomething(s)
+}
+
+func assertSomething(s *CanarySuite) {}
+
+func (s *OtherSuite) TestUntouched() {}
+`
+	files := []sourceFile{
+		{Path: "test/e2e/canary_test.go", Src: []byte(suiteSrc)},
+		{Path: "test/e2e/other_test.go", Src: []byte(other)},
+		{Path: "test/e2e/unrelated_test.go", Src: []byte("package e2e\n\nfunc TestPlainAlready(t *testing.T) {}\n")},
+	}
+	out, err := convertSuiteFiles(files, "CanarySuite", nil)
+	require.NoError(t, err)
+
+	assert.Len(t, out, 2, "the unrelated file is not rewritten")
+	assert.Contains(t, string(out["test/e2e/canary_test.go"]), "func newCanaryTest(t *testing.T) *fixtures.Test {")
+	assert.Equal(t, `package e2e
+
+import "github.com/argoproj/argo-rollouts/test/fixtures"
+
+func TestElsewhere(t *testing.T) {
+	s := newCanaryTest(t)
+	s.T().Log("elsewhere")
+	assertSomething(s)
+}
+
+func assertSomething(s *fixtures.Test) {}
+
+func (s *OtherSuite) TestUntouched() {}
+`, string(out["test/e2e/other_test.go"]))
+}
+
+func TestConvertSuiteKeepsFormattingOfUntouchedCode(t *testing.T) {
+	// The file is not gofmt-clean: the body has an operator spacing and an
+	// indentation that gofmt would change. The conversion must leave both.
+	src := `package e2e
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+type DurationSuite struct {
+	fixtures.E2ESuite
+}
+
+func (s *DurationSuite) TestWait() {
+	s.Given().
+		  Sleep(1 * time.Second).
+		Then()
+}
+
+func TestDurationSuite(t *testing.T) {
+	suite.Run(t, new(DurationSuite))
+}
+`
+	out, err := convertSuite("test/e2e/duration_test.go", []byte(src), "DurationSuite", nil)
+	require.NoError(t, err)
+	assert.Equal(t, `package e2e
+
+import (
+	"testing"
+	"time"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+// newDurationTest sets up one test.
+func newDurationTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	return s
+}
+
+func TestWait(t *testing.T) {
+	s := newDurationTest(t)
+	s.Given().
+		  Sleep(1 * time.Second).
+		Then()
+}
+`, string(out))
+}
+
+func TestDropImport(t *testing.T) {
+	const drop = "github.com/stretchr/testify/suite"
+	cases := map[string][2]string{
+		"alone in its group": {
+			"import (\n\t\"testing\"\n\n\t\"" + drop + "\"\n\n\t\"example.com/x\"\n)\n",
+			"import (\n\t\"testing\"\n\n\t\"example.com/x\"\n)\n",
+		},
+		"last in the block": {
+			"import (\n\t\"testing\"\n\n\t\"" + drop + "\"\n)\n",
+			"import (\n\t\"testing\"\n)\n",
+		},
+		"inside a group": {
+			"import (\n\t\"example.com/a\"\n\t\"" + drop + "\"\n\t\"example.com/z\"\n)\n",
+			"import (\n\t\"example.com/a\"\n\t\"example.com/z\"\n)\n",
+		},
+		"not imported": {
+			"import (\n\t\"testing\"\n)\n",
+			"import (\n\t\"testing\"\n)\n",
+		},
+	}
+	for name, c := range cases {
+		assert.Equal(t, c[1], dropImport(c[0], drop), name)
+	}
+}

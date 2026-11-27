@@ -17,11 +17,22 @@ go run ./hack/testmigration <command> -base <baseline-ref> [flags]
 | `bodydiff` | a test body differs from the baseline and is not listed in the exceptions file |
 | `junitdiff` | a test fails, is newly skipped, skips without being on the expected-skip list, or has no result |
 | `killmatrix` | a test that failed under a seeded bug in the baseline passes under the same bug now |
-| `convert` | the suite cannot be converted mechanically (it has helper methods or suite hooks other than `SetupSuite`) |
+| `convert` | the suite cannot be converted mechanically (it has a suite hook other than `SetupSuite`, or its `SetupSuite` does not start with the embedded call) |
 
-`convert -file <test file> -suite <SuiteType>` rewrites one testify suite into
-plain test functions in place. It edits only the declarations, as text, and
-leaves every test body byte-for-byte as it was.
+`convert -suite <SuiteType>` rewrites one testify suite in `test/e2e` (or
+`-dir`) into plain test functions, in place, in every file that has a part of
+it:
+
+- each test method becomes a plain function that starts with the constructor
+  call;
+- the suite type becomes the constructor, with the rest of `SetupSuite` as its
+  body;
+- helper methods keep their receiver name and move to a small wrapper type
+  around `*fixtures.Test`; helper functions that took the suite take that type.
+
+It edits only those declarations, as text. It does not run gofmt over the file,
+so every test body stays byte-for-byte as it was, also in a file that was not
+gofmt-clean to begin with.
 
 ## How tests are matched
 

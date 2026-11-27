@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -352,28 +353,47 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 
 func cmdConvert(w io.Writer, args []string) (bool, error) {
 	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	file := fs.String("file", "", "test file to rewrite in place (required)")
+	dir := fs.String("dir", "test/e2e", "package directory whose test files are rewritten in place")
 	suiteType := fs.String("suite", "", "suite type to convert, for example CanarySuite (required)")
 	renamesFile := fs.String("renames", "test/e2e/renames.yaml", "YAML map of baseline test name to new test name")
 	_ = fs.Parse(args)
-	if *file == "" || *suiteType == "" {
-		return false, fmt.Errorf("-file and -suite are required")
+	if *suiteType == "" {
+		return false, fmt.Errorf("-suite is required")
 	}
-	src, err := os.ReadFile(*file)
+	entries, err := os.ReadDir(*dir)
 	if err != nil {
 		return false, err
+	}
+	var files []sourceFile
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		path := filepath.ToSlash(filepath.Join(*dir, entry.Name()))
+		src, err := os.ReadFile(path)
+		if err != nil {
+			return false, err
+		}
+		files = append(files, sourceFile{Path: path, Src: src})
 	}
 	renames, err := loadStringMap(*renamesFile)
 	if err != nil {
 		return false, err
 	}
-	out, err := convertSuite(*file, src, *suiteType, renames)
+	changed, err := convertSuiteFiles(files, *suiteType, renames)
 	if err != nil {
 		return false, err
 	}
-	if err := os.WriteFile(*file, out, 0o644); err != nil {
-		return false, err
+	paths := make([]string, 0, len(changed))
+	for path := range changed {
+		paths = append(paths, path)
 	}
-	fmt.Fprintf(w, "converted %s in %s\n", *suiteType, *file)
+	sort.Strings(paths)
+	for _, path := range paths {
+		if err := os.WriteFile(path, changed[path], 0o644); err != nil {
+			return false, err
+		}
+		fmt.Fprintf(w, "converted %s in %s\n", *suiteType, path)
+	}
 	return true, nil
 }
