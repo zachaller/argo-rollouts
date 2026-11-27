@@ -7,29 +7,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type SMIIngressSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestSMIIngressSuite(t *testing.T) {
-	suite.Run(t, new(SMIIngressSuite))
-}
-
-func (s *SMIIngressSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newSMIIngressTest sets up one test. It does what SMIIngressSuite.SetupSuite did once for the whole suite.
+func newSMIIngressTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !s.SMIEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *SMIIngressSuite) TestSMIIngressCanaryStep() {
+func TestSMIIngressCanaryStep(t *testing.T) {
+	s := newSMIIngressTest(t)
 	const (
 		canaryService          = "rollout-smi-ingress-canary-canary"
 		stableService          = "rollout-smi-ingress-canary-stable"
