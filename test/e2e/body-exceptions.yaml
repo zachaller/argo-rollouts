@@ -37,8 +37,18 @@ TestIstioHostSplitExperimentStep: >-
   s.TearDownSuite() at the end of the test became s.DeleteResources().
 TestIstioSubsetSplitExperimentStep: >-
   s.TearDownSuite() at the end of the test became s.DeleteResources().
+  The constructor is called with fixtures.Serial: the test runs alone, before
+  the parallel tests, as it did in the suite. Deleting a Rollout that manages
+  a DestinationRule can crash the controller when the controller is busy (2
+  of 13 parallel runs; 0 of 68 serial runs). See
+  test/migration-reports/fix-plans/istio-destinationrule-sync-error-crashes-controller.md.
 TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort: >-
   s.TearDownSuite() at the end of the test became s.DeleteResources().
+  The constructor is called with fixtures.Serial: the test runs alone, before
+  the parallel tests, as it did in the suite. Deleting a Rollout that manages
+  a DestinationRule can crash the controller when the controller is busy (2
+  of 13 parallel runs; 0 of 68 serial runs). See
+  test/migration-reports/fix-plans/istio-destinationrule-sync-error-crashes-controller.md.
 TestBlueGreenDuration_SupersededRollback: >-
   Added Sleep(1s) between creating revision 1 and updating to revision 2, as
   the three RollbackOutsideWindow and RollbackInsideWindow tests already have.
@@ -60,3 +70,12 @@ TestControllerMetrics: >-
   reachable the response is nil, and the next line dereferenced it. Under the
   testify suite that panic failed this test; in a plain test function it stops
   the whole test binary. The test fails in the same situations as before.
+TestIstioSubsetSplit: >-
+  The body is unchanged. The constructor is called with fixtures.Serial: the
+  test runs alone, before the parallel tests, as it did in the suite. Deleting
+  a Rollout that manages a DestinationRule can crash the controller when the
+  controller is busy (2 of 13 parallel runs; 0 of 68 serial runs). See
+  test/migration-reports/fix-plans/istio-destinationrule-sync-error-crashes-controller.md.
+TestIstioSubsetSplitSingleRoute: >-
+  The body is unchanged. The constructor is called with fixtures.Serial, for
+  the same reason as TestIstioSubsetSplit.
