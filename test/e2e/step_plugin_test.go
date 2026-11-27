@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 	"go.yaml.in/yaml/v2"
 
@@ -21,19 +20,13 @@ import (
 const E2EStepPluginName = "step/e2e-test"
 const E2EStepPluginNameDisabled = "step/e2e-test-disabled"
 
-type StepPluginSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestStepPluginSuite(t *testing.T) {
-	suite.Run(t, new(StepPluginSuite))
-}
-
-func (s *StepPluginSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newStepPluginTest sets up one test. It does what StepPluginSuite.SetupSuite did once for the whole suite.
+func newStepPluginTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !IsStepPluginConfigured(&s.Common, s.GetControllerConfig()) {
 		s.T().SkipNow()
 	}
+	return s
 }
 
 // getControllerConfiguredPlugin look at the controller default config map to find the list of plugins
@@ -64,7 +57,8 @@ func IsStepPluginConfigured(c *fixtures.Common, config *corev1.ConfigMap) bool {
 // test step plugin ignored when disabled
 // test rollout error when step plugin not configured
 
-func (s *StepPluginSuite) TestRolloutCompletesWhenStepSuccessful() {
+func TestRolloutCompletesWhenStepSuccessful(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "successful", "$$phase$$": string(types.PhaseSuccessful)}).
 		When().
@@ -84,7 +78,8 @@ func (s *StepPluginSuite) TestRolloutCompletesWhenStepSuccessful() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutAbortWhenStepFails() {
+func TestRolloutAbortWhenStepFails(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "failed", "$$phase$$": string(types.PhaseFailed)}).
 		When().
@@ -111,7 +106,8 @@ func (s *StepPluginSuite) TestRolloutAbortWhenStepFails() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutAbortStepsWhenAborted() {
+func TestRolloutAbortStepsWhenAborted(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "aborted", "$$phase$$": string(types.PhaseRunning)}).
 		When().
@@ -146,7 +142,8 @@ func (s *StepPluginSuite) TestRolloutAbortStepsWhenAborted() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutRetryAbortedRollout() {
+func TestRolloutRetryAbortedRollout(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "aborted", "$$phase$$": string(types.PhaseRunning)}).
 		When().
@@ -170,7 +167,8 @@ func (s *StepPluginSuite) TestRolloutRetryAbortedRollout() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutCompletesWhenPromotedAndStepRunning() {
+func TestRolloutCompletesWhenPromotedAndStepRunning(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "full-promotion", "$$phase$$": string(types.PhaseRunning)}).
 		When().
@@ -198,7 +196,8 @@ func (s *StepPluginSuite) TestRolloutCompletesWhenPromotedAndStepRunning() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutRetriesUntilDeadlineWhenRunning() {
+func TestRolloutRetriesUntilDeadlineWhenRunning(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "running", "$$phase$$": string(types.PhaseRunning)}).
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -230,7 +229,8 @@ spec:
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutRetriesUntilDeadlineWhenError() {
+func TestRolloutRetriesUntilDeadlineWhenError(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "error", "$$phase$$": "invalidPhaseCausingPluginError"}).
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -261,7 +261,8 @@ spec:
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutStatusIsNotUsedOnNewRollout() {
+func TestRolloutStatusIsNotUsedOnNewRollout(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/template-rollout.yaml", map[string]string{"$$name$$": "run-again", "$$phase$$": string(types.PhaseSuccessful)}).
 		When().
@@ -291,7 +292,8 @@ spec:
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutErrorWhenStepPluginNotConfigured() {
+func TestRolloutErrorWhenStepPluginNotConfigured(t *testing.T) {
+	s := newStepPluginTest(t)
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 	s.Given().
@@ -310,7 +312,8 @@ func (s *StepPluginSuite) TestRolloutErrorWhenStepPluginNotConfigured() {
 		})
 }
 
-func (s *StepPluginSuite) TestRolloutSkipPluginWhenDisabled() {
+func TestRolloutSkipPluginWhenDisabled(t *testing.T) {
+	s := newStepPluginTest(t)
 	s.Given().
 		RolloutTemplate("@step-plugin/disabled-rollout.yaml", map[string]string{"$$disabled_plugin$$": E2EStepPluginNameDisabled}).
 		When().
