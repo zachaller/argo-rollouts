@@ -3,9 +3,11 @@ kind: Mesh
 metadata:
   name: appmesh-canary-rollout
 spec:
+  # The mesh covers the namespace of the one test that uses it. The e2e harness
+  # labels every test namespace with the name of its test.
   namespaceSelector:
     matchLabels:
-      kubernetes.io/metadata.name: default
+      e2e-test-name: TestAppMeshCanaryRollout
 
 ---
 # This service is used by virtual-service to resolve initial dns requests done by app container
