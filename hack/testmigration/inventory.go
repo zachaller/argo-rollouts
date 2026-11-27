@@ -38,6 +38,10 @@ type test struct {
 	// CtorVar is set when the first statement is a harness constructor call
 	// (`s := newCanaryTest(t)` or `s := fixtures.New(t)`); it holds the variable name.
 	CtorVar string
+	// CtorOptions is the source text of the arguments the constructor call
+	// has after t, for example `fixtures.Serial("why")`. Empty when there
+	// are none.
+	CtorOptions string
 	// Subtests are the static names passed to t.Run / s.Run inside the body.
 	Subtests []string
 }
@@ -258,6 +262,14 @@ func fillBody(t *test, fset *token.FileSet, src []byte, fn *ast.FuncDecl) {
 		t.First = string(src[start:end])
 		t.Rest = normalizeBody(string(src[end:rbrace]))
 		t.CtorVar = constructorVar(first)
+		if t.CtorVar != "" {
+			call := first.(*ast.AssignStmt).Rhs[0].(*ast.CallExpr)
+			if len(call.Args) > 1 {
+				from := fset.Position(call.Args[1].Pos()).Offset
+				to := fset.Position(call.Args[len(call.Args)-1].End()).Offset
+				t.CtorOptions = string(src[from:to])
+			}
+		}
 	}
 
 	seen := map[string]bool{}

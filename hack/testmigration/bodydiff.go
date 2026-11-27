@@ -23,7 +23,8 @@ func (f bodyFinding) accepted() bool { return f.Reason != "" }
 //   - A test that kept its name must have an identical body.
 //   - A suite method converted to a plain function must start with a harness
 //     constructor that assigns the variable the old receiver used, and the
-//     rest of the body must be identical to the old method body.
+//     rest of the body must be identical to the old method body. Options
+//     passed to the constructor count as a difference.
 //
 // exceptions maps a HEAD test name to the reason its difference is accepted.
 // The second return value lists exception entries that no longer apply.
@@ -44,6 +45,12 @@ func compareBodies(m mapping, exceptions map[string]string) ([]bodyFinding, []st
 				f.Problem = fmt.Sprintf("constructor assigns %q but the suite method used receiver %q", p.Head.CtorVar, p.Base.Receiver)
 			default:
 				headBody = p.Head.Rest
+				// The constructor line is not part of the compared body, but
+				// options on it change how the test runs, so they count as a
+				// difference that needs a listed reason.
+				if p.Head.CtorOptions != "" {
+					f.Problem = fmt.Sprintf("the constructor is called with options: %s", p.Head.CtorOptions)
+				}
 			}
 		}
 

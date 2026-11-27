@@ -293,6 +293,27 @@ func TestScale(t *testing.T) {
 		assert.Contains(t, findings[0].Problem, `assigns "e"`)
 	})
 
+	t.Run("constructor options count as a difference", func(t *testing.T) {
+		head := inv(t, `package e2e
+func TestScale(t *testing.T) {
+	s := newCanaryTest(t, fixtures.Serial("shares the controller's ConfigMap"))
+	s.Given().
+		HealthyRollout("@a.yaml").
+		When().
+		UpdateSpec()
+}
+`)
+		findings, _ := compareBodies(mapTests(base, head, nil), nil)
+		require.Len(t, findings, 1)
+		assert.Empty(t, findings[0].Diff, "the body itself is unchanged")
+		assert.Contains(t, findings[0].Problem, `options: fixtures.Serial("shares the controller's ConfigMap")`)
+
+		findings, stale := compareBodies(mapTests(base, head, nil), map[string]string{"TestScale": "has to run alone"})
+		require.Len(t, findings, 1)
+		assert.True(t, findings[0].accepted())
+		assert.Empty(t, stale)
+	})
+
 	t.Run("exceptions are accepted and stale ones reported", func(t *testing.T) {
 		head := inv(t, `package e2e
 func TestScale(t *testing.T) {
