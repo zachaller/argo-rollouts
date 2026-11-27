@@ -4,6 +4,7 @@
 package e2e
 
 import (
+	"context"
 	"log"
 	"testing"
 	"time"
@@ -741,6 +742,50 @@ func TestCanaryDynamicStableScaleAbortScaleDownDelay(t *testing.T) {
 			// canary service selector has been reset to stable
 			canarySvc, stableSvc := t.GetServices()
 			assert.Equal(s.T(), stableSvc.Spec.Selector["rollouts-pod-template-hash"], canarySvc.Spec.Selector["rollouts-pod-template-hash"])
+		})
+}
+
+// TestCanaryAbortSwitchesCanaryServiceOnce verifies that aborting a canary which uses traffic
+// routing moves the canary Service back to the stable ReplicaSet once, and leaves it there.
+//
+// It fails today. While the canary ReplicaSet still has an available pod, every reconcile points
+// the canary Service at the canary and then back at stable. The manifest never scales the canary
+// down after an abort, so the flapping goes on for as long as the test watches.
+// See test/migration-reports/fix-plans/canary-service-flap-after-abort.md.
+func TestCanaryAbortSwitchesCanaryServiceOnce(t *testing.T) {
+	fixtures.KnownFailure(t, "after an abort with traffic routing the canary Service flaps between the canary and the stable ReplicaSet; see test/migration-reports/fix-plans/canary-service-flap-after-abort.md")
+	s := newCanaryTest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// Every selector switch the controller makes is recorded as a SwitchService event on the rollout.
+	switches := func(t *fixtures.Then) int {
+		n := 0
+		for _, reason := range t.GetRolloutEventReasons() {
+			if reason == "SwitchService" {
+				n++
+			}
+		}
+		return n
+	}
+	var beforeAbort int
+	s.Given().
+		StartEventWatch(ctx).
+		HealthyRollout(`@functional/canary-unscaledownonabort.yaml`).
+		When().
+		UpdateSpec(). // update to revision 2
+		WaitForRolloutStatus("Paused").
+		Sleep(2 * time.Second). // let the events of the update arrive
+		Then().
+		Assert(func(t *fixtures.Then) {
+			beforeAbort = switches(t)
+		}).
+		When().
+		AbortRollout().
+		WaitForRolloutStatus("Degraded").
+		Sleep(5 * time.Second). // room for several reconciles; the canary is never scaled down
+		Then().
+		Assert(func(t *fixtures.Then) {
+			assert.Equal(s.T(), 1, switches(t)-beforeAbort, "canary Service selector switches after the abort")
 		})
 }
 

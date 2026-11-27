@@ -17,3 +17,8 @@ TestSMISuite/*
 TestSMIIngressSuite/*
 # CI never runs `make setup-e2e`, so the step plugin is not configured.
 TestStepPluginSuite/*
+
+# Known failures, skipped by fixtures.KnownFailure until the defect is fixed.
+# The canary Service flaps after an abort with traffic routing; see
+# test/migration-reports/fix-plans/canary-service-flap-after-abort.md.
+TestCanaryAbortSwitchesCanaryServiceOnce
