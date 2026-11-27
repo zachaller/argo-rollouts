@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 
 	"github.com/argoproj/argo-rollouts/rollout/trafficrouting/istio"
@@ -15,22 +14,17 @@ import (
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type HeaderRouteSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestHeaderRoutingSuite(t *testing.T) {
-	suite.Run(t, new(HeaderRouteSuite))
-}
-
-func (s *HeaderRouteSuite) SetupSuite() {
-	s.E2ESuite.SetupSuite()
+// newHeaderRouteTest sets up one test. It does what HeaderRouteSuite.SetupSuite did once for the whole suite.
+func newHeaderRouteTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
 	if !s.IstioEnabled {
 		s.T().SkipNow()
 	}
+	return s
 }
 
-func (s *HeaderRouteSuite) TestIstioHostHeaderRoute() {
+func TestIstioHostHeaderRoute(t *testing.T) {
+	s := newHeaderRouteTest(t)
 	s.Given().
 		RolloutObjects("@header-routing/istio-hr-host.yaml").
 		When().
@@ -80,7 +74,7 @@ func (s *HeaderRouteSuite) TestIstioHostHeaderRoute() {
 		})
 }
 
-func assertDestination(s *HeaderRouteSuite, route istio.VirtualServiceHTTPRoute, service string, weight int64) {
+func assertDestination(s *fixtures.Test, route istio.VirtualServiceHTTPRoute, service string, weight int64) {
 	for _, destination := range route.Route {
 		if destination.Destination.Host == service {
 			assert.Equal(s.T(), weight, destination.Weight)
