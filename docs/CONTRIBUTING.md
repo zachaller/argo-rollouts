@@ -93,10 +93,20 @@ running.
 Start and prepare your cluster for e2e tests:
 
 ```
-k3d cluster create
+k3d cluster create --k3s-arg '--kubelet-arg=max-pods=250@server:*'
 kubectl create ns argo-rollouts
 kubectl apply --server-side -k manifests/crds
 kubectl apply --server-side -f test/e2e/crds
+```
+
+The tests run several at a time, each in a namespace of its own. A node takes 110 pods by default,
+which is not enough for that; the `max-pods` setting raises the limit.
+
+Build the step plugin the tests use and point the controller at it. Without this the step plugin
+tests skip themselves:
+
+```
+make setup-e2e E2E_K8S_CONTEXT=$(kubectl config current-context)
 ```
 
 The rollout controller can be started with the command:
@@ -111,29 +121,38 @@ Then run the e2e tests:
 make test-e2e
 ```
 
-To run a subset of e2e tests, you need to specify the suite with `-run`, and the specific test regex with `-testify.m`.
+Every test creates a namespace named `e2e-<test name>-<random suffix>`, works only in it, and deletes
+it when it is done. `E2E_PARALLEL` is the number of tests that run at the same time:
 
 ```
-E2E_TEST_OPTIONS="-run 'TestCanarySuite' -testify.m 'TestCanaryScaleDownOnAbortNoTrafficRouting'" make test-e2e
+make test-e2e E2E_PARALLEL=4
 ```
 
-Available test suites [are the following](https://github.com/argoproj/argo-rollouts/tree/master/test/e2e):
+To run a subset of e2e tests, pass `-run` with a regular expression that matches the test names:
 
-* `TestBlueGreenSuite`
-* `TestCanarySuite`
-* `TestAnalysisSuite`
-* `TestExperimentSuite`
-* `TestFunctionalSuite`
-* `TestRollbackSuite`
-* `TestIstioSuite`
-* `TestHeaderRoutingSuite` (Istio only)
-* `TestMirrorRouteSuite` (Istio only)
-* `TestAPISIXSuite`
-* `TestAppMeshSuite`
-* `TestAWSSuite`
-* `StepPluginSuite`
-* `SMISuite` (SMI is [deprecated](https://www.cncf.io/blog/2023/10/03/cncf-archives-the-service-mesh-interface-smi-project/))
-* `SMIIngressSuite` (SMI is [deprecated](https://www.cncf.io/blog/2023/10/03/cncf-archives-the-service-mesh-interface-smi-project/))
+```
+make test-e2e E2E_TEST_OPTIONS="-run TestCanaryScaleDownOnAbortNoTrafficRouting"
+make test-e2e E2E_TEST_OPTIONS="-run TestCanary"
+```
+
+The tests are plain Go test functions, grouped by file in
+[test/e2e](https://github.com/argoproj/argo-rollouts/tree/master/test/e2e). A test that needs
+something the cluster does not have skips itself: the Istio, APISIX or App Mesh CRDs, a real AWS load
+balancer, or the step plugin. The SMI tests need the TrafficSplit API at `v1alpha1`, which the CRDs
+in `test/e2e/crds` do not serve, so they skip (SMI is
+[deprecated](https://www.cncf.io/blog/2023/10/03/cncf-archives-the-service-mesh-interface-smi-project/)).
+CI fails when a test skips that is not listed in `test/e2e/expected-skips.txt`.
+
+When you add an e2e test:
+
+* Start it with the constructor of its file, for example `s := newCanaryTest(t)`, or with
+  `s := fixtures.New(t)`. That gives the test its namespace and makes it run in parallel with the
+  others.
+* Keep everything the test creates inside that namespace. A test that has to change something other
+  tests can see must not run beside them: create it with `fixtures.New(t, fixtures.Serial("why"))`.
+* Put assertions in the callbacks of the fixture functions (`Assert`, the `Expect...` and
+  `WaitFor...Condition` functions). A panic there fails only that test; a panic anywhere else in a
+  test stops the whole run.
 
 ## Running the UI
 
@@ -209,8 +228,10 @@ KUBECONFIG=~/.kube/minikube make test-e2e
    (or test regex):
 
 ```shell
-make test-e2e E2E_TEST_OPTIONS="-testify.m ^TestRolloutRestart$"
+make test-e2e E2E_TEST_OPTIONS="-run TestRolloutRestart"
 ```
+
+   Set `E2E_DEBUG=true` as well to keep the test's namespace afterwards and look at what it left.
 
 3. The e2e tests are designed to run as quickly as possible, eliminating readiness and termination
    delays. However, it is often desired to artificially slow down the tests for debugging purposes,
