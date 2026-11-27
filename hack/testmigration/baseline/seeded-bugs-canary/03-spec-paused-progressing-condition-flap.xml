@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="github.com/argoproj/argo-rollouts/test/e2e">
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="32.170000">
+      <failure />
+    </testcase>
+    <testcase name="TestCanarySuite" time="435.500000">
+      <failure />
+    </testcase>
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="34.790000">
+      <failure />
+    </testcase>
+    <testcase name="TestCanarySuite" time="36.190000">
+      <failure />
+    </testcase>
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScale" time="18.360000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleAbortScaleDownDelay" time="25.020000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleRollbackToStable" time="11.960000" />
+    <testcase name="TestCanarySuite/TestCanaryProgressDeadlineExceededWithPause" time="129.280000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelay" time="10.750000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelayWithProgressDeadline" time="14.990000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbort" time="8.039000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbortNoTrafficRouting" time="7.050000" />
+    <testcase name="TestCanarySuite/TestCanarySetCanaryScale" time="9.900000" />
+    <testcase name="TestCanarySuite/TestCanaryUnScaleDownOnAbort" time="9.060000" />
+    <testcase name="TestCanarySuite/TestCanaryWithPausedRollout" time="104.110000" />
+    <testcase name="TestCanarySuite/TestEphemeralMetadata" time="12.020000" />
+    <testcase name="TestCanarySuite/TestReduceWeightAndHonorMaxUnavailable" time="27.620000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingDuringUpdate" time="4.019000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="5.230000" />
+    <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="4.820000" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="github.com/argoproj/argo-rollouts/test/e2e">
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScale" time="18.250000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleAbortScaleDownDelay" time="22.980000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleRollbackToStable" time="13.070000" />
+    <testcase name="TestCanarySuite/TestCanaryProgressDeadlineExceededWithPause" time="128.130000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelay" time="11.770000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelayWithProgressDeadline" time="15.120000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbort" time="12.970000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbortNoTrafficRouting" time="7.940000" />
+    <testcase name="TestCanarySuite/TestCanarySetCanaryScale" time="10.100000" />
+    <testcase name="TestCanarySuite/TestCanaryUnScaleDownOnAbort" time="9.940000" />
+    <testcase name="TestCanarySuite/TestCanaryWithPausedRollout" time="100.070000" />
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="38.820000" />
+    <testcase name="TestCanarySuite/TestEphemeralMetadata" time="14.580000" />
+    <testcase name="TestCanarySuite/TestReduceWeightAndHonorMaxUnavailable" time="27.640000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingDuringUpdate" time="4.320000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="5.450000" />
+    <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="3.320000" />
+    <testcase name="TestCanarySuite" time="445.570000" />
+  </testsuite>
+</testsuites>
