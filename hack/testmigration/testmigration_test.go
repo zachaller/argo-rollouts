@@ -573,9 +573,9 @@ func TestCanaryEphemeralMetadata(t *testing.T) {
 }
 
 func TestConvertSuiteRefusals(t *testing.T) {
-	t.Run("helper method", func(t *testing.T) {
-		_, err := convertSuite("x_test.go", []byte(suiteSrc+"\nfunc (s *CanarySuite) helper() {}\n"), "CanarySuite", nil)
-		assert.ErrorContains(t, err, "has method helper")
+	t.Run("suite hook other than SetupSuite", func(t *testing.T) {
+		_, err := convertSuite("x_test.go", []byte(suiteSrc+"\nfunc (s *CanarySuite) TearDownSuite() {}\n"), "CanarySuite", nil)
+		assert.ErrorContains(t, err, "suite hook TearDownSuite")
 	})
 	t.Run("unknown suite", func(t *testing.T) {
 		_, err := convertSuite("x_test.go", []byte(suiteSrc), "OtherSuite", nil)
@@ -586,4 +586,142 @@ func TestConvertSuiteRefusals(t *testing.T) {
 		_, err := convertSuite("x_test.go", []byte(src), "CanarySuite", nil)
 		assert.ErrorContains(t, err, "does not start with")
 	})
+}
+
+const helperSuiteSrc = `package e2e
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+type APISIXSuite struct {
+	fixtures.E2ESuite
+}
+
+func TestAPISIXSuite(t *testing.T) {
+	suite.Run(t, new(APISIXSuite))
+}
+
+func (a *APISIXSuite) SetupSuite() {
+	a.E2ESuite.SetupSuite()
+	if !a.ApisixEnabled {
+		a.T().SkipNow()
+	}
+}
+
+func (s *APISIXSuite) TestSetWeight() {
+	s.Given().Then().Assert(func(t *fixtures.Then) {
+		s.check(t, 5)
+		assertRoute(s, "stable")
+	})
+}
+
+// check compares weights.
+func (s *APISIXSuite) check(t *fixtures.Then, weight int64) {
+	_ = weight
+}
+
+func assertRoute(s *APISIXSuite, name string) {
+	_ = name
+}
+`
+
+func TestConvertSuiteWithHelpers(t *testing.T) {
+	out, err := convertSuite("test/e2e/x_test.go", []byte(helperSuiteSrc), "APISIXSuite", nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, `package e2e
+
+import (
+	"testing"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+// apisixTest is the environment of one test, with the helpers APISIXSuite had.
+type apisixTest struct {
+	*fixtures.Test
+}
+
+// newAPISIXTest sets up one test. It does what APISIXSuite.SetupSuite did once for the whole suite.
+func newAPISIXTest(t *testing.T) *apisixTest {
+	a := &apisixTest{fixtures.New(t)}
+	if !a.ApisixEnabled {
+		a.T().SkipNow()
+	}
+	return a
+}
+
+func TestSetWeight(t *testing.T) {
+	s := newAPISIXTest(t)
+	s.Given().Then().Assert(func(t *fixtures.Then) {
+		s.check(t, 5)
+		assertRoute(s, "stable")
+	})
+}
+
+// check compares weights.
+func (s *apisixTest) check(t *fixtures.Then, weight int64) {
+	_ = weight
+}
+
+func assertRoute(s *apisixTest, name string) {
+	_ = name
+}
+`, string(out))
+
+	base := inv(t, helperSuiteSrc)
+	head, err := buildInventory([]sourceFile{{Path: "test/e2e/x_test.go", Src: out}})
+	require.NoError(t, err)
+	m := mapTests(base, head, nil)
+	assert.True(t, m.ok())
+	findings, _ := compareBodies(m, nil)
+	assert.Empty(t, findings)
+}
+
+func TestConvertSuiteHelperFuncOnly(t *testing.T) {
+	// A suite with no SetupSuite and no helper methods, only a helper function
+	// that takes the suite: the function takes *fixtures.Test afterwards.
+	src := `package e2e
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/argoproj/argo-rollouts/test/fixtures"
+)
+
+type AWSSuite struct {
+	fixtures.E2ESuite
+}
+
+func TestAWSSuite(t *testing.T) {
+	suite.Run(t, new(AWSSuite))
+}
+
+func (s *AWSSuite) TestALB() {
+	assertWeights(s, 1)
+}
+
+func assertWeights(s *AWSSuite, w int64) {}
+`
+	out, err := convertSuite("test/e2e/x_test.go", []byte(src), "AWSSuite", nil)
+	require.NoError(t, err)
+	assert.Contains(t, string(out), "// newAWSTest sets up one test.\nfunc newAWSTest(t *testing.T) *fixtures.Test {\n\ts := fixtures.New(t)\n\treturn s\n}")
+	assert.Contains(t, string(out), "func assertWeights(s *fixtures.Test, w int64) {}")
+	assert.NotContains(t, string(out), "AWSSuite")
+}
+
+func TestLowerCamel(t *testing.T) {
+	assert.Equal(t, "blueGreen", lowerCamel("BlueGreen"))
+	assert.Equal(t, "apisix", lowerCamel("APISIX"))
+	assert.Equal(t, "aws", lowerCamel("AWS"))
+	assert.Equal(t, "appMesh", lowerCamel("AppMesh"))
+	assert.Equal(t, "smiIngress", lowerCamel("SMIIngress"))
+	assert.Equal(t, "canary", lowerCamel("Canary"))
 }

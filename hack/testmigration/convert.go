@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 // suiteUse matches a use of the testify suite package, such as suite.Run.
@@ -30,8 +31,17 @@ var suiteUse = regexp.MustCompile(`\bsuite\.[A-Z]`)
 // byte-for-byte as it was. renames maps "TestCanarySuite/TestX" to a new
 // function name.
 //
-// The rewrite refuses suites it cannot convert mechanically: ones with helper
-// methods, or with suite hooks other than SetupSuite.
+// A suite with helper methods gets a small type of its own, so that calls such
+// as s.check(...) in test bodies keep working unchanged:
+//
+//	type apisixTest struct{ *fixtures.Test }
+//	func newAPISIXTest(t *testing.T) *apisixTest { s := &apisixTest{fixtures.New(t)}; ...; return s }
+//	func (s *apisixTest) check(...) { <body> }
+//
+// Helper functions that take the suite as a parameter take the new type instead.
+//
+// The rewrite refuses suites it cannot convert mechanically: ones with suite
+// hooks other than SetupSuite.
 func convertSuite(path string, src []byte, suiteType string, renames map[string]string) ([]byte, error) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, path, src, parser.ParseComments)
@@ -54,7 +64,8 @@ func convertSuite(path string, src []byte, suiteType string, renames map[string]
 		return offset(start), e
 	}
 
-	ctor := "new" + strings.TrimSuffix(suiteType, "Suite") + "Test"
+	baseName := strings.TrimSuffix(suiteType, "Suite")
+	ctor := "new" + baseName + "Test"
 	var (
 		typeDecl   *ast.GenDecl
 		runner     *ast.FuncDecl
@@ -62,6 +73,8 @@ func convertSuite(path string, src []byte, suiteType string, renames map[string]
 		recvName   = "s"
 		converted  int
 		runnerName string
+		helpers    []*ast.FuncDecl
+		testFuncs  []*ast.FuncDecl
 	)
 
 	for _, decl := range file.Decls {
@@ -117,9 +130,12 @@ func convertSuite(path string, src []byte, suiteType string, renames map[string]
 				end:   offset(fn.Body.Lbrace) + 1,
 				text:  fmt.Sprintf("func %s(t *testing.T) {\n\t%s := %s(t)", name, recv, ctor),
 			})
+			testFuncs = append(testFuncs, fn)
 			converted++
+		case suiteHooks[fn.Name.Name]:
+			return nil, fmt.Errorf("%s: %s has the suite hook %s, which cannot be converted mechanically", path, suiteType, fn.Name.Name)
 		default:
-			return nil, fmt.Errorf("%s: %s has method %s, which cannot be converted mechanically", path, suiteType, fn.Name.Name)
+			helpers = append(helpers, fn)
 		}
 	}
 	if converted == 0 {
@@ -135,11 +151,59 @@ func convertSuite(path string, src []byte, suiteType string, renames map[string]
 		}
 		setupBody = strings.TrimRight(string(src[offset(stmts[0].End()):offset(setup.Body.Rbrace)]), " \t\n")
 	}
+	// The type that replaces the suite type wherever it is still named: the
+	// receivers of helper methods and the parameters of helper functions.
+	newType := "fixtures.Test"
+	newValue := "fixtures.New(t)"
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "// %s sets up one test. It does what %s.SetupSuite did once for the whole suite.\n", ctor, suiteType)
-	fmt.Fprintf(&sb, "func %s(t *testing.T) *fixtures.Test {\n\t%s := fixtures.New(t)", ctor, recvName)
+	if len(helpers) > 0 {
+		newType = lowerCamel(baseName) + "Test"
+		newValue = fmt.Sprintf("&%s{fixtures.New(t)}", newType)
+		fmt.Fprintf(&sb, "// %s is the environment of one test, with the helpers %s had.\n", newType, suiteType)
+		fmt.Fprintf(&sb, "type %s struct {\n\t*fixtures.Test\n}\n\n", newType)
+	}
+	if setup != nil {
+		fmt.Fprintf(&sb, "// %s sets up one test. It does what %s.SetupSuite did once for the whole suite.\n", ctor, suiteType)
+	} else {
+		fmt.Fprintf(&sb, "// %s sets up one test.\n", ctor)
+	}
+	fmt.Fprintf(&sb, "func %s(t *testing.T) *%s {\n\t%s := %s", ctor, newType, recvName, newValue)
 	sb.WriteString(setupBody)
 	fmt.Fprintf(&sb, "\n\treturn %s\n}\n\n", recvName)
+
+	// Retarget every remaining mention of *SuiteType. Declarations that are
+	// replaced or removed as a whole are skipped.
+	replaced := map[ast.Node]bool{typeDecl: true, runner: true}
+	if setup != nil {
+		replaced[setup] = true
+	}
+	for _, decl := range file.Decls {
+		if replaced[decl] {
+			continue
+		}
+		fn, isFunc := decl.(*ast.FuncDecl)
+		isTest := false
+		for _, tf := range testFuncs {
+			if isFunc && tf == fn {
+				isTest = true
+			}
+		}
+		ast.Inspect(decl, func(n ast.Node) bool {
+			// The signature of a converted test method is rewritten as a whole.
+			if isTest && n == ast.Node(fn.Recv) {
+				return false
+			}
+			star, ok := n.(*ast.StarExpr)
+			if !ok {
+				return true
+			}
+			if ident, ok := star.X.(*ast.Ident); ok && ident.Name == suiteType {
+				edits = append(edits, edit{start: offset(star.Pos()), end: offset(star.End()), text: "*" + newType})
+				return false
+			}
+			return true
+		})
+	}
 
 	typeStart := typeDecl.Pos()
 	if typeDecl.Doc != nil {
@@ -212,4 +276,34 @@ func stripImports(src string) string {
 		return src
 	}
 	return src[:start] + src[start+end+1:]
+}
+
+// suiteHooks are the testify suite methods that run around tests. A suite that
+// defines one (other than SetupSuite) needs a person to decide what becomes of it.
+var suiteHooks = map[string]bool{
+	"TearDownSuite":   true,
+	"SetupTest":       true,
+	"TearDownTest":    true,
+	"BeforeTest":      true,
+	"AfterTest":       true,
+	"SetupSubTest":    true,
+	"TearDownSubTest": true,
+}
+
+// lowerCamel lower-cases the leading capitals of a name so that it reads as an
+// unexported identifier: "BlueGreen" becomes "blueGreen", "APISIX" becomes
+// "apisix", "AWSLoadBalancer" becomes "awsLoadBalancer".
+func lowerCamel(name string) string {
+	runes := []rune(name)
+	for i := range runes {
+		if !unicode.IsUpper(runes[i]) {
+			break
+		}
+		// Keep the capital that starts the next word: the "L" in "AWSLoad".
+		if i > 0 && i+1 < len(runes) && unicode.IsLower(runes[i+1]) {
+			break
+		}
+		runes[i] = unicode.ToLower(runes[i])
+	}
+	return string(runes)
 }
