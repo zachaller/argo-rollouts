@@ -1,0 +1,19 @@
+# Tests that are allowed to skip in CI. Any other skip fails
+# `go run ./hack/testmigration junitdiff`.
+# One glob pattern per line (path.Match syntax). '#' starts a comment.
+
+# Need a real AWS load balancer (E2E_ALB_INGESS_ANNOTATIONS).
+TestAWSSuite/TestALBBlueGreenUpdate
+TestAWSSuite/TestALBCanaryUpdate
+TestAWSSuite/TestALBCanaryUpdateMultiIngress
+
+# App Mesh CRDs are not installed in CI.
+TestAppMeshSuite/*
+
+# Skipped by accident today. Remove these entries once the cause is fixed.
+# SMI is detected by listing TrafficSplits at v1alpha1, but the CRD that CI
+# installs (test/e2e/crds/split.yaml) only serves v1alpha4.
+TestSMISuite/*
+TestSMIIngressSuite/*
+# CI never runs `make setup-e2e`, so the step plugin is not configured.
+TestStepPluginSuite/*
