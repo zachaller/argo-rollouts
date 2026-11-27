@@ -1,7 +1,7 @@
 # Test name -> reason its body is allowed to differ from the baseline.
 # Read by `go run ./hack/testmigration bodydiff`. An entry whose test no longer
 # differs is reported as stale.
-TestExperimentSuite/TestRolloutWithExperimentAndAnalysis: >-
+TestRolloutWithExperimentAndAnalysis: >-
   Removed s.T().Parallel(). Testify suites share one T between methods, so a
   parallel suite method resumes with another test's T once -parallel is above 1.
 TestCanarySetCanaryScale: >-

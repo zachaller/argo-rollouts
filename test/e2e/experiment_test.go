@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 
 	rov1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type ExperimentSuite struct {
-	fixtures.E2ESuite
+// newExperimentTest sets up one test.
+func newExperimentTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	return s
 }
 
 // TestRolloutWithExperimentAndAnalysis this tests the ability for a rollout to launch an experiment,
@@ -25,7 +26,8 @@ type ExperimentSuite struct {
 //   - valueFrom.podTemplateHashValue: Stable
 //   - valueFrom.podTemplateHashValue: Latest
 //   - templates.XXXXX.podTemplateHash
-func (s *ExperimentSuite) TestRolloutWithExperimentAndAnalysis() {
+func TestRolloutWithExperimentAndAnalysis(t *testing.T) {
+	s := newExperimentTest(t)
 	s.Given().
 		RolloutObjects("@functional/rollout-experiment-analysis.yaml").
 		When().
@@ -86,7 +88,8 @@ func (s *ExperimentSuite) TestRolloutWithExperimentAndAnalysis() {
 		WaitForRolloutStatus("Healthy")
 }
 
-func (s *ExperimentSuite) TestExperimentWithServiceAndScaleDownDelay() {
+func TestExperimentWithServiceAndScaleDownDelay(t *testing.T) {
+	s := newExperimentTest(t)
 	g := s.Given()
 	g.ApplyManifests("@functional/experiment-with-service.yaml")
 	g.When().
@@ -110,7 +113,8 @@ func (s *ExperimentSuite) TestExperimentWithServiceAndScaleDownDelay() {
 		ExpectExperimentServiceCount("experiment-with-service", 0)
 }
 
-func (s *ExperimentSuite) TestExperimentWithServiceNameAndScaleDownDelay() {
+func TestExperimentWithServiceNameAndScaleDownDelay(t *testing.T) {
+	s := newExperimentTest(t)
 	g := s.Given()
 	g.ApplyManifests("@functional/experiment-with-service-name.yaml")
 	g.When().
@@ -134,7 +138,8 @@ func (s *ExperimentSuite) TestExperimentWithServiceNameAndScaleDownDelay() {
 		ExpectExperimentServiceCount("experiment-with-service-name", 0)
 }
 
-func (s *ExperimentSuite) TestExperimentWithMultiportServiceAndScaleDownDelay() {
+func TestExperimentWithMultiportServiceAndScaleDownDelay(t *testing.T) {
+	s := newExperimentTest(t)
 	g := s.Given()
 	g.ApplyManifests("@functional/experiment-with-multiport-service.yaml")
 	g.When().
@@ -158,7 +163,8 @@ func (s *ExperimentSuite) TestExperimentWithMultiportServiceAndScaleDownDelay() 
 		ExpectExperimentServiceCount("experiment-with-multiport-service", 0)
 }
 
-func (s *ExperimentSuite) TestExperimentWithDryRunMetrics() {
+func TestExperimentWithDryRunMetrics(t *testing.T) {
+	s := newExperimentTest(t)
 	g := s.Given()
 	g.ApplyManifests("@functional/experiment-dry-run-analysis.yaml")
 	g.When().
@@ -168,7 +174,8 @@ func (s *ExperimentSuite) TestExperimentWithDryRunMetrics() {
 		ExpectExperimentDryRunSummary(1, 0, 1, "experiment-with-dry-run")
 }
 
-func (s *ExperimentSuite) TestExperimentWithMeasurementRetentionMetrics() {
+func TestExperimentWithMeasurementRetentionMetrics(t *testing.T) {
+	s := newExperimentTest(t)
 	g := s.Given()
 	g.ApplyManifests("@functional/experiment-measurement-retention-analysis.yaml")
 	g.When().
@@ -176,8 +183,4 @@ func (s *ExperimentSuite) TestExperimentWithMeasurementRetentionMetrics() {
 		Sleep(time.Second*3).
 		Then().
 		ExpectExperimentMeasurementsLength(0, 2, "experiment-with-mr")
-}
-
-func TestExperimentSuite(t *testing.T) {
-	suite.Run(t, new(ExperimentSuite))
 }
