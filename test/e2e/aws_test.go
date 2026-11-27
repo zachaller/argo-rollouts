@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
 	"github.com/tj/assert"
 	"k8s.io/utils/ptr"
 
@@ -18,12 +17,10 @@ import (
 	ingress2 "github.com/argoproj/argo-rollouts/utils/ingress"
 )
 
-type AWSSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestAWSSuite(t *testing.T) {
-	suite.Run(t, new(AWSSuite))
+// newAWSTest sets up one test.
+func newAWSTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	return s
 }
 
 const actionTemplateWithExperiment = `{"Type":"forward","ForwardConfig":{"TargetGroups":[{"ServiceName":"%s","ServicePort":"%d","Weight":%d},{"ServiceName":"%s","ServicePort":"%d","Weight":%d},{"ServiceName":"%s","ServicePort":"%d","Weight":%d}]}}`
@@ -35,7 +32,8 @@ const actionTemplateWithExperiments = `{"Type":"forward","ForwardConfig":{"Targe
 // weight verification using AWS APIs.
 // This test will be skipped unless E2E_ALB_INGESS_ANNOTATIONS is set (can be an empty struct). e.g.:
 // make test-e2e E2E_TEST_OPTIONS="-testify.m TestALBCanaryUpdate$" E2E_IMAGE_PREFIX="docker.intuit.com/docker-rmt/" E2E_INSTANCE_ID= E2E_ALB_INGESS_ANNOTATIONS='{"kubernetes.io/ingress.class": "aws-alb", "alb.ingress.kubernetes.io/security-groups": "iks-intuit-cidr-ingress-tcp-443"}'
-func (s *AWSSuite) TestALBCanaryUpdate() {
+func TestALBCanaryUpdate(t *testing.T) {
+	s := newAWSTest(t)
 	if val, _ := os.LookupEnv(fixtures.EnvVarE2EALBIngressAnnotations); val == "" {
 		s.T().SkipNow()
 	}
@@ -46,7 +44,8 @@ func (s *AWSSuite) TestALBCanaryUpdate() {
 		WaitForRolloutStatus("Healthy")
 }
 
-func (s *AWSSuite) TestALBCanaryUpdateMultiIngress() {
+func TestALBCanaryUpdateMultiIngress(t *testing.T) {
+	s := newAWSTest(t)
 	if val, _ := os.LookupEnv(fixtures.EnvVarE2EALBIngressAnnotations); val == "" {
 		s.T().SkipNow()
 	}
@@ -57,7 +56,8 @@ func (s *AWSSuite) TestALBCanaryUpdateMultiIngress() {
 		WaitForRolloutStatus("Healthy")
 }
 
-func (s *AWSSuite) TestALBBlueGreenUpdate() {
+func TestALBBlueGreenUpdate(t *testing.T) {
+	s := newAWSTest(t)
 	if val, _ := os.LookupEnv(fixtures.EnvVarE2EALBIngressAnnotations); val == "" {
 		s.T().SkipNow()
 	}
@@ -68,7 +68,8 @@ func (s *AWSSuite) TestALBBlueGreenUpdate() {
 		WaitForRolloutStatus("Healthy")
 }
 
-func (s *AWSSuite) TestALBPingPongUpdate() {
+func TestALBPingPongUpdate(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@functional/alb-pingpong-rollout.yaml").
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -98,7 +99,8 @@ func (s *AWSSuite) TestALBPingPongUpdate() {
 // also uses both pingpong service and stable/canary services
 // Expecting: * alb is using pingpong
 //   - mesh is using stable/canary
-func (s *AWSSuite) TestALBMesh_PingPong_StableCanary_Update() {
+func TestALBMesh_PingPong_StableCanary_Update(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@functional/albmesh-pingpong-stablecanary-rollout.yaml").
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -159,7 +161,8 @@ func (s *AWSSuite) TestALBMesh_PingPong_StableCanary_Update() {
 		})
 }
 
-func (s *AWSSuite) TestALBPingPongUpdateMultiIngress() {
+func TestALBPingPongUpdateMultiIngress(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@functional/alb-pingpong-multi-ingress-rollout.yaml").
 		When().ApplyManifests().WaitForRolloutStatus("Healthy").
@@ -185,7 +188,7 @@ func (s *AWSSuite) TestALBPingPongUpdateMultiIngress() {
 		Assert(assertWeightsMultiIngress(s, "ping-multi-ingress-service", "pong-multi-ingress-service", 100, 0))
 }
 
-func assertWeights(s *AWSSuite, groupA, groupB string, weightA, weightB int64) func(t *fixtures.Then) {
+func assertWeights(s *fixtures.Test, groupA, groupB string, weightA, weightB int64) func(t *fixtures.Then) {
 	return func(t *fixtures.Then) {
 		ingress := t.GetALBIngress()
 		action, ok := ingress.Annotations["alb.ingress.kubernetes.io/actions.alb-rollout-root"]
@@ -208,7 +211,7 @@ func assertWeights(s *AWSSuite, groupA, groupB string, weightA, weightB int64) f
 	}
 }
 
-func assertWeightsMultiIngress(s *AWSSuite, groupA, groupB string, weightA, weightB int64) func(t *fixtures.Then) {
+func assertWeightsMultiIngress(s *fixtures.Test, groupA, groupB string, weightA, weightB int64) func(t *fixtures.Then) {
 	return func(t *fixtures.Then) {
 		ingresses := t.GetALBIngresses()
 		for _, ingress := range ingresses {
@@ -233,7 +236,8 @@ func assertWeightsMultiIngress(s *AWSSuite, groupA, groupB string, weightA, weig
 	}
 }
 
-func (s *AWSSuite) TestALBExperimentStep() {
+func TestALBExperimentStep(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-experiment.yaml").
 		When().
@@ -267,7 +271,8 @@ func (s *AWSSuite) TestALBExperimentStep() {
 		Assert(assertWeights(s, "alb-rollout-canary", "alb-rollout-stable", 0, 100))
 }
 
-func (s *AWSSuite) TestALBExperimentStepMultiIngress() {
+func TestALBExperimentStepMultiIngress(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-multi-ingress-experiment.yaml").
 		When().
@@ -303,7 +308,8 @@ func (s *AWSSuite) TestALBExperimentStepMultiIngress() {
 		Assert(assertWeightsMultiIngress(s, "alb-rollout-canary", "alb-rollout-stable", 0, 100))
 }
 
-func (s *AWSSuite) TestALBExperimentStepNoSetWeight() {
+func TestALBExperimentStepNoSetWeight(t *testing.T) {
+	s := newAWSTest(t)
 	//TODO: this test is flaky
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-experiment-no-setweight.yaml").
@@ -337,7 +343,8 @@ func (s *AWSSuite) TestALBExperimentStepNoSetWeight() {
 		Assert(assertWeights(s, "alb-rollout-canary", "alb-rollout-stable", 0, 100))
 }
 
-func (s *AWSSuite) TestALBExperimentStepNoSetWeightMultiIngress() {
+func TestALBExperimentStepNoSetWeightMultiIngress(t *testing.T) {
+	s := newAWSTest(t)
 	//TODO: this test is flaky
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-multi-ingress-experiment-no-setweight.yaml").
@@ -373,7 +380,8 @@ func (s *AWSSuite) TestALBExperimentStepNoSetWeightMultiIngress() {
 		Assert(assertWeightsMultiIngress(s, "alb-rollout-canary", "alb-rollout-stable", 0, 100))
 }
 
-func (s *AWSSuite) TestAlbHeaderRoute() {
+func TestAlbHeaderRoute(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@header-routing/alb-header-route.yaml").
 		When().
@@ -415,7 +423,8 @@ func (s *AWSSuite) TestAlbHeaderRoute() {
 		})
 }
 
-func (s *AWSSuite) TestAlbHeaderRouteMultiIngress() {
+func TestAlbHeaderRouteMultiIngress(t *testing.T) {
+	s := newAWSTest(t)
 	s.Given().
 		RolloutObjects("@header-routing/alb-header-route-multi-ingress.yaml").
 		When().
@@ -457,7 +466,7 @@ func (s *AWSSuite) TestAlbHeaderRouteMultiIngress() {
 		})
 }
 
-func assertAlbActionServiceWeight(t *fixtures.Then, s *AWSSuite, actionName, serviceName string, expectedWeight int64) {
+func assertAlbActionServiceWeight(t *fixtures.Then, s *fixtures.Test, actionName, serviceName string, expectedWeight int64) {
 	ingress := t.GetALBIngress()
 	key := "alb.ingress.kubernetes.io/actions." + actionName
 	actionStr, ok := ingress.Annotations[key]
@@ -479,7 +488,7 @@ func assertAlbActionServiceWeight(t *fixtures.Then, s *AWSSuite, actionName, ser
 	assert.True(s.T(), found, "Service %s was not found", serviceName)
 }
 
-func assertAlbActionServiceWeightMultiIngress(t *fixtures.Then, s *AWSSuite, actionName, serviceName string, expectedWeight int64) {
+func assertAlbActionServiceWeightMultiIngress(t *fixtures.Then, s *fixtures.Test, actionName, serviceName string, expectedWeight int64) {
 	ingresses := t.GetALBIngresses()
 	for _, ingress := range ingresses {
 		key := "alb.ingress.kubernetes.io/actions." + actionName
@@ -503,14 +512,14 @@ func assertAlbActionServiceWeightMultiIngress(t *fixtures.Then, s *AWSSuite, act
 	}
 }
 
-func assertAlbActionDoesNotExist(t *fixtures.Then, s *AWSSuite, actionName string) {
+func assertAlbActionDoesNotExist(t *fixtures.Then, s *fixtures.Test, actionName string) {
 	ingress := t.GetALBIngress()
 	key := "alb.ingress.kubernetes.io/actions." + actionName
 	_, ok := ingress.Annotations[key]
 	assert.False(s.T(), ok, "Annotation for action should not exist: %s", key)
 }
 
-func assertAlbActionDoesNotExistMultiIngress(t *fixtures.Then, s *AWSSuite, actionName string) {
+func assertAlbActionDoesNotExistMultiIngress(t *fixtures.Then, s *fixtures.Test, actionName string) {
 	ingresses := t.GetALBIngresses()
 	for _, ingress := range ingresses {
 		key := "alb.ingress.kubernetes.io/actions." + actionName
