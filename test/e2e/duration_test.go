@@ -9,19 +9,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	"github.com/argoproj/argo-rollouts/test/fixtures"
 )
 
-type DurationSuite struct {
-	fixtures.E2ESuite
-}
-
-func TestDurationSuite(t *testing.T) {
-	suite.Run(t, new(DurationSuite))
+// newDurationTest sets up one test.
+func newDurationTest(t *testing.T) *fixtures.Test {
+	s := fixtures.New(t)
+	return s
 }
 
 // assertDurationFieldsConsistency validates that required duration fields are non-nil and consistent
@@ -44,7 +41,8 @@ func assertDurationFieldsConsistency(t *testing.T, ro *v1alpha1.Rollout) {
 
 // Canary Lifecycle Tests
 
-func (s *DurationSuite) TestCanaryDuration_InitialRollout() {
+func TestCanaryDuration_InitialRollout(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {duration: 1s}`
@@ -66,7 +64,8 @@ func (s *DurationSuite) TestCanaryDuration_InitialRollout() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_SpecPaused() {
+func TestCanaryDuration_SpecPaused(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {duration: 1s}`
@@ -105,7 +104,8 @@ func (s *DurationSuite) TestCanaryDuration_SpecPaused() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_PauseStep() {
+func TestCanaryDuration_PauseStep(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {duration: 1s}`
@@ -129,7 +129,8 @@ func (s *DurationSuite) TestCanaryDuration_PauseStep() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_IndefinitePauseStep() {
+func TestCanaryDuration_IndefinitePauseStep(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {}`
@@ -162,7 +163,8 @@ func (s *DurationSuite) TestCanaryDuration_IndefinitePauseStep() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_FullyPromoted() {
+func TestCanaryDuration_FullyPromoted(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 25
 - pause: {}
@@ -193,7 +195,8 @@ func (s *DurationSuite) TestCanaryDuration_FullyPromoted() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_Abort() {
+func TestCanaryDuration_Abort(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {}`
@@ -219,7 +222,8 @@ func (s *DurationSuite) TestCanaryDuration_Abort() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_Retry() {
+func TestCanaryDuration_Retry(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	canarySteps := `
 - setWeight: 50
@@ -256,7 +260,8 @@ func (s *DurationSuite) TestCanaryDuration_Retry() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_SupersededRollout() {
+func TestCanaryDuration_SupersededRollout(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	canarySteps := `
 - setWeight: 50
@@ -293,7 +298,8 @@ func (s *DurationSuite) TestCanaryDuration_SupersededRollout() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_SupersededRollback() {
+func TestCanaryDuration_SupersededRollback(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	canarySteps := `
 - setWeight: 50
@@ -331,7 +337,8 @@ func (s *DurationSuite) TestCanaryDuration_SupersededRollback() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_RollbackOutsideWindow() {
+func TestCanaryDuration_RollbackOutsideWindow(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {}`
@@ -379,7 +386,8 @@ func (s *DurationSuite) TestCanaryDuration_RollbackOutsideWindow() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_RollbackInsideWindow() {
+func TestCanaryDuration_RollbackInsideWindow(t *testing.T) {
+	s := newDurationTest(t)
 	canarySteps := `
 - setWeight: 50
 - pause: {}`
@@ -419,7 +427,8 @@ func (s *DurationSuite) TestCanaryDuration_RollbackInsideWindow() {
 		})
 }
 
-func (s *DurationSuite) TestCanaryDuration_ScalingOnly() {
+func TestCanaryDuration_ScalingOnly(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	canarySteps := `
 - setWeight: 50
@@ -451,7 +460,8 @@ func (s *DurationSuite) TestCanaryDuration_ScalingOnly() {
 
 // BlueGreen Lifecycle Tests
 
-func (s *DurationSuite) TestBlueGreenDuration_InitialRollout() {
+func TestBlueGreenDuration_InitialRollout(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-start"}).
 		AutoPromotionSeconds(2).
@@ -469,7 +479,8 @@ func (s *DurationSuite) TestBlueGreenDuration_InitialRollout() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_SpecPaused() {
+func TestBlueGreenDuration_SpecPaused(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-spec-paused"}).
 		AutoPromotionSeconds(2).
@@ -503,7 +514,8 @@ func (s *DurationSuite) TestBlueGreenDuration_SpecPaused() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_AutoPromotion() {
+func TestBlueGreenDuration_AutoPromotion(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-auto-promotion"}).
 		AutoPromotionSeconds(2).
@@ -523,7 +535,8 @@ func (s *DurationSuite) TestBlueGreenDuration_AutoPromotion() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_ManualPromotion() {
+func TestBlueGreenDuration_ManualPromotion(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-manual-promotion"}).
 		AutoPromotionEnabled(false).
@@ -544,7 +557,8 @@ func (s *DurationSuite) TestBlueGreenDuration_ManualPromotion() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_FullyPromoted() {
+func TestBlueGreenDuration_FullyPromoted(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-fully-promoted"}).
 		AutoPromotionEnabled(false).
@@ -565,7 +579,8 @@ func (s *DurationSuite) TestBlueGreenDuration_FullyPromoted() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_Abort() {
+func TestBlueGreenDuration_Abort(t *testing.T) {
+	s := newDurationTest(t)
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-abort"}).
 		AutoPromotionEnabled(false).
@@ -587,7 +602,8 @@ func (s *DurationSuite) TestBlueGreenDuration_Abort() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_Retry() {
+func TestBlueGreenDuration_Retry(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-retry"}).
@@ -620,7 +636,8 @@ func (s *DurationSuite) TestBlueGreenDuration_Retry() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_SupersededRollout() {
+func TestBlueGreenDuration_SupersededRollout(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-superseded-rollout"}).
@@ -654,7 +671,8 @@ func (s *DurationSuite) TestBlueGreenDuration_SupersededRollout() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_SupersededRollbackToStable() {
+func TestBlueGreenDuration_SupersededRollbackToStable(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-superseded-rollback-stable"}).
@@ -689,7 +707,8 @@ func (s *DurationSuite) TestBlueGreenDuration_SupersededRollbackToStable() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_SupersededRollback() {
+func TestBlueGreenDuration_SupersededRollback(t *testing.T) {
+	s := newDurationTest(t)
 
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-superseded-rollback"}).
@@ -720,7 +739,8 @@ func (s *DurationSuite) TestBlueGreenDuration_SupersededRollback() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_RollbackOutsideWindow() {
+func TestBlueGreenDuration_RollbackOutsideWindow(t *testing.T) {
+	s := newDurationTest(t)
 
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-rollback-outside-window"}).
@@ -766,7 +786,8 @@ func (s *DurationSuite) TestBlueGreenDuration_RollbackOutsideWindow() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_RollbackInsideWindow() {
+func TestBlueGreenDuration_RollbackInsideWindow(t *testing.T) {
+	s := newDurationTest(t)
 
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-rollback-inside-window"}).
@@ -804,7 +825,8 @@ func (s *DurationSuite) TestBlueGreenDuration_RollbackInsideWindow() {
 		})
 }
 
-func (s *DurationSuite) TestBlueGreenDuration_ScalingOnly() {
+func TestBlueGreenDuration_ScalingOnly(t *testing.T) {
+	s := newDurationTest(t)
 	initialStartedAt := metav1.Time{}
 	s.Given().
 		RolloutTemplate("@functional/bluegreen-duration-template.yaml", map[string]string{"ROLLOUT_NAME": "bluegreen-duration-scaling-only"}).
