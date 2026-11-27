@@ -179,8 +179,8 @@ func (r junitReport) ok() bool {
 	return len(r.Regressions) == 0 && len(r.NewlySkipped) == 0 && len(r.UnexpectedSkips) == 0 && len(r.NotRun) == 0
 }
 
-// compareJUnit checks every mapped pair. only, when set, restricts the check
-// to HEAD test names it matches.
+// compareJUnit checks every mapped pair and every test added at HEAD. only,
+// when set, restricts the check to HEAD test names it matches.
 func compareJUnit(m mapping, baseResults, newResults map[string]result, expectedSkips []string, only *regexp.Regexp) junitReport {
 	var rep junitReport
 	usedPatterns := map[string]bool{}
@@ -215,6 +215,33 @@ func compareJUnit(m mapping, baseResults, newResults map[string]result, expected
 			if before.Status == statusSkip {
 				rep.NowRuns = append(rep.NowRuns, name)
 			}
+			if after.flaky() {
+				rep.Flaky = append(rep.Flaky, fmt.Sprintf("%s (%d failed attempts)", name, after.Failures))
+			}
+		}
+	}
+
+	// Tests that exist only at HEAD have no baseline outcome, but they must
+	// still run, pass, or be an expected skip.
+	for _, t := range m.Added {
+		name := t.name()
+		if only != nil && !only.MatchString(name) {
+			continue
+		}
+		rep.Compared++
+		after := statusOf(newResults, t)
+		switch after.Status {
+		case statusNotRun:
+			rep.NotRun = append(rep.NotRun, name)
+		case statusFail:
+			rep.Regressions = append(rep.Regressions, name)
+		case statusSkip:
+			if pattern, ok := matchAny(expectedSkips, name); ok {
+				usedPatterns[pattern] = true
+			} else {
+				rep.UnexpectedSkips = append(rep.UnexpectedSkips, name)
+			}
+		case statusPass:
 			if after.flaky() {
 				rep.Flaky = append(rep.Flaky, fmt.Sprintf("%s (%d failed attempts)", name, after.Failures))
 			}

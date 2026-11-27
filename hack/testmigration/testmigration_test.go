@@ -409,6 +409,33 @@ func TestCompareJUnit(t *testing.T) {
 	})
 }
 
+func TestCompareJUnitAddedTests(t *testing.T) {
+	head := inv(t, baseSrc+`
+func TestBrandNew(t *testing.T) {}
+func TestKnownFailure(t *testing.T) {}
+func TestNeverRan(t *testing.T) {}
+`)
+	m := mapTests(inv(t, baseSrc), head, nil)
+	baseResults, err := parseJUnit([]byte(baseJUnit))
+	require.NoError(t, err)
+	newResults := map[string]result{}
+	for name, r := range baseResults {
+		newResults[name] = r
+	}
+	newResults["TestBrandNew"] = result{Status: statusFail}
+	newResults["TestKnownFailure"] = result{Status: statusSkip}
+
+	rep := compareJUnit(m, baseResults, newResults, []string{"TestBlueGreenSuite/*", "TestKnownFailure"}, nil)
+	assert.Equal(t, []string{"TestBrandNew"}, rep.Regressions)
+	assert.Equal(t, []string{"TestNeverRan"}, rep.NotRun)
+	assert.Empty(t, rep.UnexpectedSkips)
+	assert.Empty(t, rep.StaleExpectedSkips)
+	assert.Equal(t, 7, rep.Compared)
+
+	rep = compareJUnit(m, baseResults, newResults, []string{"TestBlueGreenSuite/*"}, nil)
+	assert.Equal(t, []string{"TestKnownFailure"}, rep.UnexpectedSkips)
+}
+
 func TestLoadPatterns(t *testing.T) {
 	file := filepath.Join(t.TempDir(), "skips.txt")
 	require.NoError(t, os.WriteFile(file, []byte("# comment\n\nTestA  # needs AWS\nTestBSuite/*\n"), 0o644))
