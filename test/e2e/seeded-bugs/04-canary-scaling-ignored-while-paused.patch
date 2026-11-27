@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..6e8180cd 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -302,7 +302,7 @@ func (c *rolloutContext) syncReplicasOnly() error {
+ 	}
+ 	// The controller wants to use the rolloutCanary method to reconcile the rollout if the rollout is not paused.
+ 	// If there are no scaling events, the rollout should only sync its status
+-	if c.rollout.Spec.Strategy.Canary != nil {
++	if c.rollout.Spec.Strategy.Canary != nil && len(c.rollout.Status.PauseConditions) == 0 {
+ 		if _, err := c.reconcileCanaryReplicaSets(); err != nil {
+ 			// If we get an error while trying to scale, the rollout will be requeued
+ 			// so we can abort this resync

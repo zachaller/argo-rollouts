@@ -1,0 +1,13 @@
+diff --git a/rollout/trafficrouting/istio/istio.go b/rollout/trafficrouting/istio/istio.go
+index adb1d9e6..3be73e8c 100644
+--- a/rollout/trafficrouting/istio/istio.go
++++ b/rollout/trafficrouting/istio/istio.go
+@@ -438,7 +438,7 @@ func (r *Reconciler) UpdateHash(canaryHash, stableHash string, additionalDestina
+ 				subset.Labels = make(map[string]string)
+ 			}
+ 			if canaryHash != "" {
+-				subset.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] = canaryHash
++				subset.Labels[v1alpha1.DefaultRolloutUniqueLabelKey] = stableHash
+ 			} else {
+ 				delete(subset.Labels, v1alpha1.DefaultRolloutUniqueLabelKey)
+ 			}

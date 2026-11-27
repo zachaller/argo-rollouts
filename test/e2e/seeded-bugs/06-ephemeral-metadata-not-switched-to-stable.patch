@@ -1,0 +1,13 @@
+diff --git a/rollout/ephemeralmetadata.go b/rollout/ephemeralmetadata.go
+index 5bd681fd..88308eec 100644
+--- a/rollout/ephemeralmetadata.go
++++ b/rollout/ephemeralmetadata.go
+@@ -66,7 +66,7 @@ func (c *rolloutContext) reconcileEphemeralMetadata() error {
+ 
+ 	if fullyRolledOut {
+ 		// We are in a steady-state (fully rolled out). newRS is the stableRS. there is no longer a canary
+-		err := c.syncEphemeralMetadata(ctx, c.newRS, stableMetadata)
++		err := c.syncEphemeralMetadata(ctx, c.newRS, newMetadata)
+ 		if err != nil {
+ 			return err
+ 		}

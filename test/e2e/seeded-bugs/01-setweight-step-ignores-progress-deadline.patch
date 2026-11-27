@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..d1440da1 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -798,7 +798,7 @@ func (c *rolloutContext) patchCondition(r *v1alpha1.Rollout, newStatus *v1alpha1
+ // not affect the progressDeadlineSeconds
+ func isIndefiniteStep(r *v1alpha1.Rollout) bool {
+ 	currentStep, _ := replicasetutil.GetCurrentCanaryStep(r)
+-	if currentStep != nil && (currentStep.Experiment != nil || currentStep.Analysis != nil || currentStep.Pause != nil) {
++	if currentStep != nil && (currentStep.Experiment != nil || currentStep.Analysis != nil || currentStep.SetWeight != nil) {
+ 		return true
+ 	}
+ 	// also check the pause condition to cover blueGreen

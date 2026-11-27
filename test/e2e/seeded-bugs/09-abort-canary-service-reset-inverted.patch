@@ -1,0 +1,13 @@
+diff --git a/rollout/service.go b/rollout/service.go
+index 070d9398..8491714d 100644
+--- a/rollout/service.go
++++ b/rollout/service.go
+@@ -261,7 +261,7 @@ func (c *rolloutContext) reconcileStableAndCanaryService() error {
+ 		return err
+ 	}
+ 
+-	if c.pauseContext != nil && c.pauseContext.IsAborted() && c.rollout.Spec.Strategy.Canary.TrafficRouting == nil {
++	if c.pauseContext != nil && c.pauseContext.IsAborted() && c.rollout.Spec.Strategy.Canary.TrafficRouting != nil {
+ 		err = c.ensureSVCTargets(c.rollout.Spec.Strategy.Canary.CanaryService, c.stableRS, true)
+ 		if err != nil {
+ 			return err

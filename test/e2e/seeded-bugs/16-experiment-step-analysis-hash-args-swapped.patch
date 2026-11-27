@@ -1,0 +1,13 @@
+diff --git a/rollout/experiment.go b/rollout/experiment.go
+index 0cfaf845..1e688f84 100644
+--- a/rollout/experiment.go
++++ b/rollout/experiment.go
+@@ -119,7 +119,7 @@ func GetExperimentFromTemplate(r *v1alpha1.Rollout, stableRS, newRS *appsv1.Repl
+ 	}
+ 	for i := range step.Analyses {
+ 		analysis := step.Analyses[i]
+-		args, err := analysisutil.BuildArgumentsForRolloutAnalysisRun(analysis.Args, stableRS, newRS, r)
++		args, err := analysisutil.BuildArgumentsForRolloutAnalysisRun(analysis.Args, newRS, stableRS, r)
+ 		if err != nil {
+ 			return nil, err
+ 		}

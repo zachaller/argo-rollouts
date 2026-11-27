@@ -1,0 +1,13 @@
+diff --git a/rollout/analysis.go b/rollout/analysis.go
+index 3aa39a11..b9cb0711 100644
+--- a/rollout/analysis.go
++++ b/rollout/analysis.go
+@@ -434,7 +434,7 @@ func (c *rolloutContext) reconcileStepBasedAnalysisRun() (*v1alpha1.AnalysisRun,
+ 	switch currentAr.Status.Phase {
+ 	case v1alpha1.AnalysisPhaseInconclusive:
+ 		c.pauseContext.AddPauseCondition(v1alpha1.PauseReasonInconclusiveAnalysis)
+-	case v1alpha1.AnalysisPhaseError, v1alpha1.AnalysisPhaseFailed:
++	case v1alpha1.AnalysisPhaseError:
+ 		message := "Step-based analysis phase error/failed"
+ 		if currentAr.Status.Message != "" {
+ 			message += ": " + currentAr.Status.Message

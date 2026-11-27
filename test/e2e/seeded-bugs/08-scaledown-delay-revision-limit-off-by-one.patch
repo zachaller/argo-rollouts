@@ -1,0 +1,13 @@
+diff --git a/rollout/replicaset.go b/rollout/replicaset.go
+index d07acae9..40d65b59 100644
+--- a/rollout/replicaset.go
++++ b/rollout/replicaset.go
+@@ -362,7 +362,7 @@ func (c *rolloutContext) scaleDownDelayHelper(rs *appsv1.ReplicaSet, annotatione
+ 		}
+ 	} else if replicasetutil.HasScaleDownDeadline(rs) {
+ 		annotationedRSs++
+-		if annotationedRSs > scaleDownRevisionLimit {
++		if annotationedRSs >= scaleDownRevisionLimit {
+ 			c.log.Infof("At ScaleDownDelayRevisionLimit (%d) and scaling down the rest", scaleDownRevisionLimit)
+ 		} else {
+ 			remainingTime, err := replicasetutil.GetTimeRemainingBeforeScaleDownDeadline(rs)

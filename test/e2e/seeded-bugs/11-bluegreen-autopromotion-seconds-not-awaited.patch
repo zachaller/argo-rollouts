@@ -1,0 +1,13 @@
+diff --git a/rollout/pause.go b/rollout/pause.go
+index e5f87997..15b7b613 100644
+--- a/rollout/pause.go
++++ b/rollout/pause.go
+@@ -181,7 +181,7 @@ func (pCtx *pauseContext) CompletedBlueGreenPause() bool {
+ 			return true
+ 		} else if pauseCond != nil {
+ 			switchDeadline := pauseCond.StartTime.Add(time.Duration(autoPromotionSeconds) * time.Second)
+-			return timeutil.MetaNow().After(switchDeadline)
++			return switchDeadline.After(timeutil.MetaNow().Time)
+ 		}
+ 		// we never paused the rollout
+ 		return false

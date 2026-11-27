@@ -1,0 +1,13 @@
+diff --git a/rollout/analysis.go b/rollout/analysis.go
+index 3aa39a11..90580f5c 100644
+--- a/rollout/analysis.go
++++ b/rollout/analysis.go
+@@ -374,8 +374,6 @@ func (c *rolloutContext) reconcileBackgroundAnalysisRun() (*v1alpha1.AnalysisRun
+ 		return currentAr, err
+ 	}
+ 	switch currentAr.Status.Phase {
+-	case v1alpha1.AnalysisPhaseInconclusive:
+-		c.pauseContext.AddPauseCondition(v1alpha1.PauseReasonInconclusiveAnalysis)
+ 	case v1alpha1.AnalysisPhaseError, v1alpha1.AnalysisPhaseFailed:
+ 		message := "Background analysis phase error/failed"
+ 		if currentAr.Status.Message != "" {

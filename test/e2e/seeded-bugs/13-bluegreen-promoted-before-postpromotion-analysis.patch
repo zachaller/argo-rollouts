@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..dd7a0182 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -1306,7 +1306,7 @@ func (c *rolloutContext) shouldFullPromote(newStatus v1alpha1.RolloutStatus) str
+ 		}
+ 		if c.rollout.Spec.Strategy.BlueGreen.PostPromotionAnalysis != nil {
+ 			currentPostPromotionAnalysisRun := c.currentArs.BlueGreenPostPromotion
+-			if currentPostPromotionAnalysisRun == nil || currentPostPromotionAnalysisRun.Status.Phase != v1alpha1.AnalysisPhaseSuccessful {
++			if currentPostPromotionAnalysisRun != nil && currentPostPromotionAnalysisRun.Status.Phase != v1alpha1.AnalysisPhaseSuccessful {
+ 				// we have yet to start post-promotion analysis or post-promotion was not successful
+ 				return ""
+ 			}

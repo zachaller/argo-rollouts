@@ -1,0 +1,12 @@
+diff --git a/rollout/restart.go b/rollout/restart.go
+index 9639b9e3..2582aa71 100644
+--- a/rollout/restart.go
++++ b/rollout/restart.go
+@@ -122,7 +122,6 @@ func (p *RolloutPodRestarter) Reconcile(roCtx *rolloutContext) (int, error) {
+ 			}
+ 			return restarted, err
+ 		}
+-		canRestart -= 1
+ 		restarted += 1
+ 	}
+ 	remaining := needsRestart - restarted

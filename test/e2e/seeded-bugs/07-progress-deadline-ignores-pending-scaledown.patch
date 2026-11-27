@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..d8da231e 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -941,7 +941,7 @@ func (c *rolloutContext) calculateRolloutConditions(newStatus *v1alpha1.RolloutS
+ 				conditions.RemoveRolloutCondition(newStatus, v1alpha1.RolloutProgressing)
+ 			}
+ 			conditions.SetRolloutCondition(newStatus, *condition)
+-		case !isIndefiniteStep(c.rollout) && !isWaitingForReplicaSetScaleDown(c.rollout, c.newRS, c.stableRS, c.allRSs) && conditions.RolloutTimedOut(c.rollout, newStatus):
++		case !isIndefiniteStep(c.rollout) && conditions.RolloutTimedOut(c.rollout, newStatus):
+ 
+ 			// Update the rollout with a timeout condition. If the condition already exists,
+ 			// we ignore this update.

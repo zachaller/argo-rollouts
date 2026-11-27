@@ -1,0 +1,13 @@
+diff --git a/rollout/replicaset.go b/rollout/replicaset.go
+index d07acae9..24271ef4 100644
+--- a/rollout/replicaset.go
++++ b/rollout/replicaset.go
+@@ -198,7 +198,7 @@ func (c *rolloutContext) reconcileNewReplicaSet() (bool, error) {
+ 			// With dynamicStableScale this holds once the abort weight has stepped down to
+ 			// zero (see GetDesiredCanaryWeight). >= tolerates stable transiently exceeding
+ 			// spec.Replicas (e.g. HPA scale-in).
+-			if c.stableRS.Status.AvailableReplicas >= *c.rollout.Spec.Replicas {
++			if c.stableRS.Status.AvailableReplicas < *c.rollout.Spec.Replicas {
+ 				err = c.addScaleDownDelay(c.newRS, *abortScaleDownDelaySeconds)
+ 				if err != nil {
+ 					return false, err

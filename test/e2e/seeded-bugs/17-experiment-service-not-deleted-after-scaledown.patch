@@ -1,0 +1,13 @@
+diff --git a/experiments/experiment.go b/experiments/experiment.go
+index 330b99c9..421bb5c0 100644
+--- a/experiments/experiment.go
++++ b/experiments/experiment.go
+@@ -140,7 +140,7 @@ func (ec *experimentContext) reconcileTemplate(template v1alpha1.TemplateSpec) {
+ 			} else {
+ 				if rs.Status.AvailableReplicas == 0 {
+ 					// Check if service should be deleted when ReplicaSet has scaled down to 0 available replicas
+-					svc := ec.templateServices[template.Name]
++					svc := ec.templateServices[rs.Name]
+ 					ec.deleteTemplateService(svc, templateStatus, template.Name)
+ 				}
+ 			}

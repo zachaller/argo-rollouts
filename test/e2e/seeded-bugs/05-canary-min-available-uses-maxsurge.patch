@@ -1,0 +1,13 @@
+diff --git a/utils/replicaset/canary.go b/utils/replicaset/canary.go
+index b486ece5..252dee98 100644
+--- a/utils/replicaset/canary.go
++++ b/utils/replicaset/canary.go
+@@ -185,7 +185,7 @@ func CalculateReplicaCountsForBasicCanary(rollout *v1alpha1.Rollout, newRS *apps
+ 		return newRSReplicaCount, stableRSReplicaCount
+ 	}
+ 
+-	minAvailableReplicaCount := rolloutSpecReplica - MaxUnavailable(rollout)
++	minAvailableReplicaCount := rolloutSpecReplica - maxSurge
+ 
+ 	// isIncreasing indicates if we are supposed to be increasing our canary replica count.
+ 	// If so, we can ignore pod availability of the stableRS. Otherwise, if we are reducing our

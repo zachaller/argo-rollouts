@@ -1,0 +1,13 @@
+diff --git a/rollout/sync.go b/rollout/sync.go
+index dcbf506a..a16007f1 100644
+--- a/rollout/sync.go
++++ b/rollout/sync.go
+@@ -1234,7 +1234,7 @@ func (c *rolloutContext) isRollbackWithinWindow() bool {
+ 					windowSize = windowSize + 1
+ 				}
+ 			}
+-			if windowSize < c.rollout.Spec.RollbackWindow.Revisions {
++			if windowSize <= c.rollout.Spec.RollbackWindow.Revisions {
+ 				c.log.Infof("Rollback within the window: %d (%v)", windowSize, c.rollout.Spec.RollbackWindow.Revisions)
+ 				return true
+ 			}

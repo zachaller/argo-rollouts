@@ -1,0 +1,13 @@
+diff --git a/rollout/service.go b/rollout/service.go
+index 070d9398..e62c4e7b 100644
+--- a/rollout/service.go
++++ b/rollout/service.go
+@@ -110,7 +110,7 @@ func (c *rolloutContext) reconcileActiveService(activeSvc *corev1.Service) error
+ 	}
+ 
+ 	if c.rollout.Status.Abort {
+-		newPodHash = c.rollout.Status.StableRS
++		newPodHash = c.rollout.Status.CurrentPodHash
+ 	}
+ 
+ 	err := c.switchServiceSelector(activeSvc, newPodHash, c.rollout)
