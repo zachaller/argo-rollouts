@@ -658,9 +658,9 @@ func (c *Common) GetApisixRoute() *unstructured.Unstructured {
 
 func (c *Common) GetApisixSetHeaderRoute() *unstructured.Unstructured {
 	ctx := context.TODO()
-	rollout, err := c.rolloutClient.ArgoprojV1alpha1().Rollouts(c.Rollout().GetNamespace()).Get(ctx, c.Rollout().GetName(), metav1.GetOptions{})
+	rollout, err := c.rolloutClient.ArgoprojV1alpha1().Rollouts(c.namespace).Get(ctx, c.Rollout().GetName(), metav1.GetOptions{})
 	c.CheckError(err)
-	dyClient := a6util.NewDynamicClient(c.dynamicClient, c.Rollout().GetNamespace())
+	dyClient := a6util.NewDynamicClient(c.dynamicClient, c.namespace)
 	index := *rollout.Status.CurrentStepIndex
 	if step := rollout.Spec.Strategy.Canary.Steps[index]; step.SetHeaderRoute != nil {
 		name := step.SetHeaderRoute.Name
