@@ -58,7 +58,6 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: rollout-apisix-canary
-  namespace: default
 spec:
   replicas: 1
   strategy:
