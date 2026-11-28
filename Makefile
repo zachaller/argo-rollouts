@@ -287,7 +287,7 @@ start-e2e: ## start e2e test environment
 
 .PHONY: test-e2e
 test-e2e: install-devtools-local
-	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 --tags e2e -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -v --short ./test/e2e ${E2E_TEST_OPTIONS}
+	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 --tags e2e -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_TEST_OPTIONS}
 
 .PHONY: test-unit
  test-unit: install-devtools-local ## run unit tests
