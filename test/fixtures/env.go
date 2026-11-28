@@ -79,7 +79,7 @@ func New(t *testing.T, opts ...Option) *Test {
 
 	logger := log.New()
 	logger.SetOutput(t.Output())
-	logger.SetLevel(log.StandardLogger().GetLevel())
+	logger.SetLevel(testLogLevel)
 	logger.SetFormatter(log.StandardLogger().Formatter)
 
 	e := &Test{
@@ -144,6 +144,9 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 	if err != nil {
 		t.Fatalf("e2e setup: creating namespace: %v", err)
 	}
+	if inProcess != nil {
+		inProcess.captureLog(ns.Name)
+	}
 
 	// Pods are rejected until the namespace has its default ServiceAccount.
 	err = wait.PollUntilContextCancel(ctx, 100*time.Millisecond, true, func(ctx context.Context) (bool, error) {
@@ -163,6 +166,11 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 // writes to the test's own output, so the dump stays with the test that
 // failed when tests run in parallel.
 func (e *Test) dumpOnFailure() {
+	// Taken whether the test failed or not, so that the lines are not kept.
+	var controllerLog []string
+	if inProcess != nil {
+		controllerLog = inProcess.capturedLog(e.namespace)
+	}
 	if !e.t.Failed() {
 		return
 	}
@@ -193,6 +201,13 @@ func (e *Test) dumpOnFailure() {
 			c.PrintExperiment(ex.Name)
 			c.PrintExperimentYAML(&ex)
 			c.PrintExperimentEvents(&ex)
+		}
+	}
+	if inProcess != nil {
+		fmt.Fprintf(out, "\nController log for %s: the last %d lines at info level and above (all of it is in %s)\n",
+			e.namespace, len(controllerLog), inProcess.logPath)
+		for _, line := range controllerLog {
+			fmt.Fprintln(out, line)
 		}
 	}
 	fmt.Fprintf(out, "=== END %s\n\n", e.t.Name())

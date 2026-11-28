@@ -70,14 +70,22 @@ func init() {
 
 var klogLevelOnce sync.Once
 
-// setKLogLevelFromEnv applies E2E_KLOG_LEVEL once per process. SetKLogLevel
-// registers the klog flags, which panics if it is done a second time.
+// setKLogLevel sets the klog level, once per process: a later call changes
+// nothing. SetKLogLevel registers the klog flags, which panics if it is done a
+// second time.
+func setKLogLevel(level int) {
+	klogLevelOnce.Do(func() { logutil.SetKLogLevel(level) })
+}
+
+// klogLevelFromEnv returns the level E2E_KLOG_LEVEL asks for, if it does.
+func klogLevelFromEnv() (int, bool) {
+	level, err := strconv.ParseInt(os.Getenv(EnvVarE2EKLogLevel), 10, 32)
+	return int(level), err == nil
+}
+
+// setKLogLevelFromEnv applies E2E_KLOG_LEVEL.
 func setKLogLevelFromEnv() {
-	klogLevelOnce.Do(func() {
-		if level := os.Getenv(EnvVarE2EKLogLevel); level != "" {
-			if v, err := strconv.ParseInt(level, 10, 32); err == nil {
-				logutil.SetKLogLevel(int(v))
-			}
-		}
-	})
+	if level, ok := klogLevelFromEnv(); ok {
+		setKLogLevel(level)
+	}
 }
