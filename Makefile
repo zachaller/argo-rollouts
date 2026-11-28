@@ -33,12 +33,13 @@ E2E_WAIT_TIMEOUT ?= 90
 E2E_RERUN_FAILS ?= 2
 # Extra flags for the controller started by start-e2e
 E2E_CONTROLLER_FLAGS ?=
-# E2E_CONTROLLER=inprocess (read by the tests themselves) makes the e2e test
-# binary run the controller, instead of the one started by start-e2e.
+# The e2e test binary runs the controller itself. E2E_CONTROLLER=external (read
+# by the tests) makes it use a controller started by start-e2e instead, and
+# E2E_CONTROLLER=off none at all.
 #
 # E2E_COVERAGE=true makes the e2e test binary record the coverage of the
-# controller's packages in coverage-output-e2e. It is for
-# E2E_CONTROLLER=inprocess: a controller started by start-e2e records its own.
+# controller's packages in coverage-output-e2e. It is for the controller in
+# the test binary: one started by start-e2e records its own.
 E2E_COVERAGE ?= false
 E2E_BUILD_FLAGS = --tags e2e
 E2E_COVERAGE_RUN_FLAGS =

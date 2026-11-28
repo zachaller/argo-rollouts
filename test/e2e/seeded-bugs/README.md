@@ -18,8 +18,7 @@ one locally:
 
 ```
 git apply test/e2e/seeded-bugs/02-setcanaryscale-replicas-ignored.patch
-make start-e2e          # in one terminal
-make test-e2e           # in another
+make test-e2e           # builds the patched controller into the test binary
 git apply -R test/e2e/seeded-bugs/02-setcanaryscale-replicas-ignored.patch
 ```
 

@@ -5,8 +5,8 @@
 #
 # Environment (all optional):
 #   E2E_REPEAT       number of runs                                   (default 1)
-#   E2E_CONTROLLER   "on": a controller was started separately        (default)
-#                    "inprocess": the test binary runs the controller
+#   E2E_CONTROLLER   "inprocess": the test binary runs the controller  (default)
+#                    "external": a controller was started separately
 #                    "off": there is no controller, on purpose
 #   plus everything `make test-e2e` reads: E2E_PARALLEL, E2E_TEST_OPTIONS,
 #   E2E_RERUN_FAILS, E2E_WAIT_TIMEOUT, E2E_COVERAGE.
@@ -27,7 +27,7 @@ make build-e2e || exit 1
 # as a separately started controller is gone. A controller inside the test
 # binary cannot go without the tests.
 watchdog=
-if [ "${E2E_CONTROLLER:-on}" = "on" ]; then
+if [ "${E2E_CONTROLLER:-inprocess}" = "external" ]; then
 	(
 		while pgrep -f "$controller_pattern" >/dev/null; do sleep 5; done
 		touch "$controller_died"

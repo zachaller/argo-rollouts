@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Prints the job matrix of the e2e job in .github/workflows/testing.yaml as one
-# line of JSON: a list of {version, k3s_version, latest, parallel, job, bug, label}.
+# line of JSON: a list of {version, k3s_version, latest, controller, parallel,
+# job, bug, label}.
 #
 # Environment:
-#   VERSIONS    JSON list of {version, k3s_version, latest}                (required)
+#   VERSIONS    JSON list of {version, k3s_version, latest} and, optionally,
+#               controller: where the controller runs for that version,
+#               "inprocess" (the default) or "external"                   (required)
 #   KUBERNETES  "all" or "latest": which of those versions to run          (default all)
+#   CONTROLLER  "inprocess", "external" or "off" for every job, instead of
+#               what VERSIONS says                                         (default: unset)
 #   PARALLEL    go test -parallel value; a comma-separated list runs one
 #               configuration per value                                    (default 8)
 #   JOBS        identical jobs per configuration, to collect more samples  (default 1)
@@ -22,6 +27,14 @@ DEFAULT_PARALLEL=8
 PARALLEL="${PARALLEL:-$DEFAULT_PARALLEL}"
 JOBS="${JOBS:-1}"
 BUGS="${BUGS:-none}"
+CONTROLLER="${CONTROLLER:-}"
+case "$CONTROLLER" in
+"" | inprocess | external | off) ;;
+*)
+	echo "CONTROLLER is $CONTROLLER: it is inprocess, external or off" >&2
+	exit 1
+	;;
+esac
 BUGS_DIR="${BUGS_DIR:-$(dirname "$0")/../test/e2e/seeded-bugs}"
 
 case "$BUGS" in
@@ -49,6 +62,7 @@ esac
 jq -cn \
 	--argjson versions "$VERSIONS" \
 	--arg kubernetes "$KUBERNETES" \
+	--arg controller "$CONTROLLER" \
 	--arg parallel "$PARALLEL" \
 	--arg default_parallel "$DEFAULT_PARALLEL" \
 	--argjson jobs "$JOBS" \
@@ -58,6 +72,7 @@ jq -cn \
 	| [
 		$vs[] as $v | $ps[] as $p | range(1; $jobs + 1) as $j | $bugs[] as $b
 		| $v + {
+			controller: (if $controller != "" then $controller else ($v.controller // "inprocess") end),
 			parallel: $p,
 			job: $j,
 			bug: $b,

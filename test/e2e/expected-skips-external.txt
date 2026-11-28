@@ -1,0 +1,6 @@
+# Tests that skip, in addition to those in expected-skips.txt, when the
+# controller is a process of its own (E2E_CONTROLLER=external or off). They make
+# the controller's API calls fail or look at what it writes, which needs the
+# controller inside the test binary.
+TestIstioDestinationRuleCleanupConflict
+TestHealthyRolloutControllerQuiet

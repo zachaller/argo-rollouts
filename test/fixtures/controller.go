@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	// E2E_CONTROLLER says where the controller under test runs: "on" (the
-	// default) means a controller that was started separately, for example
-	// with `make start-e2e`; "inprocess" makes the test binary run it; "off"
+	// E2E_CONTROLLER says where the controller under test runs. "inprocess",
+	// the default, makes the test binary run it. "external" means a
+	// controller that was started separately, with `make start-e2e`. "off"
 	// means there is none, on purpose.
 	EnvVarE2EController = "E2E_CONTROLLER"
 	// E2E_CONTROLLER_LOG is the file an in-process controller appends its log
@@ -33,6 +33,8 @@ const (
 	EnvVarE2EControllerLog = "E2E_CONTROLLER_LOG"
 
 	controllerInProcess = "inprocess"
+	controllerExternal  = "external"
+	controllerOff       = "off"
 	// controllerStartedMessage is what the manager logs once its caches are
 	// synced and its workers are running.
 	controllerStartedMessage = "Started controller"
@@ -54,10 +56,18 @@ var testLogLevel = log.GetLevel()
 // inProcess is the controller running in this process, if any.
 var inProcess *InProcessController
 
-// ControllerInProcess reports whether E2E_CONTROLLER asks the test binary to
-// run the controller itself.
-func ControllerInProcess() bool {
-	return os.Getenv(EnvVarE2EController) == controllerInProcess
+// ControllerInProcess reports whether the test binary is to run the
+// controller itself, which it does unless E2E_CONTROLLER says otherwise. A
+// value it does not know is an error.
+func ControllerInProcess() (bool, error) {
+	switch mode := os.Getenv(EnvVarE2EController); mode {
+	case "", controllerInProcess:
+		return true, nil
+	case controllerExternal, controllerOff:
+		return false, nil
+	default:
+		return false, fmt.Errorf("%s=%q: it is %q, %q or %q", EnvVarE2EController, mode, controllerInProcess, controllerExternal, controllerOff)
+	}
 }
 
 // InProcessController is an Argo Rollouts controller running inside the test
@@ -120,8 +130,8 @@ func StartController() (*InProcessController, error) {
 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", port), time.Second)
 		if err == nil {
 			conn.Close()
-			return nil, fmt.Errorf("port %d is in use: is a controller running already? %s=%s starts its own",
-				port, EnvVarE2EController, controllerInProcess)
+			return nil, fmt.Errorf("port %d is in use: is a controller running already? The tests start their own unless %s=%s",
+				port, EnvVarE2EController, controllerExternal)
 		}
 	}
 

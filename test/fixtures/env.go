@@ -333,14 +333,15 @@ func labelValue(name string) string {
 }
 
 // RequireInProcessController skips the test unless the controller runs inside
-// the test binary (E2E_CONTROLLER=inprocess). A test that injects faults into
-// the controller's API calls, or looks at what it writes, cannot run against a
-// controller that is a process of its own. Call it before New, so that a test
-// that is skipped does not create a namespace first.
+// the test binary, which is the default. A test that injects faults into the
+// controller's API calls, or looks at what it writes, cannot run against a
+// controller that is a process of its own (E2E_CONTROLLER=external). Call it
+// before New, so that a test that is skipped does not create a namespace
+// first.
 func RequireInProcessController(t *testing.T) {
 	t.Helper()
 	if inProcess == nil {
-		t.Skipf("needs the controller inside the test binary: set %s=%s", EnvVarE2EController, controllerInProcess)
+		t.Skipf("needs the controller inside the test binary, and %s=%s", EnvVarE2EController, os.Getenv(EnvVarE2EController))
 	}
 }
 

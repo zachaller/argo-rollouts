@@ -380,7 +380,7 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 func cmdSkips(w io.Writer, args []string) (bool, error) {
 	fs := flag.NewFlagSet("skips", flag.ExitOnError)
 	junitFile := fs.String("junit", "", "JUnit file of the run to check (required)")
-	skipsFile := fs.String("expected-skips", "test/e2e/expected-skips.txt", "glob patterns of tests that are allowed to skip")
+	skipsFiles := fs.String("expected-skips", "test/e2e/expected-skips.txt", "files of glob patterns of tests that are allowed to skip, separated by commas")
 	_ = fs.Parse(args)
 	if *junitFile == "" {
 		return false, fmt.Errorf("-junit is required")
@@ -389,9 +389,13 @@ func cmdSkips(w io.Writer, args []string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	expected, err := loadPatterns(*skipsFile)
-	if err != nil {
-		return false, err
+	var expected []string
+	for _, file := range strings.Split(*skipsFiles, ",") {
+		patterns, err := loadPatterns(strings.TrimSpace(file))
+		if err != nil {
+			return false, err
+		}
+		expected = append(expected, patterns...)
 	}
 	unexpected, unused := checkSkips(results, expected)
 	skipped := 0

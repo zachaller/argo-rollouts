@@ -19,23 +19,29 @@ func TestMain(m *testing.M) {
 }
 
 func run(m *testing.M) int {
+	inProcess, err := fixtures.ControllerInProcess()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "e2e setup: %v\n", err)
+		return 1
+	}
+
 	// Namespaces of tests that did not get to clean up (a crash, a timeout, or
 	// E2E_DEBUG=true) would keep their rollouts reconciling during this run.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	err := fixtures.SweepTestNamespaces(ctx)
+	err = fixtures.SweepTestNamespaces(ctx)
 	cancel()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "e2e setup: sweeping stale test namespaces: %v\n", err)
 		return 1
 	}
-	if !fixtures.ControllerInProcess() {
+	if !inProcess {
 		return m.Run()
 	}
 
-	// E2E_CONTROLLER=inprocess: this process runs the controller as well. The
-	// controller looks for its plugins relative to the working directory, as
-	// `make start-e2e` does from the repository root; the tests read their
-	// manifests relative to this directory.
+	// This process runs the controller as well. The controller looks for its
+	// plugins relative to the working directory, as `make start-e2e` does
+	// from the repository root; the tests read their manifests relative to
+	// this directory.
 	testDir, err := os.Getwd()
 	if err == nil {
 		fixtures.SetManifestRoot(testDir)

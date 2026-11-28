@@ -24,9 +24,3 @@ TestCanaryAbortSwitchesCanaryServiceOnce
 # Deployment; see
 # test/migration-reports/fix-plans/workloadref-scaledown-conflict-ignored.md.
 TestScaleDownOnSuccessUpdateConflict
-
-# Need the controller inside the test binary (E2E_CONTROLLER=inprocess) and
-# skip themselves when it is a process of its own, which is still the default.
-# Remove these entries when CI runs the controller in the test binary.
-TestIstioDestinationRuleCleanupConflict
-TestHealthyRolloutControllerQuiet
