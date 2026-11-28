@@ -25,7 +25,8 @@ DEV_IMAGE ?= false
 E2E_K8S_CONTEXT ?= rancher-desktop
 E2E_INSTANCE_ID ?= argo-rollouts-e2e
 E2E_TEST_OPTIONS ?=
-E2E_PARALLEL ?= 1
+# How many e2e tests run at the same time. Each test has its own namespace.
+E2E_PARALLEL ?= 8
 E2E_WAIT_TIMEOUT ?= 90
 # How many times gotestsum reruns a failed e2e test. 0 turns reruns off, which
 # is what you want when measuring how flaky the tests are.

@@ -45,7 +45,7 @@ for i in $(seq 1 "$repeat"); do
 		result=fail
 		status=1
 	fi
-	echo "run $i of $repeat: $result in $(($(date +%s) - start))s (parallel ${E2E_PARALLEL:-1})" | tee -a e2e-timings.txt
+	echo "run $i of $repeat: $result in $(($(date +%s) - start))s (parallel ${E2E_PARALLEL:-8})" | tee -a e2e-timings.txt
 	[ -f junit-e2e-test.xml ] && cp junit-e2e-test.xml "junit-e2e-run-$i.xml"
 	if [ -e "$controller_died" ]; then
 		echo "controller exited; skipping the remaining runs" | tee -a e2e-timings.txt

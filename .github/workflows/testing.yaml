@@ -16,7 +16,7 @@ on:
     inputs:
       e2e_parallel:
         description: 'go test -parallel for the e2e tests. A comma-separated list runs one configuration per value.'
-        default: '1'
+        default: '8'
       e2e_test_options:
         description: 'Extra go test flags for the e2e tests, for example: -skip Suite'
         default: ''
@@ -209,7 +209,7 @@ jobs:
               {"version": "1.37", "k3s_version": "1.37.0+k3s1", "latest": true}
             ]
           KUBERNETES: ${{ inputs.e2e_kubernetes || 'all' }}
-          PARALLEL: ${{ inputs.e2e_parallel || '1' }}
+          PARALLEL: ${{ inputs.e2e_parallel || '8' }}
           JOBS: ${{ inputs.e2e_jobs || '1' }}
           BUGS: ${{ inputs.e2e_seeded_bugs || 'none' }}
         run: echo "matrix=$(./hack/e2e-matrix.sh)" >> "$GITHUB_OUTPUT"

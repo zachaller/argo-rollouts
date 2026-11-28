@@ -6,7 +6,7 @@
 #   VERSIONS    JSON list of {version, k3s_version, latest}                (required)
 #   KUBERNETES  "all" or "latest": which of those versions to run          (default all)
 #   PARALLEL    go test -parallel value; a comma-separated list runs one
-#               configuration per value                                    (default 1)
+#               configuration per value                                    (default 8)
 #   JOBS        identical jobs per configuration, to collect more samples  (default 1)
 #   BUGS        "none", "all", or a comma-separated list of patch names
 #               (without .patch) under test/e2e/seeded-bugs                (default none)
@@ -17,7 +17,9 @@ set -euo pipefail
 
 : "${VERSIONS:?VERSIONS is required}"
 KUBERNETES="${KUBERNETES:-all}"
-PARALLEL="${PARALLEL:-1}"
+# The parallelism of an ordinary run. Keep it equal to E2E_PARALLEL in the Makefile.
+DEFAULT_PARALLEL=8
+PARALLEL="${PARALLEL:-$DEFAULT_PARALLEL}"
 JOBS="${JOBS:-1}"
 BUGS="${BUGS:-none}"
 BUGS_DIR="${BUGS_DIR:-$(dirname "$0")/../test/e2e/seeded-bugs}"
@@ -48,6 +50,7 @@ jq -cn \
 	--argjson versions "$VERSIONS" \
 	--arg kubernetes "$KUBERNETES" \
 	--arg parallel "$PARALLEL" \
+	--arg default_parallel "$DEFAULT_PARALLEL" \
 	--argjson jobs "$JOBS" \
 	--argjson bugs "$bugs" '
 	[$versions[] | select($kubernetes == "all" or .latest)] as $vs
@@ -59,7 +62,7 @@ jq -cn \
 			job: $j,
 			bug: $b,
 			label: (
-				(if ($ps | length) > 1 or $p != "1" then ", parallel \($p)" else "" end)
+				(if ($ps | length) > 1 or $p != $default_parallel then ", parallel \($p)" else "" end)
 				+ (if $jobs > 1 then ", job \($j)" else "" end)
 				+ (if $b != "" then ", bug \($b)" else "" end)
 			)

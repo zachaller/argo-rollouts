@@ -122,7 +122,8 @@ make test-e2e
 ```
 
 Every test creates a namespace named `e2e-<test name>-<random suffix>`, works only in it, and deletes
-it when it is done. `E2E_PARALLEL` is the number of tests that run at the same time:
+it when it is done. `E2E_PARALLEL` is the number of tests that run at the same time (8 unless you
+set it):
 
 ```
 make test-e2e E2E_PARALLEL=4
