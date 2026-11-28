@@ -80,23 +80,27 @@ func TestHealthyRolloutControllerQuiet(t *testing.T) {
 		ExpectControllerQuiet(10 * time.Second)
 }
 
-// TestScaleDownOnSuccessUpdateConflict is TestScaleDownOnSuccess with one
-// difference: the controller's first update of the Deployment fails with a
-// conflict, as it does when the Deployment's status is written at the same
-// moment. The controller has to try again.
+// TestScaleDownOnSuccessUpdateConflict is TestScaleDownOnSuccess, except that
+// the controller's updates of the Deployment fail with a conflict for a
+// while, as one does when the Deployment's status is written at the same
+// moment. Once they no longer fail, the controller has to scale the
+// Deployment down.
+//
+// One failed update is not enough to show the defect: when a change event for
+// the Rollout is still waiting, the controller syncs once more and succeeds.
+// So the updates fail until the controller has nothing left to do on its own.
 func TestScaleDownOnSuccessUpdateConflict(t *testing.T) {
 	fixtures.KnownFailure(t, "a blue-green Rollout does not retry a failed scale-down of its workloadRef Deployment: "+
 		"test/migration-reports/fix-plans/workloadref-scaledown-conflict-ignored.md")
 	fixtures.RequireInProcessController(t)
 	s := newFunctionalTest(t)
 
-	conflict := s.FailControllerCalls(fixtures.Fault{
+	conflicts := s.FailControllerCalls(fixtures.Fault{
 		Verb:     "update",
 		Resource: "deployments",
 		Status:   http.StatusConflict,
-		Times:    1,
 	})
-	s.Given().
+	w := s.Given().
 		RolloutObjects(`
 kind: Service
 apiVersion: v1
@@ -146,9 +150,14 @@ spec:
 		When().
 		ApplyManifests().
 		WaitForRolloutStatus("Healthy").
-		Then().
-		ExpectDeploymentReplicasCount("The deployment has been scaled to 0 replicas", "rollout-ref-deployment", 0)
+		WaitFor("the controller to try to scale the Deployment down", func(w *fixtures.When) bool {
+			return conflicts.Hits() > 0
+		}).
+		// What the controller does after this, it does because the scale-down
+		// failed, not because the Rollout gave it something else to do.
+		WaitForControllerQuiet(3 * time.Second)
 
-	// Without the conflict the test would have shown nothing.
-	assert.Equal(t, 1, conflict.Hits())
+	conflicts.Remove()
+	w.Then().
+		ExpectDeploymentReplicasCount("The deployment has been scaled to 0 replicas", "rollout-ref-deployment", 0)
 }

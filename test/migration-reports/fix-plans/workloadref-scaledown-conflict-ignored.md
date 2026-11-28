@@ -136,15 +136,22 @@ Deployment again.
   fails when the conflict happens, 2 of 30 runs. It is not disabled; it passes
   when it is rerun.
 - **Written, disabled:** `TestScaleDownOnSuccessUpdateConflict` in
-  `test/e2e/controller_faults_test.go`. It makes the controller's first
-  `update` of a Deployment in its namespace fail with a conflict and expects
-  the Deployment at zero replicas within a minute. It needs the controller
-  inside the test binary (`E2E_CONTROLLER=inprocess`) and is skipped by
-  default as a known failure. Run it by name:
+  `test/e2e/controller_faults_test.go`. It makes every `update` of a
+  Deployment by the controller fail with a conflict until the controller has
+  nothing left to do on its own, then lets the updates through and expects the
+  Deployment at zero replicas within a minute. It needs the controller inside
+  the test binary, which is the default, and is skipped by default as a known
+  failure. Run it by name:
 
   ```
-  make test-e2e E2E_CONTROLLER=inprocess E2E_TEST_OPTIONS="-run TestScaleDownOnSuccessUpdateConflict"
+  make test-e2e E2E_TEST_OPTIONS="-run TestScaleDownOnSuccessUpdateConflict"
   ```
+
+  A first version failed only the controller's first update. That passed with
+  the defect in place (fork run 46113135454): a change event for the Rollout
+  was still waiting when the update failed, so the controller synced once
+  more, and that sync scaled the Deployment down. The defect shows when the
+  failed update is in the last sync, as in the two failures above.
 
 ## How to validate the fix
 

@@ -841,3 +841,24 @@ func (c *Common) PrintObjectEvents(opts metav1.ListOptions) {
 	w.Flush()
 	fmt.Fprintln(c.printOut(logrus.StandardLogger().Out), buf.String())
 }
+
+// waitForControllerQuiet waits until the in-process controller has made no
+// write to the API server in the test's namespace for the given time, a write
+// that was made to fail included. It fails the test when the controller does
+// not stop writing within E2E_WAIT_TIMEOUT.
+func (c *Common) waitForControllerQuiet(quiet time.Duration) {
+	c.t.Helper()
+	calls := inProcess.calls
+	start := time.Now()
+	for {
+		writes := calls.writesIn(c.namespace)
+		if len(writes) == 0 || time.Since(writes[len(writes)-1].Time) >= quiet {
+			return
+		}
+		if time.Since(start) > E2EWaitTimeout {
+			c.t.Fatalf("the controller did not stop writing in %s within %v. Its writes so far: %s",
+				c.namespace, E2EWaitTimeout, summarizeWrites(calls.writesIn(c.namespace)))
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+}

@@ -570,21 +570,9 @@ const controllerSettleTime = 2 * time.Second
 func (t *Then) ExpectControllerQuiet(d time.Duration) *Then {
 	t.t.Helper()
 	RequireInProcessController(t.t)
+	t.waitForControllerQuiet(controllerSettleTime)
+
 	calls := inProcess.calls
-
-	start := time.Now()
-	for {
-		writes := calls.writesIn(t.namespace)
-		if len(writes) == 0 || time.Since(writes[len(writes)-1].Time) >= controllerSettleTime {
-			break
-		}
-		if time.Since(start) > E2EWaitTimeout {
-			t.t.Fatalf("the controller did not stop writing in %s within %v. Its writes so far: %s",
-				t.namespace, E2EWaitTimeout, summarizeWrites(writes))
-		}
-		time.Sleep(200 * time.Millisecond)
-	}
-
 	before := len(calls.writesIn(t.namespace))
 	t.log.Infof("Expecting no writes by the controller for %v", d)
 	time.Sleep(d)

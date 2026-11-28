@@ -642,6 +642,20 @@ func (w *When) WaitFor(what string, condition func(w *When) bool) *When {
 	}
 }
 
+// WaitForControllerQuiet waits until the controller has made no write to the
+// API server in the test's namespace for the given time: until it is done with
+// what it has to do, for now. A write that a fault made fail counts as a
+// write. It fails the test when that does not happen within E2E_WAIT_TIMEOUT.
+//
+// It needs the controller inside the test binary and skips the test without.
+func (w *When) WaitForControllerQuiet(quiet time.Duration) *When {
+	w.t.Helper()
+	RequireInProcessController(w.t)
+	w.log.Infof("Waiting for the controller to make no write for %v", quiet)
+	w.waitForControllerQuiet(quiet)
+	return w
+}
+
 func (w *When) DeleteRollout() *When {
 	w.log.Info("Deleting")
 	err := w.rolloutClient.ArgoprojV1alpha1().Rollouts(w.namespace).Delete(w.Context, w.rollout.GetName(), metav1.DeleteOptions{})
