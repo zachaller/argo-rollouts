@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/argoproj/argo-rollouts/experiments"
@@ -552,5 +553,50 @@ func (t *Then) ExpectDeploymentReplicasCount(expectation string, deploymentName 
 		t.t.FailNow()
 	}
 
+	return t
+}
+
+// controllerSettleTime is how long the controller has to go without a write
+// before ExpectControllerQuiet starts to count.
+const controllerSettleTime = 2 * time.Second
+
+// ExpectControllerQuiet fails the test if the controller writes anything to
+// the API server in the test's namespace for the given time. Before the time
+// starts, it lets the controller finish what it is doing: it waits until the
+// controller has made no write for two seconds, and fails the test if that
+// does not happen within E2E_WAIT_TIMEOUT.
+//
+// It needs the controller inside the test binary and skips the test without.
+func (t *Then) ExpectControllerQuiet(d time.Duration) *Then {
+	t.t.Helper()
+	RequireInProcessController(t.t)
+	calls := inProcess.calls
+
+	start := time.Now()
+	for {
+		writes := calls.writesIn(t.namespace)
+		if len(writes) == 0 || time.Since(writes[len(writes)-1].Time) >= controllerSettleTime {
+			break
+		}
+		if time.Since(start) > E2EWaitTimeout {
+			t.t.Fatalf("the controller did not stop writing in %s within %v. Its writes so far: %s",
+				t.namespace, E2EWaitTimeout, summarizeWrites(writes))
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	before := len(calls.writesIn(t.namespace))
+	t.log.Infof("Expecting no writes by the controller for %v", d)
+	time.Sleep(d)
+	writes := calls.writesIn(t.namespace)[before:]
+	if len(writes) > 0 {
+		lines := make([]string, 0, len(writes))
+		for _, w := range writes {
+			lines = append(lines, w.String())
+		}
+		t.t.Fatalf("the controller made %d writes in %s although nothing changed:\n%s",
+			len(writes), t.namespace, strings.Join(lines, "\n"))
+	}
+	t.log.Infof("The controller made no writes for %v", d)
 	return t
 }

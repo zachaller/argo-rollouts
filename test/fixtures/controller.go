@@ -69,6 +69,7 @@ type InProcessController struct {
 	logPath    string
 	klogLogger *log.Logger
 	hook       *controllerLogHook
+	calls      *apiCalls
 }
 
 // StartController starts the controller in this process and returns once its
@@ -82,9 +83,10 @@ type InProcessController struct {
 // the caller has to make that the repository root first. Call Stop when the
 // tests are done.
 func StartController() (*InProcessController, error) {
-	// Build the clients of the tests before the klog level is raised. At
-	// level 6 a client logs every request it makes, and the controller log
-	// should have the controller's requests only.
+	// Build the clients of the tests before the klog level is raised for the
+	// controller: from level 6 on, client-go puts request tracing around a
+	// new client. Built first, the tests' clients are the same as when no
+	// controller runs in this process.
 	if _, err := getShared(); err != nil {
 		return nil, err
 	}
@@ -100,6 +102,11 @@ func StartController() (*InProcessController, error) {
 	// The API server names the manager of a field after the user agent. The
 	// default is the name of the test binary, the same as for the tests.
 	restConfig.UserAgent = "rollouts-controller/e2e"
+	// Every request of the controller goes through calls, which records the
+	// writes and lets a test make chosen calls fail. The tests' own clients
+	// do not go through it.
+	calls := newAPICalls()
+	restConfig.Wrap(calls.wrap)
 
 	opts := controller.DefaultOptions()
 	opts.RESTConfig = restConfig
@@ -154,6 +161,7 @@ func StartController() (*InProcessController, error) {
 		logPath:    logPath,
 		klogLogger: klogLogger,
 		hook:       hook,
+		calls:      calls,
 	}
 	go func() { c.done <- manager.RunWithOptions(ctx, opts) }()
 
@@ -214,14 +222,19 @@ func (c *InProcessController) Stop() error {
 	return errors.Join(errs...)
 }
 
-// captureLog starts keeping the controller's log lines about a namespace.
-func (c *InProcessController) captureLog(namespace string) {
+// watchNamespace starts keeping, for the namespace of a test, the controller's
+// log lines about it and the API writes the controller makes in it.
+func (c *InProcessController) watchNamespace(namespace string) {
 	c.hook.capture(namespace)
+	c.calls.watch(namespace)
 }
 
-// capturedLog returns the lines kept for a namespace and stops keeping them.
-func (c *InProcessController) capturedLog(namespace string) []string {
-	return c.hook.release(namespace)
+// releaseNamespace returns what was kept for a namespace and stops keeping
+// it. Faults injected for the namespace end here too.
+func (c *InProcessController) releaseNamespace(namespace string) (logLines []string, writes []APICall) {
+	writes = c.calls.writesIn(namespace)
+	c.calls.forget(namespace)
+	return c.hook.release(namespace), writes
 }
 
 // controllerLogHook sees every entry the controller logs. It tells when the

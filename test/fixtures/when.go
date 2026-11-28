@@ -622,6 +622,26 @@ func (w *When) WaitForRolloutConditionToNotExist(test func(ro *rov1.Rollout) boo
 	}
 }
 
+// WaitFor waits until the condition holds, checking it four times a second,
+// and fails the test when it does not within E2E_WAIT_TIMEOUT. It is for a
+// state that none of the other Wait helpers covers. What is said about the
+// condition goes into the log and into the failure.
+func (w *When) WaitFor(what string, condition func(w *When) bool) *When {
+	w.t.Helper()
+	w.log.Infof("Waiting for: %s", what)
+	start := time.Now()
+	for {
+		if w.guardBool(func() bool { return condition(w) }) {
+			w.log.Infof("'%s' met after %v", what, time.Since(start).Truncate(time.Second))
+			return w
+		}
+		if time.Since(start) > E2EWaitTimeout {
+			w.t.Fatalf("timeout after %v waiting for: %s", E2EWaitTimeout, what)
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+}
+
 func (w *When) DeleteRollout() *When {
 	w.log.Info("Deleting")
 	err := w.rolloutClient.ArgoprojV1alpha1().Rollouts(w.namespace).Delete(w.Context, w.rollout.GetName(), metav1.DeleteOptions{})

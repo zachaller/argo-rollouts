@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -145,7 +146,7 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 		t.Fatalf("e2e setup: creating namespace: %v", err)
 	}
 	if inProcess != nil {
-		inProcess.captureLog(ns.Name)
+		inProcess.watchNamespace(ns.Name)
 	}
 
 	// Pods are rejected until the namespace has its default ServiceAccount.
@@ -166,10 +167,11 @@ func createTestNamespace(t *testing.T, sh *sharedEnv) string {
 // writes to the test's own output, so the dump stays with the test that
 // failed when tests run in parallel.
 func (e *Test) dumpOnFailure() {
-	// Taken whether the test failed or not, so that the lines are not kept.
+	// Taken whether the test failed or not, so that nothing is kept.
 	var controllerLog []string
+	var controllerWrites []APICall
 	if inProcess != nil {
-		controllerLog = inProcess.capturedLog(e.namespace)
+		controllerLog, controllerWrites = inProcess.releaseNamespace(e.namespace)
 	}
 	if !e.t.Failed() {
 		return
@@ -204,6 +206,7 @@ func (e *Test) dumpOnFailure() {
 		}
 	}
 	if inProcess != nil {
+		fmt.Fprintf(out, "\nController writes in %s: %s\n", e.namespace, summarizeWrites(controllerWrites))
 		fmt.Fprintf(out, "\nController log for %s: the last %d lines at info level and above (all of it is in %s)\n",
 			e.namespace, len(controllerLog), inProcess.logPath)
 		for _, line := range controllerLog {
@@ -327,4 +330,69 @@ func labelValue(name string) string {
 		out = out[:63]
 	}
 	return strings.Trim(out, "-_.")
+}
+
+// RequireInProcessController skips the test unless the controller runs inside
+// the test binary (E2E_CONTROLLER=inprocess). A test that injects faults into
+// the controller's API calls, or looks at what it writes, cannot run against a
+// controller that is a process of its own. Call it before New, so that a test
+// that is skipped does not create a namespace first.
+func RequireInProcessController(t *testing.T) {
+	t.Helper()
+	if inProcess == nil {
+		t.Skipf("needs the controller inside the test binary: set %s=%s", EnvVarE2EController, controllerInProcess)
+	}
+}
+
+// FailControllerCalls makes calls of the controller to the API server fail
+// instead of reaching it, for objects in this test's namespace only. The
+// fault ends with the test, or earlier with Remove. Assert on Hits of the
+// result: a fault that was never hit has tested nothing.
+func (e *Test) FailControllerCalls(fault Fault) *InjectedFault {
+	e.t.Helper()
+	RequireInProcessController(e.t)
+	if err := fault.validate(); err != nil {
+		e.t.Fatal(err)
+	}
+	e.log.Infof("Injecting fault: the controller's %s of %s fails with %d", fault.Verb, fault.Resource, fault.Status)
+	return inProcess.calls.inject(e.namespace, fault)
+}
+
+// ControllerWrites returns the writes the controller has made, or tried to
+// make, to the API server in this test's namespace since the test began.
+func (e *Test) ControllerWrites() []APICall {
+	e.t.Helper()
+	RequireInProcessController(e.t)
+	return inProcess.calls.writesIn(e.namespace)
+}
+
+// summarizeWrites says how many writes there were, and of which kind, most
+// frequent first.
+func summarizeWrites(writes []APICall) string {
+	if len(writes) == 0 {
+		return "none"
+	}
+	counts := map[string]int{}
+	for _, w := range writes {
+		kind := w.Verb + " " + w.Resource
+		if w.Subresource != "" {
+			kind += "/" + w.Subresource
+		}
+		counts[kind]++
+	}
+	kinds := make([]string, 0, len(counts))
+	for kind := range counts {
+		kinds = append(kinds, kind)
+	}
+	sort.Slice(kinds, func(i, j int) bool {
+		if counts[kinds[i]] != counts[kinds[j]] {
+			return counts[kinds[i]] > counts[kinds[j]]
+		}
+		return kinds[i] < kinds[j]
+	})
+	parts := make([]string, 0, len(kinds))
+	for _, kind := range kinds {
+		parts = append(parts, fmt.Sprintf("%s x%d", kind, counts[kind]))
+	}
+	return fmt.Sprintf("%d (%s)", len(writes), strings.Join(parts, ", "))
 }
