@@ -187,6 +187,8 @@ type Manager struct {
 	onlyAnalysisMode bool
 }
 
+// NewAnalysisManager returns a new manager that only runs the analysis controller. It exits the
+// process when the manager cannot be created: use NewManagerFromOptions to get the error instead.
 func NewAnalysisManager(
 	namespace string,
 	kubeclientset kubernetes.Interface,
@@ -208,7 +210,59 @@ func NewAnalysisManager(
 	analysisSharedSecretNamespace string,
 	analysisSharedSecretMode analysis.SharedSecretMode,
 ) *Manager {
-	runtime.Must(rolloutscheme.AddToScheme(scheme.Scheme))
+	cm, err := newAnalysisManager(
+		namespace,
+		kubeclientset,
+		argoprojclientset,
+		jobInformer,
+		jobPodsInformer,
+		analysisRunInformer,
+		analysisTemplateInformer,
+		clusterAnalysisTemplateInformer,
+		resyncPeriod,
+		metricsPort,
+		healthzPort,
+		k8sRequestProvider,
+		dynamicInformerFactory,
+		clusterDynamicInformerFactory,
+		namespaced,
+		kubeInformerFactory,
+		jobInformerFactory,
+		analysisSharedSecretNamespace,
+		analysisSharedSecretMode,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return cm
+}
+
+// newAnalysisManager is NewAnalysisManager, except that it returns its errors instead of exiting
+// the process.
+func newAnalysisManager(
+	namespace string,
+	kubeclientset kubernetes.Interface,
+	argoprojclientset clientset.Interface,
+	jobInformer batchinformers.JobInformer,
+	jobPodsInformer coreinformers.PodInformer,
+	analysisRunInformer informers.AnalysisRunInformer,
+	analysisTemplateInformer informers.AnalysisTemplateInformer,
+	clusterAnalysisTemplateInformer informers.ClusterAnalysisTemplateInformer,
+	resyncPeriod time.Duration,
+	metricsPort int,
+	healthzPort int,
+	k8sRequestProvider *metrics.K8sRequestsCountProvider,
+	dynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory,
+	clusterDynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory,
+	namespaced bool,
+	kubeInformerFactory kubeinformers.SharedInformerFactory,
+	jobInformerFactory kubeinformers.SharedInformerFactory,
+	analysisSharedSecretNamespace string,
+	analysisSharedSecretMode analysis.SharedSecretMode,
+) (*Manager, error) {
+	if err := rolloutscheme.AddToScheme(scheme.Scheme); err != nil {
+		return nil, err
+	}
 	log.Info("Creating event broadcaster")
 
 	metricsAddr := fmt.Sprintf(listenAddr, metricsPort)
@@ -262,18 +316,19 @@ func NewAnalysisManager(
 
 	_, err := rolloutsConfig.InitializeConfig(kubeclientset, defaults.DefaultRolloutsConfigMapName)
 	if err != nil {
-		log.Fatalf("Failed to init config: %v", err)
+		return nil, fmt.Errorf("Failed to init config: %w", err)
 	}
 
 	err = plugin.DownloadPlugins(plugin.FileDownloaderImpl{}, kubeclientset)
 	if err != nil {
-		log.Fatalf("Failed to download plugins: %v", err)
+		return nil, fmt.Errorf("Failed to download plugins: %w", err)
 	}
 
-	return cm
+	return cm, nil
 }
 
-// NewManager returns a new manager to manage all the controllers
+// NewManager returns a new manager to manage all the controllers. It exits the process when the
+// manager cannot be created: use NewManagerFromOptions to get the error instead.
 func NewManager(
 	namespace string,
 	kubeclientset kubernetes.Interface,
@@ -316,7 +371,100 @@ func NewManager(
 	analysisSharedSecretNamespace string,
 	analysisSharedSecretMode analysis.SharedSecretMode,
 ) *Manager {
-	runtime.Must(rolloutscheme.AddToScheme(scheme.Scheme))
+	cm, err := newManager(
+		namespace,
+		kubeclientset,
+		argoprojclientset,
+		dynamicclientset,
+		smiclientset,
+		discoveryClient,
+		replicaSetInformer,
+		servicesInformer,
+		ingressWrap,
+		jobInformer,
+		jobPodsInformer,
+		rolloutsInformer,
+		experimentsInformer,
+		analysisRunInformer,
+		analysisTemplateInformer,
+		clusterAnalysisTemplateInformer,
+		istioPrimaryDynamicClient,
+		istioVirtualServiceInformer,
+		istioDestinationRuleInformer,
+		notificationConfigMapInformerFactory,
+		notificationSecretInformerFactory,
+		resyncPeriod,
+		instanceID,
+		metricsPort,
+		healthzPort,
+		k8sRequestProvider,
+		nginxIngressClasses,
+		albIngressClasses,
+		dynamicInformerFactory,
+		clusterDynamicInformerFactory,
+		istioDynamicInformerFactory,
+		namespaced,
+		kubeInformerFactory,
+		replicaSetInformerFactory,
+		jobInformerFactory,
+		ephemeralMetadataThreads,
+		ephemeralMetadataPodRetries,
+		selfServiceNotificationEnabled,
+		analysisSharedSecretNamespace,
+		analysisSharedSecretMode,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return cm
+}
+
+// newManager is NewManager, except that it returns its errors instead of exiting the process.
+func newManager(
+	namespace string,
+	kubeclientset kubernetes.Interface,
+	argoprojclientset clientset.Interface,
+	dynamicclientset dynamic.Interface,
+	smiclientset smiclientset.Interface,
+	discoveryClient discovery.DiscoveryInterface,
+	replicaSetInformer appsinformers.ReplicaSetInformer,
+	servicesInformer coreinformers.ServiceInformer,
+	ingressWrap *ingressutil.IngressWrap,
+	jobInformer batchinformers.JobInformer,
+	jobPodsInformer coreinformers.PodInformer,
+	rolloutsInformer informers.RolloutInformer,
+	experimentsInformer informers.ExperimentInformer,
+	analysisRunInformer informers.AnalysisRunInformer,
+	analysisTemplateInformer informers.AnalysisTemplateInformer,
+	clusterAnalysisTemplateInformer informers.ClusterAnalysisTemplateInformer,
+	istioPrimaryDynamicClient dynamic.Interface,
+	istioVirtualServiceInformer cache.SharedIndexInformer,
+	istioDestinationRuleInformer cache.SharedIndexInformer,
+	notificationConfigMapInformerFactory kubeinformers.SharedInformerFactory,
+	notificationSecretInformerFactory kubeinformers.SharedInformerFactory,
+	resyncPeriod time.Duration,
+	instanceID string,
+	metricsPort int,
+	healthzPort int,
+	k8sRequestProvider *metrics.K8sRequestsCountProvider,
+	nginxIngressClasses []string,
+	albIngressClasses []string,
+	dynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory,
+	clusterDynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory,
+	istioDynamicInformerFactory dynamicinformer.DynamicSharedInformerFactory,
+	namespaced bool,
+	kubeInformerFactory kubeinformers.SharedInformerFactory,
+	replicaSetInformerFactory kubeinformers.SharedInformerFactory,
+	jobInformerFactory kubeinformers.SharedInformerFactory,
+	ephemeralMetadataThreads int,
+	ephemeralMetadataPodRetries int,
+	selfServiceNotificationEnabled bool,
+	analysisSharedSecretNamespace string,
+	analysisSharedSecretMode analysis.SharedSecretMode,
+) (*Manager, error) {
+	if err := rolloutscheme.AddToScheme(scheme.Scheme); err != nil {
+		return nil, err
+	}
 	log.Info("Creating event broadcaster")
 
 	metricsAddr := fmt.Sprintf(listenAddr, metricsPort)
@@ -478,15 +626,15 @@ func NewManager(
 
 	_, err := rolloutsConfig.InitializeConfig(kubeclientset, defaults.DefaultRolloutsConfigMapName)
 	if err != nil {
-		log.Fatalf("Failed to init config: %v", err)
+		return nil, fmt.Errorf("Failed to init config: %w", err)
 	}
 
 	err = plugin.DownloadPlugins(plugin.FileDownloaderImpl{}, kubeclientset)
 	if err != nil {
-		log.Fatalf("Failed to download plugins: %v", err)
+		return nil, fmt.Errorf("Failed to download plugins: %w", err)
 	}
 
-	return cm
+	return cm, nil
 }
 
 // objectToUnstructured is the notifications-engine `WithToUnstructured` opt: it converts a typed
@@ -506,6 +654,10 @@ func objectToUnstructured(obj metav1.Object) (*unstructured.Unstructured, error)
 // Run will sync informer caches and start controllers. It will block until stopCh
 // is closed, at which point it will shutdown the workqueue and wait for
 // controllers to finish processing their current work items.
+//
+// Run does not exit the process. When it cannot lead, because leader election cannot be set up or
+// because the informer caches do not sync, it shuts down what it started and returns the error.
+// It returns nil when ctx is done and, with leader election, when the lease is lost.
 func (c *Manager) Run(ctx context.Context, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness int, electOpts *LeaderElectionOptions) error {
 	defer runtime.HandleCrash()
 	defer func() {
@@ -527,51 +679,8 @@ func (c *Manager) Run(ctx context.Context, rolloutThreadiness, serviceThreadines
 		}
 	}()
 
-	if !electOpts.LeaderElect {
-		log.Info("Leader election is turned off. Running in single-instance mode")
-		go c.startLeading(ctx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness)
-		<-ctx.Done()
-	} else {
-		// id used to distinguish between multiple controller manager instances
-		id, err := os.Hostname()
-		if err != nil {
-			log.Fatalf("Error getting hostname for leader election %v", err)
-		}
+	runErr := c.lead(ctx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness, electOpts)
 
-		if electOpts.LeaderElectionNamespace == "" {
-			log.Fatalf("Error LeaderElectionNamespace is empty")
-		}
-
-		// add a uniquifier so that two processes on the same host don't accidentally both become active
-		id = id + "_" + string(uuid.NewUUID())
-		log.Infof("Leaderelection get id %s", id)
-
-		lockName := leaseLockName(c.instanceID)
-		log.Infof("Using leader election lease lock name %s", lockName)
-		leaderelection.RunOrDie(ctx, leaderelection.LeaderElectionConfig{
-			Lock: &resourcelock.LeaseLock{
-				LeaseMeta: metav1.ObjectMeta{Name: lockName, Namespace: electOpts.LeaderElectionNamespace}, Client: c.kubeClientSet.CoordinationV1(),
-				LockConfig: resourcelock.ResourceLockConfig{Identity: id},
-			},
-			ReleaseOnCancel: false, // We can not set this to true because our context is sent on sig which means our code
-			// is still running prior to calling cancel. We would need to shut down and then call cancel in order to set this to true.
-			LeaseDuration: electOpts.LeaderElectionLeaseDuration,
-			RenewDeadline: electOpts.LeaderElectionRenewDeadline,
-			RetryPeriod:   electOpts.LeaderElectionRetryPeriod,
-			Callbacks: leaderelection.LeaderCallbacks{
-				OnStartedLeading: func(ctx context.Context) {
-					log.Infof("I am the new leader: %s", id)
-					c.startLeading(ctx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness)
-				},
-				OnStoppedLeading: func() {
-					log.Infof("OnStoppedLeading called, shutting down: %s, context err: %s", id, ctx.Err())
-				},
-				OnNewLeader: func(identity string) {
-					log.Infof("New leader elected: %s", identity)
-				},
-			},
-		})
-	}
 	log.Info("Shutting down workers")
 	goPlugin.CleanupClients()
 
@@ -591,10 +700,93 @@ func (c *Manager) Run(ctx context.Context, rolloutThreadiness, serviceThreadines
 
 	c.wg.Wait()
 
-	return nil
+	return runErr
 }
 
-func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness int) {
+// lead calls startLeading, either directly or once leader election made this instance the leader,
+// and then blocks until ctx is done or the leader election lease is lost. It returns the error
+// that kept it from leading, if any. What it started is stopped when it returns.
+func (c *Manager) lead(ctx context.Context, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness int, electOpts *LeaderElectionOptions) error {
+	// startLeading and the leader election run under leadCtx, so that nothing they started is
+	// left running when lead returns, whatever made it return.
+	leadCtx, stopLeading := context.WithCancel(ctx)
+	defer stopLeading()
+
+	if !electOpts.LeaderElect {
+		log.Info("Leader election is turned off. Running in single-instance mode")
+		if err := c.startLeading(leadCtx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness); err != nil {
+			return err
+		}
+		<-ctx.Done()
+		return nil
+	}
+
+	// id used to distinguish between multiple controller manager instances
+	id, err := os.Hostname()
+	if err != nil {
+		return fmt.Errorf("Error getting hostname for leader election %w", err)
+	}
+
+	if electOpts.LeaderElectionNamespace == "" {
+		return fmt.Errorf("Error LeaderElectionNamespace is empty")
+	}
+
+	// add a uniquifier so that two processes on the same host don't accidentally both become active
+	id = id + "_" + string(uuid.NewUUID())
+	log.Infof("Leaderelection get id %s", id)
+
+	lockName := leaseLockName(c.instanceID)
+	log.Infof("Using leader election lease lock name %s", lockName)
+
+	// The leader elector calls OnStartedLeading on a goroutine of its own and does not wait for
+	// it. leadOnce is what lets lead wait for startLeading and return its error.
+	var (
+		leadOnce sync.Once
+		leadErr  error
+	)
+	elector, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
+		Lock: &resourcelock.LeaseLock{
+			LeaseMeta: metav1.ObjectMeta{Name: lockName, Namespace: electOpts.LeaderElectionNamespace}, Client: c.kubeClientSet.CoordinationV1(),
+			LockConfig: resourcelock.ResourceLockConfig{Identity: id},
+		},
+		ReleaseOnCancel: false, // We can not set this to true because our context is sent on sig which means our code
+		// is still running prior to calling cancel. We would need to shut down and then call cancel in order to set this to true.
+		LeaseDuration: electOpts.LeaderElectionLeaseDuration,
+		RenewDeadline: electOpts.LeaderElectionRenewDeadline,
+		RetryPeriod:   electOpts.LeaderElectionRetryPeriod,
+		Callbacks: leaderelection.LeaderCallbacks{
+			OnStartedLeading: func(ctx context.Context) {
+				log.Infof("I am the new leader: %s", id)
+				leadOnce.Do(func() {
+					leadErr = c.startLeading(ctx, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness)
+					if leadErr != nil {
+						// A leader that runs no controllers must not keep renewing the lease.
+						stopLeading()
+					}
+				})
+			},
+			OnStoppedLeading: func() {
+				log.Infof("OnStoppedLeading called, shutting down: %s, context err: %s", id, ctx.Err())
+			},
+			OnNewLeader: func(identity string) {
+				log.Infof("New leader elected: %s", identity)
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Error creating leader elector: %w", err)
+	}
+	elector.Run(leadCtx)
+
+	// Do returns once a startLeading that had begun has returned, and keeps one that had not
+	// begun from beginning now that the leader election is over. leadErr is final after it.
+	leadOnce.Do(func() {})
+	return leadErr
+}
+
+// startLeading starts the informers and, once their caches are synced, the controllers. It
+// returns an error, without starting any controller, when ctx is done before the caches are synced.
+func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceThreadiness, ingressThreadiness, experimentThreadiness, analysisThreadiness int) error {
 	defer runtime.HandleCrash()
 	// Start the informer factories to begin populating the informer caches
 	log.Info("Starting Controllers")
@@ -615,12 +807,12 @@ func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceT
 	if c.onlyAnalysisMode {
 		log.Info("Waiting for controller's informer caches to sync")
 		if ok := cache.WaitForCacheSync(ctx.Done(), c.analysisRunSynced, c.analysisTemplateSynced, c.jobSynced, c.jobPodsSynced); !ok {
-			log.Fatalf("failed to wait for caches to sync, exiting")
+			return fmt.Errorf("failed to wait for caches to sync: %w", ctx.Err())
 		}
 		// only wait for cluster scoped informers to sync if we are running in cluster-wide mode
 		if c.namespace == metav1.NamespaceAll {
 			if ok := cache.WaitForCacheSync(ctx.Done(), c.clusterAnalysisTemplateSynced); !ok {
-				log.Fatalf("failed to wait for cluster-scoped caches to sync, exiting")
+				return fmt.Errorf("failed to wait for cluster-scoped caches to sync: %w", ctx.Err())
 			}
 		}
 		c.wg.Add(1)
@@ -633,7 +825,7 @@ func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceT
 		c.notificationConfigMapInformerFactory.Start(ctx.Done())
 		c.notificationSecretInformerFactory.Start(ctx.Done())
 		if ok := cache.WaitForCacheSync(ctx.Done(), c.configMapSynced, c.secretSynced); !ok {
-			log.Fatalf("failed to wait for configmap/secret caches to sync, exiting")
+			return fmt.Errorf("failed to wait for configmap/secret caches to sync: %w", ctx.Err())
 		}
 
 		// Check if Istio installed on cluster before starting dynamicInformerFactory
@@ -644,12 +836,12 @@ func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceT
 		// Wait for the caches to be synced before starting workers
 		log.Info("Waiting for controller's informer caches to sync")
 		if ok := cache.WaitForCacheSync(ctx.Done(), c.serviceSynced, c.ingressSynced, c.jobSynced, c.jobPodsSynced, c.rolloutSynced, c.experimentSynced, c.analysisRunSynced, c.analysisTemplateSynced, c.replicasSetSynced, c.configMapSynced, c.secretSynced); !ok {
-			log.Fatalf("failed to wait for caches to sync, exiting")
+			return fmt.Errorf("failed to wait for caches to sync: %w", ctx.Err())
 		}
 		// only wait for cluster scoped informers to sync if we are running in cluster-wide mode
 		if c.namespace == metav1.NamespaceAll {
 			if ok := cache.WaitForCacheSync(ctx.Done(), c.clusterAnalysisTemplateSynced); !ok {
-				log.Fatalf("failed to wait for cluster-scoped caches to sync, exiting")
+				return fmt.Errorf("failed to wait for cluster-scoped caches to sync: %w", ctx.Err())
 			}
 		}
 
@@ -686,4 +878,5 @@ func (c *Manager) startLeading(ctx context.Context, rolloutThreadiness, serviceT
 
 	}
 	log.Info("Started controller")
+	return nil
 }

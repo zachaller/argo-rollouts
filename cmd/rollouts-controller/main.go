@@ -7,39 +7,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/argoproj/pkg/kubeclientmetrics"
-	smiclientset "github.com/servicemeshinterface/smi-sdk-go/pkg/gen/client/split/clientset/versioned"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/dynamic/dynamicinformer"
-	kubeinformers "k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/argoproj/argo-rollouts/metricproviders"
 	"github.com/argoproj/argo-rollouts/rollout"
 	"github.com/argoproj/argo-rollouts/utils/errors"
-	"github.com/argoproj/argo-rollouts/utils/record"
 
 	"github.com/argoproj/argo-rollouts/analysis"
 	"github.com/argoproj/argo-rollouts/controller"
-	"github.com/argoproj/argo-rollouts/controller/metrics"
-	jobprovider "github.com/argoproj/argo-rollouts/metricproviders/job"
-	v1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
-	clientset "github.com/argoproj/argo-rollouts/pkg/client/clientset/versioned"
 	"github.com/argoproj/argo-rollouts/pkg/signals"
-	controllerutil "github.com/argoproj/argo-rollouts/utils/controller"
 	"github.com/argoproj/argo-rollouts/utils/defaults"
-	ingressutil "github.com/argoproj/argo-rollouts/utils/ingress"
-	istioutil "github.com/argoproj/argo-rollouts/utils/istio"
 	logutil "github.com/argoproj/argo-rollouts/utils/log"
-	"github.com/argoproj/argo-rollouts/utils/tolerantinformer"
 	"github.com/argoproj/argo-rollouts/utils/version"
 )
 
@@ -149,184 +132,49 @@ func newCommand() *cobra.Command {
 				"healthzPort": healthzPort,
 			}).Info("Argo Rollouts controller starting")
 
-			k8sRequestProvider := &metrics.K8sRequestsCountProvider{}
-			kubeclientmetrics.AddMetricsTransportWrapper(config, k8sRequestProvider.IncKubernetesRequest)
-
-			kubeClient, err := kubernetes.NewForConfig(config)
-			errors.CheckError(err)
-			argoprojClient, err := clientset.NewForConfig(config)
-			errors.CheckError(err)
-			dynamicClient, err := dynamic.NewForConfig(config)
-			errors.CheckError(err)
-			discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
-			errors.CheckError(err)
-			smiClient, err := smiclientset.NewForConfig(config)
-			errors.CheckError(err)
-			resyncDuration := time.Duration(rolloutResyncPeriod) * time.Second
-			kubeInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(
-				kubeClient,
-				resyncDuration,
-				kubeinformers.WithNamespace(namespace))
-			// replicaSetInformerFactory uses a label selector to limit the ReplicaSets cached to only
-			// those managed by Rollouts. This reduces memory usage significantly on clusters with large
-			// numbers of ReplicaSets from Deployments or other controllers.
-			replicaSetInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(
-				kubeClient,
-				resyncDuration,
-				kubeinformers.WithNamespace(namespace),
-				kubeinformers.WithTweakListOptions(func(options *metav1.ListOptions) {
-					options.LabelSelector = v1alpha1.DefaultRolloutUniqueLabelKey
-				}))
-			instanceIDSelector := controllerutil.InstanceIDRequirement(instanceID)
-			instanceIDTweakListFunc := func(options *metav1.ListOptions) {
-				options.LabelSelector = instanceIDSelector.String()
-			}
-			jobKubeClient, _, err := metricproviders.GetAnalysisJobClientset(kubeClient)
-			errors.CheckError(err)
-			jobNs := metricproviders.GetAnalysisJobNamespace()
-			if jobNs == "" {
-				// if not set explicitly use the configured ns
-				jobNs = namespace
-			}
-			jobInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(
-				jobKubeClient,
-				resyncDuration,
-				kubeinformers.WithNamespace(jobNs),
-				kubeinformers.WithTweakListOptions(func(options *metav1.ListOptions) {
-					options.LabelSelector = jobprovider.AnalysisRunUIDLabelKey
-				}))
-			// We need three dynamic informer factories:
-			// 1. The first is the dynamic informer for rollouts, analysisruns, analysistemplates, experiments
-			dynamicInformerFactory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, resyncDuration, namespace, instanceIDTweakListFunc)
-			// 2. The second is for the clusteranalysistemplate. Notice we must instantiate this with
-			// metav1.NamespaceAll. The reason why we need a cluster specific dynamic informer factory
-			// is to support the mode when the rollout controller is started and only operating against
-			// a single namespace (i.e. rollouts-controller --namespace foo).
-			clusterDynamicInformerFactory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dynamicClient, resyncDuration, metav1.NamespaceAll, instanceIDTweakListFunc)
-			// 3. We finally need an istio dynamic informer factory which does not use a tweakListFunc.
-			_, istioPrimaryDynamicClient := istioutil.GetPrimaryClusterDynamicClient(kubeClient, namespace)
-			if istioPrimaryDynamicClient == nil {
-				istioPrimaryDynamicClient = dynamicClient
-			}
-			istioDynamicInformerFactory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(istioPrimaryDynamicClient, resyncDuration, namespace, nil)
-
-			var notificationConfigNamespace string
-			if selfServiceNotificationEnabled {
-				notificationConfigNamespace = metav1.NamespaceAll
-			} else {
-				notificationConfigNamespace = defaults.Namespace()
-			}
-			notificationSecretInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(
-				kubeClient,
-				resyncDuration,
-				kubeinformers.WithNamespace(notificationConfigNamespace),
-				kubeinformers.WithTweakListOptions(func(options *metav1.ListOptions) {
-					options.Kind = "Secret"
-					options.FieldSelector = fmt.Sprintf("metadata.name=%s", record.NotificationSecret)
-				}),
-			)
-
-			notificationConfigMapInformerFactory := kubeinformers.NewSharedInformerFactoryWithOptions(
-				kubeClient,
-				resyncDuration,
-				kubeinformers.WithNamespace(notificationConfigNamespace),
-				kubeinformers.WithTweakListOptions(func(options *metav1.ListOptions) {
-					options.Kind = "ConfigMap"
-					options.FieldSelector = fmt.Sprintf("metadata.name=%s", record.NotificationConfigMap)
-				}),
-			)
-
-			mode, err := ingressutil.DetermineIngressMode(ingressVersion, kubeClient.DiscoveryClient)
-			errors.CheckError(err)
-			ingressWrapper, err := ingressutil.NewIngressWrapper(mode, kubeClient, kubeInformerFactory)
-			errors.CheckError(err)
-
 			if pprofAddress != "" {
 				mux := controller.NewPProfServer()
 				go func() { log.Println(http.ListenAndServe(pprofAddress, mux)) }()
 			}
 
-			var cm *controller.Manager
-
 			enabledControllers, err := getEnabledControllers(controllersEnabled)
 			errors.CheckError(err)
 
-			// currently only supports running analysis controller independently
-			if enabledControllers[controllerAnalysis] {
-				log.Info("Running only analysis controller")
-				cm = controller.NewAnalysisManager(
-					namespace,
-					kubeClient,
-					argoprojClient,
-					jobInformerFactory.Batch().V1().Jobs(),
-					jobInformerFactory.Core().V1().Pods(),
-					tolerantinformer.NewTolerantAnalysisRunInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantAnalysisTemplateInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantClusterAnalysisTemplateInformer(clusterDynamicInformerFactory),
-					resyncDuration,
-					metricsPort,
-					healthzPort,
-					k8sRequestProvider,
-					dynamicInformerFactory,
-					clusterDynamicInformerFactory,
-					namespaced,
-					kubeInformerFactory,
-					jobInformerFactory,
-					analysisSharedSecretNamespace,
-					analysis.SharedSecretMode(analysisSharedSecretMode),
-				)
-			} else {
-				cm = controller.NewManager(
-					namespace,
-					kubeClient,
-					argoprojClient,
-					dynamicClient,
-					smiClient,
-					discoveryClient,
-					replicaSetInformerFactory.Apps().V1().ReplicaSets(),
-					kubeInformerFactory.Core().V1().Services(),
-					ingressWrapper,
-					jobInformerFactory.Batch().V1().Jobs(),
-					jobInformerFactory.Core().V1().Pods(),
-					tolerantinformer.NewTolerantRolloutInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantExperimentInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantAnalysisRunInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantAnalysisTemplateInformer(dynamicInformerFactory),
-					tolerantinformer.NewTolerantClusterAnalysisTemplateInformer(clusterDynamicInformerFactory),
-					istioPrimaryDynamicClient,
-					istioDynamicInformerFactory.ForResource(istioutil.GetIstioVirtualServiceGVR()).Informer(),
-					istioDynamicInformerFactory.ForResource(istioutil.GetIstioDestinationRuleGVR()).Informer(),
-					notificationConfigMapInformerFactory,
-					notificationSecretInformerFactory,
-					resyncDuration,
-					instanceID,
-					metricsPort,
-					healthzPort,
-					k8sRequestProvider,
-					nginxIngressClasses,
-					albIngressClasses,
-					dynamicInformerFactory,
-					clusterDynamicInformerFactory,
-					istioDynamicInformerFactory,
-					namespaced,
-					kubeInformerFactory,
-					replicaSetInformerFactory,
-					jobInformerFactory,
-					ephemeralMetadataThreads,
-					ephemeralMetadataPodRetries,
-					selfServiceNotificationEnabled,
-					analysisSharedSecretNamespace,
-					analysis.SharedSecretMode(analysisSharedSecretMode))
+			opts := controller.Options{
+				RESTConfig:                     config,
+				Namespace:                      namespace,
+				Namespaced:                     namespaced,
+				InstanceID:                     instanceID,
+				ResyncPeriod:                   time.Duration(rolloutResyncPeriod) * time.Second,
+				MetricsPort:                    metricsPort,
+				HealthzPort:                    healthzPort,
+				RolloutThreads:                 rolloutThreads,
+				ExperimentThreads:              experimentThreads,
+				AnalysisThreads:                analysisThreads,
+				ServiceThreads:                 serviceThreads,
+				IngressThreads:                 ingressThreads,
+				EphemeralMetadataThreads:       ephemeralMetadataThreads,
+				EphemeralMetadataPodRetries:    ephemeralMetadataPodRetries,
+				NginxIngressClasses:            nginxIngressClasses,
+				ALBIngressClasses:              albIngressClasses,
+				IngressAPIVersion:              ingressVersion,
+				SelfServiceNotificationEnabled: selfServiceNotificationEnabled,
+				AnalysisSharedSecretNamespace:  analysisSharedSecretNamespace,
+				AnalysisSharedSecretMode:       analysis.SharedSecretMode(analysisSharedSecretMode),
+				AnalysisOnly:                   enabledControllers[controllerAnalysis],
+				LeaderElection:                 *electOpts,
 			}
-			if err = cm.Run(ctx, rolloutThreads, serviceThreads, ingressThreads, experimentThreads, analysisThreads, electOpts); err != nil {
+			cm, err := controller.NewManagerFromOptions(opts)
+			errors.CheckError(err)
+			if err = cm.RunWithOptions(ctx, opts); err != nil {
 				log.Fatalf("Error running controller: %s", err.Error())
 			}
 			return nil
 		},
 	}
 
-	defaultALBIngressClass := []string{"alb"}
-	defaultNGINXIngressClass := []string{"nginx"}
+	defaultALBIngressClass := []string{controller.DefaultALBIngressClass}
+	defaultNGINXIngressClass := []string{controller.DefaultNGINXIngressClass}
 
 	clientConfig = addKubectlFlagsToCmd(&command)
 	command.Flags().Int64Var(&rolloutResyncPeriod, "rollout-resync", controller.DefaultRolloutResyncPeriod, "Time period in seconds for rollouts resync.")
