@@ -18,7 +18,7 @@ on:
         description: 'go test -parallel for the e2e tests. A comma-separated list runs one configuration per value.'
         default: '8'
       e2e_test_options:
-        description: 'Extra go test flags for the e2e tests, for example: -skip Suite'
+        description: 'Extra go test flags for the e2e tests, for example: -run TestCanary'
         default: ''
       e2e_repeat:
         description: 'How many times each e2e job runs the tests, one run after another'
