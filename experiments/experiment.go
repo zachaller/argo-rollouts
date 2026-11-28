@@ -316,6 +316,12 @@ func (ec *experimentContext) createTemplateService(template *v1alpha1.TemplateSp
 			templateStatus.ServiceName = newService.Name
 			templateStatus.PodTemplateHash = podTemplateHash
 		}
+	} else if svc != nil {
+		// The Service is already there. Record it again: the status this
+		// reconcile started from can be older than the one that first recorded
+		// it, and the status patch replaces the whole templateStatuses list.
+		templateStatus.ServiceName = svc.Name
+		templateStatus.PodTemplateHash = podTemplateHash
 	}
 }
 

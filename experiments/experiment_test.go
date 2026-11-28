@@ -608,6 +608,40 @@ func TestServiceNameSet(t *testing.T) {
 	assert.Equal(t, exCtx.templateServices["bar"].Name, "service-name")
 }
 
+// TestServiceRecordedFromExistingService covers a reconcile that starts from a
+// status without the Service name, as one does when the informer has not yet
+// delivered the status update of the reconcile that created the Service. It
+// must record the Service that exists. The status patch replaces the whole
+// templateStatuses list, so a status written without the name loses it for
+// good.
+func TestServiceRecordedFromExistingService(t *testing.T) {
+	template := v1alpha1.TemplateSpec{Name: "bar", Service: &v1alpha1.TemplateService{}}
+	rs := &appsv1.ReplicaSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "foo-bar",
+			Labels: map[string]string{v1alpha1.DefaultRolloutUniqueLabelKey: "abc123"},
+		},
+		Spec: appsv1.ReplicaSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{Ports: []corev1.ContainerPort{{ContainerPort: 80}}}},
+				},
+			},
+		},
+	}
+	exCtx := &experimentContext{
+		templateServices: map[string]*corev1.Service{
+			"bar": {ObjectMeta: metav1.ObjectMeta{Name: "foo-bar"}},
+		},
+	}
+	staleStatus := &v1alpha1.TemplateStatus{Name: "bar"}
+
+	exCtx.createTemplateService(&template, staleStatus, rs)
+
+	assert.Equal(t, "foo-bar", staleStatus.ServiceName)
+	assert.Equal(t, "abc123", staleStatus.PodTemplateHash)
+}
+
 func TestCreatenalysisRunWithClusterTemplatesAndTemplateAndInnerTemplates(t *testing.T) {
 
 	at := analysisTemplateWithNamespacedAnalysisRefs("bar", "bar2")
