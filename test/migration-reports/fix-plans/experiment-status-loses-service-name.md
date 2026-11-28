@@ -1,7 +1,8 @@
 # Fix plan: an Experiment's status can lose its Service names
 
-**Status:** plan only. No controller code has been changed, and the proposed
-change below has not been built or run.
+**Status:** fixed in `1f6499b7` with the change proposed below, and with a unit test,
+`TestServiceRecordedFromExistingService` in `experiments/experiment_test.go`.
+The rest of this file is the plan as it was written before the fix.
 
 ## The defect
 

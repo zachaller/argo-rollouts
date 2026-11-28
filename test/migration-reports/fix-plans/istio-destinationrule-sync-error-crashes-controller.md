@@ -1,7 +1,8 @@
 # Fix plan: an error while syncing a DestinationRule crashes the controller
 
-**Status:** plan only. No controller code has been changed, and the proposed
-change below has not been built or run.
+**Status:** fixed in `064b3513` with the change proposed below. The unit test named
+under "Tests" is no longer skipped. The rest of this file is the plan as it was
+written before the fix.
 
 ## The defect
 
@@ -50,9 +51,8 @@ clean-up, and got the conflict.
 It did not happen in 68 runs of the unconverted, serial suites that were
 collected for the migration. It happened in 2 of 17 runs of the converted
 tests at parallelism 8 and 16, where the controller is busier and its caches
-lag further behind. Since then the four e2e tests that use a DestinationRule
-run one at a time (`fixtures.Serial` in `test/e2e/istio_test.go`), which is to
-be undone when this is fixed.
+lag further behind. Until the fix, the four e2e tests that use a
+DestinationRule ran one at a time; they run in parallel again.
 
 ## Root cause
 
