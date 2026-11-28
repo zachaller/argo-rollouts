@@ -43,6 +43,17 @@ the only such lines are from 20:41:33, when revision 1 was first deployed.
 Three other tests in `test/e2e/duration_test.go` already sleep one second
 between revisions, with a comment naming this cause.
 
+`TestBlueGreenAnalysis` reaches the same case when its Rollout turns Healthy
+quickly: it updates the Rollout as soon as it is Healthy and later applies the
+first manifest again. It failed in 2 of 30 runs with reruns off (fork workflow
+run 46107323320, commit `9f52246a`, parallelism 8), with `Rollout status
+expected to be 'Healthy'. actual: Progressing` two seconds after the rollback.
+In the one looked at (job 1, namespace `e2e-bluegreenanalysis-k84vt`) the
+ReplicaSets of revision 1 and revision 2 were both created at 04:47:40, and
+the controller log has no `Fast rollback or promoted state detected` line for
+the revision 1 ReplicaSet after the update back to it at 04:48:01. The test is
+unchanged; it passes when it is rerun.
+
 ## Options
 
 - **Break the tie with something that orders ReplicaSets within a second.** The
