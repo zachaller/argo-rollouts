@@ -60,3 +60,11 @@ TestControllerMetrics: >-
   reachable the response is nil, and the next line dereferenced it. Under the
   testify suite that panic failed this test; in a plain test function it stops
   the whole test binary. The test fails in the same situations as before.
+TestALBExperimentStepNoSetWeight: >-
+  Removed the comment "TODO: this test is flaky". The test failed when the
+  Experiment's status lost its Service names, which is fixed in 1f6499b7; it
+  passed in all 30 runs with reruns off afterwards (fork run 46107323320). No
+  statement changed.
+TestALBExperimentStepNoSetWeightMultiIngress: >-
+  Removed the comment "TODO: this test is flaky", for the same reason. No
+  statement changed.

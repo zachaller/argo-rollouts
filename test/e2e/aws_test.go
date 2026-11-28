@@ -310,7 +310,6 @@ func TestALBExperimentStepMultiIngress(t *testing.T) {
 
 func TestALBExperimentStepNoSetWeight(t *testing.T) {
 	s := newAWSTest(t)
-	//TODO: this test is flaky
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-experiment-no-setweight.yaml").
 		When().
@@ -345,7 +344,6 @@ func TestALBExperimentStepNoSetWeight(t *testing.T) {
 
 func TestALBExperimentStepNoSetWeightMultiIngress(t *testing.T) {
 	s := newAWSTest(t)
-	//TODO: this test is flaky
 	s.Given().
 		RolloutObjects("@alb/rollout-alb-multi-ingress-experiment-no-setweight.yaml").
 		When().
