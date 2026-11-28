@@ -28,7 +28,7 @@ on:
         default: '1'
       e2e_rerun_fails:
         description: 'How many times a failed e2e test is rerun. 0 turns reruns off.'
-        default: '5'
+        default: '2'
       e2e_kubernetes:
         description: 'Kubernetes versions to run the e2e tests on'
         type: choice
@@ -295,7 +295,7 @@ jobs:
         env:
           E2E_PARALLEL: ${{ matrix.kubernetes.parallel }}
           E2E_TEST_OPTIONS: ${{ inputs.e2e_test_options }}
-          E2E_RERUN_FAILS: ${{ inputs.e2e_rerun_fails || '5' }}
+          E2E_RERUN_FAILS: ${{ inputs.e2e_rerun_fails || '2' }}
           E2E_WAIT_TIMEOUT: ${{ inputs.e2e_wait_timeout || '90' }}
           E2E_REPEAT: ${{ inputs.e2e_repeat || '1' }}
           E2E_CONTROLLER: ${{ inputs.e2e_controller || 'on' }}

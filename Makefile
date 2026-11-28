@@ -30,7 +30,7 @@ E2E_PARALLEL ?= 8
 E2E_WAIT_TIMEOUT ?= 90
 # How many times gotestsum reruns a failed e2e test. 0 turns reruns off, which
 # is what you want when measuring how flaky the tests are.
-E2E_RERUN_FAILS ?= 5
+E2E_RERUN_FAILS ?= 2
 # Extra flags for the controller started by start-e2e
 E2E_CONTROLLER_FLAGS ?=
 # E2E_CONTROLLER=inprocess (read by the tests themselves) makes the e2e test
