@@ -28,30 +28,32 @@ run each set of results came from:
 |---|---|---|---|
 | old Canary suite (tests of `c7439574`) | 01-20 | 46035139344 | 1 |
 | old Canary suite | 21-35 | 46066775947 | 0 |
+| old Canary suite | 21-35 | 46092802495 | 2 |
 | old Canary suite | 32, 36-47 | 46076673397 | 2 |
 | the other 15 suites (tests of `5a514fbb`) | 01-20 | 46061128211 | 0 |
 | the other 15 suites | 21-35 | 46066726568 | 0 |
 | the other 15 suites | 01-35 | 46067372629 | 2 |
+| the other 15 suites | 03 | 46092805651 | 2 |
 | the other 15 suites | 36-47 | 46076667978 | 2 |
 
 A test counts as catching a bug when it fails on every attempt in every run
-it has for that bug. That matters: three tests fail about one run in three
-whatever the patch (`TestALBExperimentStepNoSetWeight`,
-`TestALBExperimentStepNoSetWeightMultiIngress` and, before it was changed,
-`TestBlueGreenDuration_SupersededRollback`; see
-`test/migration-reports/fix-plans/`), and one run without reruns would list
-them under many unrelated bugs. One such coincidence is left in the table:
-`TestALBExperimentStepNoSetWeightMultiIngress` under patch 03.
+it has for that bug. That matters: a few tests fail now and then whatever the
+patch (see `test/migration-reports/fix-plans/`), and one run without reruns
+lists them under unrelated bugs. Two such entries showed up as "no longer
+fails" in the comparison with the converted tests and went away with another
+sample: `TestALBExperimentStepNoSetWeightMultiIngress` under patch 03 and
+`TestCanaryDynamicStableScaleAbortScaleDownDelay` under patch 27.
 
-Patch 32 has no result for the 15 suites yet. Its first version stalled the
-rollout informer and was replaced; the run of the replacement was still going
-when this was written.
+Patch 32 has no result for the 15 suites. In a shared namespace the malformed
+Rollout it leaves behind breaks the tests that come after it, and the run hit
+its three-hour limit with 102 of 132 results (fork run 46076667978). The
+converted tests, each in its own namespace, do give a result for it.
 
 | Seeded bug | Tests that catch it |
 |---|---|
 | `01-setweight-step-ignores-progress-deadline` | `TestCanaryProgressDeadlineExceededWithPause` |
 | `02-setcanaryscale-replicas-ignored` | `TestAPISIXCanarySetHeaderStep`, `TestCanarySetCanaryScale`, `TestCanaryUnScaleDownOnAbort`, `TestIstioAbortUpdateDeleteAllCanaryPods`, `TestIstioUpdateInMiddleZeroCanaryReplicas` |
-| `03-spec-paused-progressing-condition-flap` | `TestALBExperimentStepNoSetWeightMultiIngress`, `TestCanaryWithSpecPause` |
+| `03-spec-paused-progressing-condition-flap` | `TestCanaryWithSpecPause` |
 | `04-canary-scaling-ignored-while-paused` | `TestRolloutScalingWhenPaused`, `TestSpecAndReplicaChangeSameTime` |
 | `05-canary-min-available-uses-maxsurge` | `TestEphemeralMetadata`, `TestReduceWeightAndHonorMaxUnavailable`, `TestRolloutScalingDuringUpdate`, `TestRolloutWithMaxSurgeScalingDuringUpdate`, `TestRolloutBadToBadUpdate`, `TestRolloutGoodToBadUpdate` |
 | `06-ephemeral-metadata-not-switched-to-stable` | `TestEphemeralMetadata`, `TestEphemeralMetadata` |
@@ -75,7 +77,7 @@ when this was written.
 | `24-apisix-stable-weight-not-reduced` | `TestAPISIXCanarySetHeaderStep`, `TestAPISIXCanaryStep` |
 | `25-duration-never-finished` | `TestBlueGreenDuration_AutoPromotion`, `TestBlueGreenDuration_FullyPromoted`, `TestBlueGreenDuration_InitialRollout`, `TestBlueGreenDuration_ManualPromotion`, `TestBlueGreenDuration_RollbackInsideWindow`, `TestBlueGreenDuration_RollbackOutsideWindow`, `TestBlueGreenDuration_SpecPaused`, `TestBlueGreenDuration_SupersededRollback`, `TestBlueGreenDuration_SupersededRollbackToStable`, `TestBlueGreenDuration_SupersededRollout`, `TestCanaryDuration_FullyPromoted`, `TestCanaryDuration_IndefinitePauseStep`, `TestCanaryDuration_InitialRollout`, `TestCanaryDuration_PauseStep`, `TestCanaryDuration_RollbackInsideWindow`, `TestCanaryDuration_RollbackOutsideWindow`, `TestCanaryDuration_SpecPaused`, `TestCanaryDuration_SupersededRollback`, `TestCanaryDuration_SupersededRollout` |
 | `26-duration-abort-not-completed` | `TestBlueGreenDuration_Abort`, `TestBlueGreenDuration_Retry`, `TestCanaryDuration_Abort`, `TestCanaryDuration_Retry` |
-| `27-duration-restarted-by-scaling` | `TestCanaryDynamicStableScaleAbortScaleDownDelay`, `TestBlueGreenDuration_Abort`, `TestBlueGreenDuration_Retry`, `TestBlueGreenDuration_ScalingOnly`, `TestCanaryDuration_Abort` |
+| `27-duration-restarted-by-scaling` | `TestBlueGreenDuration_Abort`, `TestBlueGreenDuration_Retry`, `TestBlueGreenDuration_ScalingOnly`, `TestCanaryDuration_Abort` |
 | `28-workloadref-deployment-never-scaled-down` | `TestScaleDownOnSuccess`, `TestScaleDownProgressively`, `TestScaleDownProgressivelyCompleted`, `TestScaleDownProgressivelyCompletedCanary` |
 | `29-invalid-spec-not-reported-degraded` | `TestFixInvalidSpec`, `TestWorkloadRef`, `TestWorkloadRefTemplate` |
 | `30-condition-status-change-with-same-reason-ignored` | `TestCanaryProgressDeadlineExceededWithPause`, `TestBlueGreenUpdate`, `TestKubectlWaitForCompleted`, `TestKubectlWaitForPaused`, `TestRolloutAbortRetryPromote` |
@@ -114,7 +116,14 @@ comparison says nothing about them:
 - `TestRolloutRestart`
 - `TestIstioAbortUpdate`
 
-Compare a later run against this with:
+## The comparison with the converted tests
+
+Fork workflow run 46088344300 ran the converted tests against all 47 patches
+(commit `652e1404`, parallelism 8, two reruns). For 44 patches every test that
+catches the patch above also fails there on every attempt: 163 pairs of patch
+and test. The other three patches (18, 32, 42) are caught by no test above.
+
+Repeat it with:
 
 ```
 go run ./hack/testmigration killmatrix -base upstream/master \

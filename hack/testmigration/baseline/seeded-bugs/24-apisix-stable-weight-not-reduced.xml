@@ -20,6 +20,26 @@
     <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="4.730000" />
     <testcase name="TestCanarySuite" time="464.070000" />
   </testsuite>
+  <testsuite name="old Canary suite, fork run 46092802495 (two reruns)">
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScale" time="19.820000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleAbortScaleDownDelay" time="26.010000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleRollbackToStable" time="13.980000" />
+    <testcase name="TestCanarySuite/TestCanaryProgressDeadlineExceededWithPause" time="127.120000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelay" time="10.790000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelayWithProgressDeadline" time="17.150000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbort" time="8.860000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbortNoTrafficRouting" time="9.140000" />
+    <testcase name="TestCanarySuite/TestCanarySetCanaryScale" time="8.870000" />
+    <testcase name="TestCanarySuite/TestCanaryUnScaleDownOnAbort" time="8.029000" />
+    <testcase name="TestCanarySuite/TestCanaryWithPausedRollout" time="102.100000" />
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="40.230000" />
+    <testcase name="TestCanarySuite/TestEphemeralMetadata" time="13.080000" />
+    <testcase name="TestCanarySuite/TestReduceWeightAndHonorMaxUnavailable" time="26.140000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingDuringUpdate" time="2.630000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="4.220000" />
+    <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="4.540000" />
+    <testcase name="TestCanarySuite" time="444.230000" />
+  </testsuite>
   <testsuite name="15 old suites, fork run 46066726568">
     <testcase name="TestAPISIXSuite/TestAPISIXCanarySetHeaderStep" time="38.970000">
       <failure />

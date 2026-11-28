@@ -24,6 +24,26 @@
     <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="5.030000" />
     <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="5.730000" />
   </testsuite>
+  <testsuite name="old Canary suite, fork run 46092802495 (two reruns)">
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScale" time="18.660000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleAbortScaleDownDelay" time="25.950000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleRollbackToStable" time="12.990000" />
+    <testcase name="TestCanarySuite/TestCanaryProgressDeadlineExceededWithPause" time="128.110000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelay" time="10.920000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelayWithProgressDeadline" time="17.920000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbort" time="11.160000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbortNoTrafficRouting" time="6.940000" />
+    <testcase name="TestCanarySuite/TestCanarySetCanaryScale" time="11.910000" />
+    <testcase name="TestCanarySuite/TestCanaryUnScaleDownOnAbort" time="10.000000" />
+    <testcase name="TestCanarySuite/TestCanaryWithPausedRollout" time="102.170000" />
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="40.240000" />
+    <testcase name="TestCanarySuite/TestEphemeralMetadata" time="12.950000" />
+    <testcase name="TestCanarySuite/TestReduceWeightAndHonorMaxUnavailable" time="26.950000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingDuringUpdate" time="3.130000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="4.930000" />
+    <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="5.030000" />
+    <testcase name="TestCanarySuite" time="451.040000" />
+  </testsuite>
   <testsuite name="15 old suites, fork run 46066726568">
     <testcase name="TestDurationSuite/TestBlueGreenDuration_Abort" time="5.570000">
       <failure />
