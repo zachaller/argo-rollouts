@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -523,11 +524,25 @@ func (c *Common) parseTextToObjects(text string) []*unstructured.Unstructured {
 	return objs
 }
 
+// manifestRoot is the directory that "@file" manifest references are read
+// from. Empty means the working directory.
+var manifestRoot string
+
+// SetManifestRoot sets the directory that "@file" manifest references are
+// read from. Call it before any test starts, from TestMain, when the test
+// process does not keep the package directory as its working directory.
+func SetManifestRoot(dir string) {
+	manifestRoot = dir
+}
+
 func (c *Common) yamlBytes(text string) []byte {
 	var yamlBytes []byte
 	var err error
 	if strings.HasPrefix(text, "@") {
 		file := strings.TrimPrefix(text, "@")
+		if manifestRoot != "" && !filepath.IsAbs(file) {
+			file = filepath.Join(manifestRoot, file)
+		}
 		yamlBytes, err = os.ReadFile(file)
 		c.CheckError(err)
 	} else {
