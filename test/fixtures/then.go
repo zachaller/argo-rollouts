@@ -557,14 +557,20 @@ func (t *Then) ExpectDeploymentReplicasCount(expectation string, deploymentName 
 }
 
 // controllerSettleTime is how long the controller has to go without a write
-// before ExpectControllerQuiet starts to count.
-const controllerSettleTime = 2 * time.Second
+// before ExpectControllerQuiet starts to count. Events are writes too, and the
+// controller sends them from a queue of their own, through the same rate
+// limiter as its other writes: one can arrive a while after the write it
+// belongs to.
+const controllerSettleTime = 5 * time.Second
 
 // ExpectControllerQuiet fails the test if the controller writes anything to
 // the API server in the test's namespace for the given time. Before the time
 // starts, it lets the controller finish what it is doing: it waits until the
-// controller has made no write for two seconds, and fails the test if that
+// controller has made no write for five seconds, and fails the test if that
 // does not happen within E2E_WAIT_TIMEOUT.
+//
+// It cannot tell a quiet controller from one whose writes are not seen. A
+// test should first make sure that ControllerWrites is not empty.
 //
 // It needs the controller inside the test binary and skips the test without.
 func (t *Then) ExpectControllerQuiet(d time.Duration) *Then {

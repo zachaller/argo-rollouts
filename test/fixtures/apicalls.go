@@ -67,10 +67,20 @@ func (c APICall) String() string {
 }
 
 // parseAPICall reads the verb and the object out of a request to the API
-// server. It returns false for a request that is not about a resource, such as
-// discovery or /version.
-func parseAPICall(method string, u *url.URL) (APICall, bool) {
-	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+// server. prefix is the path the API server is reached under, when the
+// kubeconfig names it with one (as behind a proxy); it is empty otherwise. It
+// returns false for a request that is not about a resource, such as discovery
+// or /version.
+func parseAPICall(method string, u *url.URL, prefix string) (APICall, bool) {
+	path := strings.Trim(u.Path, "/")
+	if prefix != "" {
+		rest, ok := strings.CutPrefix(path, prefix)
+		if !ok || (rest != "" && !strings.HasPrefix(rest, "/")) {
+			return APICall{}, false
+		}
+		path = strings.Trim(rest, "/")
+	}
+	parts := strings.Split(path, "/")
 	var call APICall
 	switch {
 	case len(parts) > 2 && parts[0] == "api":
@@ -129,6 +139,17 @@ func parseAPICall(method string, u *url.URL) (APICall, bool) {
 // Fault describes calls of the controller to the API server that fail instead
 // of reaching it. A fault only ever applies to the namespace of the test that
 // injected it, so tests running at the same time do not see it.
+//
+// That also limits what can be failed: only calls that name the namespace.
+// The controller's informers list and watch across all namespaces, and
+// cluster-scoped objects have none, so a fault never reaches those calls.
+//
+// The controller gets a Status object with the given code, which the clients
+// turn into the matching error (IsConflict, IsNotFound and so on). It is not
+// in every respect what the API server sends: there is no Retry-After header,
+// which the API server adds to a 429 and to some 5xx answers and which makes
+// client-go retry by itself. The controller sees an injected 429 or 503 at
+// once.
 type Fault struct {
 	// Verb is the verb of the calls: get, list, watch, create, update, patch,
 	// delete or deletecollection. Required.
@@ -205,18 +226,29 @@ func (f *InjectedFault) Remove() {
 
 // apiCalls sits in the transport of the in-process controller's clients. It
 // records what the controller writes in the namespaces of running tests, and
-// makes the calls fail that a test injected a fault for.
+// makes the calls fail that a test injected a fault for. Writes to
+// cluster-scoped objects are not recorded: they belong to no test.
 type apiCalls struct {
+	// prefix is the path under which the API server is reached, without
+	// slashes at either end; usually empty.
+	prefix string
+
 	mu     sync.Mutex
 	writes map[string][]APICall
 	faults map[string][]*InjectedFault
 }
 
-func newAPICalls() *apiCalls {
-	return &apiCalls{
+// newAPICalls takes the address of the API server as the kubeconfig has it,
+// for the path in it, if any.
+func newAPICalls(host string) *apiCalls {
+	a := &apiCalls{
 		writes: map[string][]APICall{},
 		faults: map[string][]*InjectedFault{},
 	}
+	if u, err := url.Parse(host); err == nil && u.Scheme != "" {
+		a.prefix = strings.Trim(u.Path, "/")
+	}
+	return a
 }
 
 // watch starts recording the controller's writes in a namespace.
@@ -289,7 +321,7 @@ type apiCallTransport struct {
 }
 
 func (t *apiCallTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	call, ok := parseAPICall(req.Method, req.URL)
+	call, ok := parseAPICall(req.Method, req.URL, t.calls.prefix)
 	if !ok || call.Namespace == "" {
 		return t.next.RoundTrip(req)
 	}
@@ -320,9 +352,9 @@ func (t *apiCallTransport) WrappedRoundTripper() http.RoundTripper {
 	return t.next
 }
 
-// faultResponse builds the answer the API server gives with that status: a
-// Status object, which the clients turn into the matching error, so that
-// apierrors.IsConflict and the like hold for it.
+// faultResponse builds an answer with that status: a Status object, which the
+// clients turn into the matching error, so that apierrors.IsConflict and the
+// like hold for it. It has no Retry-After header; see Fault.
 func faultResponse(req *http.Request, call APICall) *http.Response {
 	// NewGenericServerResponse knows the reason that goes with each status.
 	statusErr := apierrors.NewGenericServerResponse(call.Status, call.Verb,

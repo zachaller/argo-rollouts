@@ -63,5 +63,8 @@ func run(m *testing.M) int {
 			code = 1
 		}
 	}
+	if code == 0 {
+		ctrl.DiscardLog()
+	}
 	return code
 }

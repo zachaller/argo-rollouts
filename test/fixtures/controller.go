@@ -31,6 +31,13 @@ const (
 	// are rerun, and each of them runs a controller. Without it every process
 	// writes a file of its own in the temporary directory.
 	EnvVarE2EControllerLog = "E2E_CONTROLLER_LOG"
+	// E2E_CONTROLLER_FAILURES is a file an in-process controller appends a
+	// line to when it recovers from a panic or does not stop cleanly. The
+	// test process that sees such a thing fails, but that is not enough: when
+	// failed tests are rerun, the reruns are processes of their own, they
+	// pass, and the run as a whole passes with them. `make test-e2e` sets
+	// this, and fails when the file is not empty after all the reruns.
+	EnvVarE2EControllerFailures = "E2E_CONTROLLER_FAILURES"
 
 	controllerInProcess = "inprocess"
 	controllerExternal  = "external"
@@ -73,21 +80,24 @@ func ControllerInProcess() (bool, error) {
 // InProcessController is an Argo Rollouts controller running inside the test
 // process, built with the same wiring as the rollouts-controller binary.
 type InProcessController struct {
-	cancel     context.CancelFunc
-	done       chan error
-	logFile    *os.File
-	logPath    string
-	klogLogger *log.Logger
-	hook       *controllerLogHook
-	calls      *apiCalls
+	cancel  context.CancelFunc
+	done    chan error
+	logFile *os.File
+	logPath string
+	// logIsTemporary says that the log is a file made for this process and
+	// not one the caller named.
+	logIsTemporary bool
+	klogLogger     *log.Logger
+	hook           *controllerLogHook
+	calls          *apiCalls
 }
 
 // StartController starts the controller in this process and returns once its
 // workers are running. It is configured as `make start-e2e` configures the
-// binary: the e2e instance ID, debug logging, klog level 6 (or E2E_KLOG_LEVEL)
-// and the shared analysis secrets in the argo-rollouts namespace. Leader
-// election is off: the lease of an earlier test process would only make this
-// one wait.
+// binary by default: the e2e instance ID, debug logging, klog level 6 (or
+// E2E_KLOG_LEVEL) and the shared analysis secrets in the argo-rollouts
+// namespace. It has no counterpart of E2E_CONTROLLER_FLAGS. Leader election is
+// off: the lease of an earlier test process would only make this one wait.
 //
 // The controller looks for its plugins relative to the working directory, so
 // the caller has to make that the repository root first. Call Stop when the
@@ -115,7 +125,7 @@ func StartController() (*InProcessController, error) {
 	// Every request of the controller goes through calls, which records the
 	// writes and lets a test make chosen calls fail. The tests' own clients
 	// do not go through it.
-	calls := newAPICalls()
+	calls := newAPICalls(restConfig.Host)
 	restConfig.Wrap(calls.wrap)
 
 	opts := controller.DefaultOptions()
@@ -135,15 +145,16 @@ func StartController() (*InProcessController, error) {
 		}
 	}
 
-	logFile, logPath, err := openControllerLog()
+	logFile, logIsTemporary, err := openControllerLog()
 	if err != nil {
 		return nil, fmt.Errorf("opening the controller log: %w", err)
 	}
+	logPath := logFile.Name()
 
 	// The controller logs through the shared logrus logger, and client-go
 	// through klog. Both go to the log file; the tests have loggers of their
 	// own that write to the test output.
-	hook := newControllerLogHook()
+	hook := newControllerLogHook(os.Getenv(EnvVarE2EControllerFailures))
 	log.SetOutput(logFile)
 	log.SetLevel(log.DebugLevel)
 	log.AddHook(hook)
@@ -165,13 +176,14 @@ func StartController() (*InProcessController, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	c := &InProcessController{
-		cancel:     cancel,
-		done:       make(chan error, 1),
-		logFile:    logFile,
-		logPath:    logPath,
-		klogLogger: klogLogger,
-		hook:       hook,
-		calls:      calls,
+		cancel:         cancel,
+		done:           make(chan error, 1),
+		logFile:        logFile,
+		logPath:        logPath,
+		logIsTemporary: logIsTemporary,
+		klogLogger:     klogLogger,
+		hook:           hook,
+		calls:          calls,
 	}
 	go func() { c.done <- manager.RunWithOptions(ctx, opts) }()
 
@@ -192,18 +204,16 @@ func StartController() (*InProcessController, error) {
 	return c, nil
 }
 
-// openControllerLog opens the file the controller logs to and returns it with
-// its path.
-func openControllerLog() (*os.File, string, error) {
+// openControllerLog opens the file the controller logs to: the one
+// E2E_CONTROLLER_LOG names, or a new one in the temporary directory. It says
+// which of the two it is.
+func openControllerLog() (f *os.File, temporary bool, err error) {
 	if path := os.Getenv(EnvVarE2EControllerLog); path != "" {
 		f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
-		return f, path, err
+		return f, false, err
 	}
-	f, err := os.CreateTemp("", "e2e-controller-*.log")
-	if err != nil {
-		return nil, "", err
-	}
-	return f, f.Name(), nil
+	f, err = os.CreateTemp("", "e2e-controller-*.log")
+	return f, true, err
 }
 
 // Stop shuts the controller down and waits for it. It returns an error when
@@ -226,10 +236,25 @@ func (c *InProcessController) Stop() error {
 	c.klogLogger.SetOutput(io.Discard)
 	c.logFile.Close()
 
+	// A panic was noted in the failures file when it happened. What went
+	// wrong while stopping is only known now.
+	for _, err := range errs {
+		c.hook.noteFailure(err.Error())
+	}
 	if panics := c.hook.recoveredPanics(); len(panics) > 0 {
 		errs = append(errs, fmt.Errorf("the controller recovered from %d panic(s) (log: %s); the first one:\n%s", len(panics), c.logPath, panics[0]))
 	}
 	return errors.Join(errs...)
+}
+
+// DiscardLog removes the controller's log if it is the file that was made for
+// this process. Call it after Stop when nothing failed: nobody will read the
+// log of a run that passed, and every test process would leave one behind. A
+// log that the caller named with E2E_CONTROLLER_LOG is left alone.
+func (c *InProcessController) DiscardLog() {
+	if c.logIsTemporary {
+		os.Remove(c.logPath)
+	}
 }
 
 // watchNamespace starts keeping, for the namespace of a test, the controller's
@@ -247,23 +272,50 @@ func (c *InProcessController) releaseNamespace(namespace string) (logLines []str
 	return c.hook.release(namespace), writes
 }
 
-// controllerLogHook sees every entry the controller logs. It tells when the
-// controller has started, remembers recovered panics, and keeps the latest
-// lines about the namespaces of running tests for their failure dumps.
+// controllerLogHook sees every entry that is logged through the shared logrus
+// logger. It tells when the controller has started, remembers recovered
+// panics, and keeps the latest lines about the namespaces of running tests for
+// their failure dumps.
+//
+// It does not see everything in the log file. The analysis controller logs
+// its per-metric lines through loggers of its own (logutil.WithRedactor), and
+// client-go logs through klog, for the tests' clients as well as the
+// controller's. Those lines are in the file and not in a failure dump. The
+// places that recover from a panic all log through the shared logger.
 type controllerLogHook struct {
 	started   chan struct{}
 	startOnce sync.Once
+	// failuresPath is the file recovered panics are noted in as they happen,
+	// or empty.
+	failuresPath string
 
 	mu          sync.Mutex
 	panics      []string
 	byNamespace map[string][]string
 }
 
-func newControllerLogHook() *controllerLogHook {
+func newControllerLogHook(failuresPath string) *controllerLogHook {
 	return &controllerLogHook{
-		started:     make(chan struct{}),
-		byNamespace: map[string][]string{},
+		started:      make(chan struct{}),
+		failuresPath: failuresPath,
+		byNamespace:  map[string][]string{},
 	}
+}
+
+// noteFailure appends one line to the failures file, if there is one. The
+// file is what makes a problem of the controller outlast this process.
+func (h *controllerLogHook) noteFailure(what string) {
+	if h.failuresPath == "" {
+		return
+	}
+	f, err := os.OpenFile(h.failuresPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "e2e: could not note a controller failure in %s: %v\n", h.failuresPath, err)
+		return
+	}
+	defer f.Close()
+	line, _, _ := strings.Cut(strings.TrimSpace(what), "\n")
+	fmt.Fprintf(f, "%s test process %d: %s\n", time.Now().UTC().Format(time.RFC3339), os.Getpid(), line)
 }
 
 func (h *controllerLogHook) Levels() []log.Level {
@@ -278,6 +330,8 @@ func (h *controllerLogHook) Fire(entry *log.Entry) error {
 		h.mu.Lock()
 		h.panics = append(h.panics, entry.Message)
 		h.mu.Unlock()
+		namespace, _ := entry.Data[logutil.NamespaceKey].(string)
+		h.noteFailure(fmt.Sprintf("the controller recovered from a panic in namespace %q: %s", namespace, entry.Message))
 	}
 
 	// Debug lines stay in the log file only: there are far too many of them.

@@ -44,11 +44,18 @@ E2E_COVERAGE ?= false
 E2E_BUILD_FLAGS = --tags e2e
 E2E_COVERAGE_RUN_FLAGS =
 ifeq ($(E2E_COVERAGE),true)
-E2E_BUILD_FLAGS += -cover -coverpkg=$(shell go list -deps ./controller | grep '^github.com/argoproj/argo-rollouts/' | paste -sd, -)
+E2E_COVERPKG = $(shell go list -deps ./controller | grep '^github.com/argoproj/argo-rollouts/' | paste -sd, -)
+# An empty -coverpkg would be accepted, and would record next to nothing.
+E2E_BUILD_FLAGS += -cover -coverpkg=$(or $(E2E_COVERPKG),$(error could not list the packages of the controller for -coverpkg))
 # go test passes a flag it does not know on to the test binary, and takes
 # nothing after such a flag as a package: this one goes after the package.
-E2E_COVERAGE_RUN_FLAGS = -test.gocoverdir=$(CURDIR)/coverage-output-e2e
+E2E_COVERAGE_RUN_FLAGS = -test.gocoverdir='$(CURDIR)/coverage-output-e2e'
 endif
+# Where a controller inside the test binary notes that it recovered from a
+# panic or did not stop cleanly. The test process that sees it fails, but a
+# rerun of the failed tests is a process of its own and passes, and gotestsum
+# goes by the rerun. So test-e2e looks at this file itself, after the reruns.
+E2E_CONTROLLER_FAILURES = $(CURDIR)/e2e-controller-failures.txt
 ifeq ($(E2E_RERUN_FAILS),0)
 E2E_RERUN_ARGS =
 else
@@ -308,7 +315,15 @@ build-e2e: ## compile the e2e tests without running them
 .PHONY: test-e2e
 test-e2e: install-devtools-local
 	@mkdir -p coverage-output-e2e
-	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 ${E2E_BUILD_FLAGS} -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_COVERAGE_RUN_FLAGS} ${E2E_TEST_OPTIONS}
+	@rm -f '${E2E_CONTROLLER_FAILURES}'
+	@status=0; \
+	E2E_CONTROLLER_FAILURES='${E2E_CONTROLLER_FAILURES}' ${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 ${E2E_BUILD_FLAGS} -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_COVERAGE_RUN_FLAGS} ${E2E_TEST_OPTIONS} || status=$$?; \
+	if [ -s '${E2E_CONTROLLER_FAILURES}' ]; then \
+		echo "FAIL: the controller inside the test binary had a problem during this run:"; \
+		cat '${E2E_CONTROLLER_FAILURES}'; \
+		exit 1; \
+	fi; \
+	exit $$status
 
 .PHONY: test-unit
  test-unit: install-devtools-local ## run unit tests

@@ -3,6 +3,9 @@ package fixtures
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -15,7 +18,12 @@ import (
 // newHookedLogger returns a logger like the one the controller logs through,
 // with the hook on it.
 func newHookedLogger() (*log.Logger, *controllerLogHook) {
-	hook := newControllerLogHook()
+	return newHookedLoggerNoting("")
+}
+
+// newHookedLoggerNoting is newHookedLogger with a failures file.
+func newHookedLoggerNoting(failuresPath string) (*log.Logger, *controllerLogHook) {
+	hook := newControllerLogHook(failuresPath)
 	logger := log.New()
 	logger.SetOutput(io.Discard)
 	logger.SetLevel(log.DebugLevel)
@@ -93,4 +101,28 @@ func TestControllerLogHookKeepsTheLatestLines(t *testing.T) {
 	require.Len(t, lines, capturedLogLines)
 	assert.Contains(t, lines[0], "line 10")
 	assert.Contains(t, lines[len(lines)-1], fmt.Sprintf("line %d", capturedLogLines+9))
+}
+
+func TestControllerLogHookNotesFailures(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "failures.txt")
+	logger, hook := newHookedLoggerNoting(path)
+
+	logger.Info("nothing wrong")
+	_, err := os.Stat(path)
+	assert.True(t, os.IsNotExist(err), "no failure, no file")
+
+	logger.WithField(logutil.NamespaceKey, "ns").WithField("rollout", "ro").
+		Errorf("Recovered from panic: %+v\n%s", "boom", "goroutine 1 [running]:")
+	hook.noteFailure("the controller did not stop within 1m0s")
+
+	content, err := os.ReadFile(path)
+	require.NoError(t, err)
+	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+	require.Len(t, lines, 2, "one line each, without the stack")
+	assert.Regexp(t, `^\S+ test process \d+: the controller recovered from a panic in namespace "ns": Recovered from panic: boom$`, lines[0])
+	assert.Contains(t, lines[1], "the controller did not stop within 1m0s")
+
+	// Without a file nothing is written anywhere.
+	_, plain := newHookedLogger()
+	plain.noteFailure("ignored")
 }

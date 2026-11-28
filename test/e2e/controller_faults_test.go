@@ -29,27 +29,36 @@ func TestIstioDestinationRuleCleanupConflict(t *testing.T) {
 	fixtures.RequireInProcessController(t)
 	s := newIstioTest(t)
 
-	var conflicts *fixtures.InjectedFault
-	s.Given().
+	w := s.Given().
 		RolloutObjects("@istio/istio-subset-split.yaml").
 		When().
 		ApplyManifests().
 		WaitForRolloutStatus("Healthy").
-		Then().
-		Assert(func(t *fixtures.Then) {
-			destrule := t.GetDestinationRule()
-			assert.Contains(s.T(), destrule.Annotations, v1alpha1.ManagedByRolloutsKey)
-			assert.Contains(s.T(), destrule.Spec.Subsets[0].Labels, v1alpha1.DefaultRolloutUniqueLabelKey)
-
-			conflicts = s.FailControllerCalls(fixtures.Fault{
-				Verb:     "update",
-				Resource: "destinationrules",
-				Status:   http.StatusConflict,
-				Times:    2,
-			})
+		// The controller writes the hash of the stable ReplicaSet into the
+		// DestinationRule in the reconcile after the one that makes the
+		// Rollout healthy. Wait for it, and for the controller to be done,
+		// so that the only updates of the rule from here on are the clean-up.
+		WaitFor("the DestinationRule to carry the Rollout's labels", func(w *fixtures.When) bool {
+			destrule := w.GetDestinationRule()
+			if _, managed := destrule.Annotations[v1alpha1.ManagedByRolloutsKey]; !managed {
+				return false
+			}
+			for _, subset := range destrule.Spec.Subsets {
+				if _, labelled := subset.Labels[v1alpha1.DefaultRolloutUniqueLabelKey]; !labelled {
+					return false
+				}
+			}
+			return len(destrule.Spec.Subsets) > 0
 		}).
-		When().
-		DeleteRollout().
+		WaitForControllerQuiet(2 * time.Second)
+
+	conflicts := s.FailControllerCalls(fixtures.Fault{
+		Verb:     "update",
+		Resource: "destinationrules",
+		Status:   http.StatusConflict,
+		Times:    2,
+	})
+	w.DeleteRollout().
 		WaitFor("the DestinationRule to be cleaned", func(w *fixtures.When) bool {
 			_, managed := w.GetDestinationRule().Annotations[v1alpha1.ManagedByRolloutsKey]
 			return !managed
@@ -73,11 +82,16 @@ func TestHealthyRolloutControllerQuiet(t *testing.T) {
 	fixtures.RequireInProcessController(t)
 	s := fixtures.New(t)
 
-	s.Given().
+	then := s.Given().
 		HealthyRollout("@functional/rollout-basic.yaml").
 		When().
-		Then().
-		ExpectControllerQuiet(10 * time.Second)
+		Then()
+	// The controller created a ReplicaSet at least. If no write of it was
+	// seen, seeing none below would mean nothing.
+	if !assert.NotEmpty(t, s.ControllerWrites(), "none of the controller's writes was recorded") {
+		return
+	}
+	then.ExpectControllerQuiet(10 * time.Second)
 }
 
 // TestScaleDownOnSuccessUpdateConflict is TestScaleDownOnSuccess, except that

@@ -20,6 +20,7 @@ plugin-bin/
 server/static/*
 !server/static/.gitkeep
 coverage-output-e2e/
+e2e-controller-failures.txt
 coverage-output-unit/
 junit*
 

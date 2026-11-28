@@ -46,7 +46,7 @@ func TestParseAPICall(t *testing.T) {
 	for _, tt := range tests {
 		u, err := url.Parse("https://127.0.0.1:6443" + tt.url)
 		require.NoError(t, err)
-		got, ok := parseAPICall(tt.method, u)
+		got, ok := parseAPICall(tt.method, u, "")
 		assert.True(t, ok, "%s %s", tt.method, tt.url)
 		assert.Equal(t, tt.want, got, "%s %s", tt.method, tt.url)
 	}
@@ -54,9 +54,33 @@ func TestParseAPICall(t *testing.T) {
 	for _, notAResource := range []string{"/version", "/healthz", "/api", "/api/v1", "/apis", "/apis/apps", "/apis/apps/v1", "/openapi/v2"} {
 		u, err := url.Parse("https://127.0.0.1:6443" + notAResource)
 		require.NoError(t, err)
-		_, ok := parseAPICall("GET", u)
+		_, ok := parseAPICall("GET", u, "")
 		assert.False(t, ok, notAResource)
 	}
+}
+
+// TestParseAPICallBehindAPrefix covers an API server that the kubeconfig
+// reaches under a path, as behind a proxy.
+func TestParseAPICallBehindAPrefix(t *testing.T) {
+	calls := newAPICalls("https://proxy.example/k8s/clusters/c-1/")
+	assert.Equal(t, "k8s/clusters/c-1", calls.prefix)
+	assert.Empty(t, newAPICalls("https://127.0.0.1:6443").prefix)
+	assert.Empty(t, newAPICalls("127.0.0.1:6443").prefix)
+
+	parse := func(path string) (APICall, bool) {
+		u, err := url.Parse("https://proxy.example" + path)
+		require.NoError(t, err)
+		return parseAPICall("PUT", u, calls.prefix)
+	}
+	got, ok := parse("/k8s/clusters/c-1/apis/apps/v1/namespaces/ns/deployments/d")
+	assert.True(t, ok)
+	assert.Equal(t, APICall{Verb: "update", Group: "apps", Resource: "deployments", Namespace: "ns", Name: "d"}, got)
+
+	// Not under the prefix, or only something that starts like it.
+	_, ok = parse("/apis/apps/v1/namespaces/ns/deployments/d")
+	assert.False(t, ok)
+	_, ok = parse("/k8s/clusters/c-10/apis/apps/v1/namespaces/ns/deployments/d")
+	assert.False(t, ok)
 }
 
 func TestFaultValidate(t *testing.T) {
@@ -78,7 +102,7 @@ func TestFaultValidate(t *testing.T) {
 }
 
 func TestFaultMatchingAndCounting(t *testing.T) {
-	calls := newAPICalls()
+	calls := newAPICalls("")
 	update := APICall{Verb: "update", Resource: "destinationrules", Namespace: "a", Name: "rule"}
 
 	twice := calls.inject("a", Fault{Verb: "update", Resource: "destinationrules", Status: http.StatusConflict, Times: 2})
@@ -140,7 +164,7 @@ func TestAPICallTransport(t *testing.T) {
 	}))
 	defer server.Close()
 
-	calls := newAPICalls()
+	calls := newAPICalls(server.URL)
 	config := &rest.Config{Host: server.URL}
 	config.Wrap(calls.wrap)
 	kube, err := kubernetes.NewForConfig(config)

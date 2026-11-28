@@ -35,7 +35,7 @@ on:
         options: ['all', 'latest']
         default: 'all'
       e2e_controller:
-        description: 'default runs the controller inside the e2e test binary, except on the one Kubernetes version that is set to external below. inprocess and external do the one or the other in every job; external starts the controller as a process of its own, which the tests of a commit from before 2026-11-28 need (see e2e_tests_ref). off runs the e2e tests with no controller: every test that needs one must fail'
+        description: 'default runs the controller inside the e2e test binary, except on the one Kubernetes version that is set to external below, and except with e2e_tests_ref, where every job is external. inprocess and external do the one or the other in every job; external starts the controller as a process of its own. off runs the e2e tests with no controller: every test that needs one must fail'
         type: choice
         options: ['default', 'inprocess', 'external', 'off']
         default: 'default'
@@ -215,7 +215,10 @@ jobs:
           PARALLEL: ${{ inputs.e2e_parallel || '8' }}
           JOBS: ${{ inputs.e2e_jobs || '1' }}
           BUGS: ${{ inputs.e2e_seeded_bugs || 'none' }}
-          CONTROLLER: ${{ inputs.e2e_controller != 'default' && inputs.e2e_controller || '' }}
+          # The tests of an earlier commit (e2e_tests_ref) may not start a
+          # controller themselves: give them a separate one unless told
+          # otherwise.
+          CONTROLLER: ${{ inputs.e2e_controller != 'default' && inputs.e2e_controller || (inputs.e2e_tests_ref != '' && 'external' || '') }}
         run: echo "matrix=$(./hack/e2e-matrix.sh)" >> "$GITHUB_OUTPUT"
 
   test-e2e:
