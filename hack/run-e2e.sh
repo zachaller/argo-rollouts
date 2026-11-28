@@ -5,9 +5,11 @@
 #
 # Environment (all optional):
 #   E2E_REPEAT       number of runs                                   (default 1)
-#   E2E_CONTROLLER   "off" when no controller was started on purpose  (default on)
+#   E2E_CONTROLLER   "on": a controller was started separately        (default)
+#                    "inprocess": the test binary runs the controller
+#                    "off": there is no controller, on purpose
 #   plus everything `make test-e2e` reads: E2E_PARALLEL, E2E_TEST_OPTIONS,
-#   E2E_RERUN_FAILS, E2E_WAIT_TIMEOUT.
+#   E2E_RERUN_FAILS, E2E_WAIT_TIMEOUT, E2E_COVERAGE.
 set -uo pipefail
 
 repeat="${E2E_REPEAT:-1}"
@@ -17,14 +19,15 @@ rm -f "$controller_died"
 : >e2e-timings.txt
 
 # Build the tools and the test binary first, so that neither is part of the
-# time measured for the first run. `-run ^$` compiles the tests and runs none.
+# time measured for the first run.
 make install-devtools-local || exit 1
-go test -tags e2e -count 1 -run '^$' ./test/e2e || exit 1
+make build-e2e || exit 1
 
 # Without a controller every test only waits for its timeout, so stop as soon
-# as the controller is gone.
+# as a separately started controller is gone. A controller inside the test
+# binary cannot go without the tests.
 watchdog=
-if [ "${E2E_CONTROLLER:-on}" != "off" ]; then
+if [ "${E2E_CONTROLLER:-on}" = "on" ]; then
 	(
 		while pgrep -f "$controller_pattern" >/dev/null; do sleep 5; done
 		touch "$controller_died"

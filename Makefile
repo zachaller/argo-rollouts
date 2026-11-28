@@ -33,6 +33,19 @@ E2E_WAIT_TIMEOUT ?= 90
 E2E_RERUN_FAILS ?= 5
 # Extra flags for the controller started by start-e2e
 E2E_CONTROLLER_FLAGS ?=
+# E2E_CONTROLLER=inprocess (read by the tests themselves) makes the e2e test
+# binary run the controller, instead of the one started by start-e2e.
+#
+# E2E_COVERAGE=true makes the e2e test binary record the coverage of the
+# controller's packages in coverage-output-e2e. It is for
+# E2E_CONTROLLER=inprocess: a controller started by start-e2e records its own.
+E2E_COVERAGE ?= false
+E2E_BUILD_FLAGS = --tags e2e
+E2E_COVERAGE_RUN_FLAGS =
+ifeq ($(E2E_COVERAGE),true)
+E2E_BUILD_FLAGS += -cover -coverpkg=$(shell go list -deps ./controller | grep '^github.com/argoproj/argo-rollouts/' | paste -sd, -)
+E2E_COVERAGE_RUN_FLAGS = -test.gocoverdir=$(CURDIR)/coverage-output-e2e
+endif
 ifeq ($(E2E_RERUN_FAILS),0)
 E2E_RERUN_ARGS =
 else
@@ -285,9 +298,14 @@ start-e2e: ## start e2e test environment
 	mkdir -p coverage-output-e2e
 	GOCOVERDIR=coverage-output-e2e go run -cover ./cmd/rollouts-controller/main.go --instance-id ${E2E_INSTANCE_ID} --loglevel debug --kloglevel 6 --analysis-shared-secret-namespace argo-rollouts ${E2E_CONTROLLER_FLAGS}
 
+.PHONY: build-e2e
+build-e2e: ## compile the e2e tests without running them
+	go test ${E2E_BUILD_FLAGS} -c -o /dev/null ./test/e2e
+
 .PHONY: test-e2e
 test-e2e: install-devtools-local
-	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 --tags e2e -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_TEST_OPTIONS}
+	@mkdir -p coverage-output-e2e
+	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 ${E2E_BUILD_FLAGS} ${E2E_COVERAGE_RUN_FLAGS} -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_TEST_OPTIONS}
 
 .PHONY: test-unit
  test-unit: install-devtools-local ## run unit tests
