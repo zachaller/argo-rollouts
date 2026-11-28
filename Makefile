@@ -44,6 +44,8 @@ E2E_BUILD_FLAGS = --tags e2e
 E2E_COVERAGE_RUN_FLAGS =
 ifeq ($(E2E_COVERAGE),true)
 E2E_BUILD_FLAGS += -cover -coverpkg=$(shell go list -deps ./controller | grep '^github.com/argoproj/argo-rollouts/' | paste -sd, -)
+# go test passes a flag it does not know on to the test binary, and takes
+# nothing after such a flag as a package: this one goes after the package.
 E2E_COVERAGE_RUN_FLAGS = -test.gocoverdir=$(CURDIR)/coverage-output-e2e
 endif
 ifeq ($(E2E_RERUN_FAILS),0)
@@ -305,7 +307,7 @@ build-e2e: ## compile the e2e tests without running them
 .PHONY: test-e2e
 test-e2e: install-devtools-local
 	@mkdir -p coverage-output-e2e
-	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 ${E2E_BUILD_FLAGS} ${E2E_COVERAGE_RUN_FLAGS} -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_TEST_OPTIONS}
+	${DIST_DIR}/gotestsum ${E2E_RERUN_ARGS} --junitfile=junit-e2e-test.xml --format=testname --packages="./test/e2e" -- -timeout 60m -count 1 ${E2E_BUILD_FLAGS} -p ${E2E_PARALLEL} -parallel ${E2E_PARALLEL} -shuffle=on -v --short ./test/e2e ${E2E_COVERAGE_RUN_FLAGS} ${E2E_TEST_OPTIONS}
 
 .PHONY: test-unit
  test-unit: install-devtools-local ## run unit tests
