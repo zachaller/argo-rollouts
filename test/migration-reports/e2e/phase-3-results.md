@@ -45,6 +45,10 @@ four versions: 1.34 with the separate controller, 1.35 to 1.37 in-process. Two
 tests needed one rerun each: `TestRolloutAbortWhenStepFails` on 1.34 and
 `TestBlueGreenAnalysis` on 1.37.
 
+So did the run after the changes that the review led to (run 46119208461,
+`2ff774ff`), again on four versions. Only its conclusion was read: every job
+passed, which includes the check that no test skipped unexpectedly.
+
 ### Thirty runs each, reruns off
 
 Runs 46107323320 (separate, `9f52246a`) and 46113140366 (in-process,
