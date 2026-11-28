@@ -171,7 +171,11 @@ func processNextWorkItem(ctx context.Context, workqueue workqueue.RateLimitingIn
 				return nil
 			}
 			logCtx.Errorf("%s syncHandler error: %v", objType, err)
-			metricsServer.IncError(namespace, name, objType)
+			// Not every worker has a metrics server: the Istio DestinationRule
+			// worker runs without one.
+			if metricsServer != nil {
+				metricsServer.IncError(namespace, name, objType)
+			}
 			if k8serrors.IsNotFound(err) {
 				workqueue.Forget(obj)
 				return nil
