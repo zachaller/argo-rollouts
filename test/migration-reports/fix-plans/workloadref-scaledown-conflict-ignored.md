@@ -147,6 +147,12 @@ Deployment again.
   make test-e2e E2E_TEST_OPTIONS="-run TestScaleDownOnSuccessUpdateConflict"
   ```
 
+  Run by name it fails (fork run 46114380945, commit `580ea763`): the
+  controller tries once, `Scaling deployment rollout-ref-deployment to 0
+  replicas`, gets the injected conflict, ends the sync with `No status
+  changes. Skipping patch`, and does nothing more about the Rollout for the
+  minute the test waits.
+
   A first version failed only the controller's first update. That passed with
   the defect in place (fork run 46113135454): a change event for the Rollout
   was still waiting when the update failed, so the controller synced once
