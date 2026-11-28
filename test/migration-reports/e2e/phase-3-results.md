@@ -25,9 +25,11 @@ Kubernetes 1.37 unless a version is named.
 - A failed test prints the controller's last log lines about its namespace and
   a count of the controller's writes there, next to the rollout it already
   printed.
-- The run fails when the controller recovered from a panic in a reconcile. The
-  controller logs such a panic and retries; no test noticed before. None
-  occurred in any run below.
+- `make test-e2e` fails when the controller recovered from a panic in a
+  reconcile. The controller logs such a panic and retries; no test noticed
+  before. None occurred in any run below. (As first written this did not
+  work with reruns on, which is the default; see finding 1 of
+  `phase-3-review.md`.)
 - No separate process to build, start, wait for and watch.
 
 ## The comparison with the separate controller
@@ -155,5 +157,4 @@ happened to sync once more. It was reworked in `580ea763`.
 - Whether the tests that failed only in-process fail more often in-process,
   or failed there because those jobs were slow for another reason. Thirty
   runs per side, and one or two failures per test.
-- The independent review of this phase is in `phase-3-review.md` when it is
-  done.
+- What `phase-3-review.md` lists as not verified.
