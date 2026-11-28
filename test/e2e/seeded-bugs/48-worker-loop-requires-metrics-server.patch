@@ -1,0 +1,17 @@
+diff --git a/utils/controller/controller.go b/utils/controller/controller.go
+index d7ea7fc9..20ccf627 100644
+--- a/utils/controller/controller.go
++++ b/utils/controller/controller.go
+@@ -171,11 +171,7 @@ func processNextWorkItem(ctx context.Context, workqueue workqueue.RateLimitingIn
+ 				return nil
+ 			}
+ 			logCtx.Errorf("%s syncHandler error: %v", objType, err)
+-			// Not every worker has a metrics server: the Istio DestinationRule
+-			// worker runs without one.
+-			if metricsServer != nil {
+-				metricsServer.IncError(namespace, name, objType)
+-			}
++			metricsServer.IncError(namespace, name, objType)
+ 			if k8serrors.IsNotFound(err) {
+ 				workqueue.Forget(obj)
+ 				return nil
