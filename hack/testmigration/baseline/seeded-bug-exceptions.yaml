@@ -9,8 +9,9 @@
   see the patch. That was so before the conversion too. Its twin,
   TestCanaryDuration_ScalingOnly, passed with the patch in 1 of 3 attempts of
   the unconverted suite, which is why it is not counted as catching it. This
-  test caught it in 4 of 4 attempts before and in 3 of 4 after (fork runs
-  46088344300 and 46107325855).
+  test caught it in 4 of 4 attempts before and in 6 of 7 after (fork runs
+  46088344300, 46107325855 and 46113147342). In a run where it catches the
+  patch, killmatrix reports this entry as stale; it stays.
 40-successful-analysisrun-history-not-kept/TestALBExperimentStepNoSetWeightMultiIngress: >-
   The one baseline failure was not the patch. It was the Experiment status
   defect: target groups without a ServiceName at aws_test.go:365, one attempt

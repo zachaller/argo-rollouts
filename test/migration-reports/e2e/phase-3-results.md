@@ -132,9 +132,28 @@ test still make the controller run this function", use
 
 ### Seeded bugs
 
-Not in yet. Run 46113147342 applies all 48 patches with the controller
-in-process; its comparison with the baseline (`killmatrix`) will be added
-here.
+Run 46113147342 (`1e198b70`) applied each of the 48 patches with the
+controller in-process, two reruns. `killmatrix` against the baseline of the
+unconverted suites passes: of the 163 pairs of patch and test that the old
+suites caught, 162 fail again on every attempt. The one that does not is
+patch 40 with `TestALBExperimentStepNoSetWeightMultiIngress`, which is listed
+with its reason in `hack/testmigration/baseline/seeded-bug-exceptions.yaml`
+(the baseline failure was a defect that has since been fixed). Patches 18, 32
+and 42 were caught by nothing in the baseline, as before.
+
+The other recorded exception, patch 27 with
+`TestBlueGreenDuration_ScalingOnly`, was not needed in this run: the test
+failed in all three attempts. Its catch depends on two timestamps falling into
+different seconds, so it comes and goes.
+
+Patch 48 is new and has no baseline. It puts back the defect that a failed
+DestinationRule sync ends the controller. `TestIstioDestinationRuleCleanupConflict`
+causes such a failure, and the run ended after 182 seconds with the
+nil-pointer panic in `processNextWorkItem`, called from the Istio controller.
+Because the controller is in the test process, the panic ended the tests as
+well: 51 tests are reported as failed, the ones that were running and the
+ones that had not started, and only one of them has the panic in its output.
+A crash of the controller is loud in this mode, and not attributed to a test.
 
 ## The new tests
 

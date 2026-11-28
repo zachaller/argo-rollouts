@@ -139,6 +139,13 @@ this file:
 `killmatrix` reads that file. A pair without an entry there fails the check;
 an entry whose test fails with the patch again is reported as stale.
 
+Fork workflow run 46113147342 repeated it once more with the controller inside
+the test binary (commit `1e198b70`). 162 of the 163 pairs fail again on every
+attempt; the remaining one is the pair for patch 40 above. The pair for patch
+27 was caught this time, in three attempts of three, so its entry was
+reported as stale. It stays: whether that test catches the patch depends on
+the clock.
+
 Repeat it with:
 
 ```
