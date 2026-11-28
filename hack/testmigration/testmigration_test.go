@@ -505,6 +505,29 @@ func TestCompareKills(t *testing.T) {
 
 	assert.True(t, findings[2].Missing)
 	assert.False(t, findings[2].ok())
+
+	// A recorded reason accepts the lost test of bug 02. Entries for a test
+	// that still fails, for another bug or for a missing result are stale and
+	// accept nothing.
+	stale := acceptKills(findings, map[string]string{
+		"02-lost/TestScale":         "the catch depended on timing",
+		"01-still-caught/TestScale": "not needed",
+		"02-lost/TestPlain":         "TestPlain did not catch it",
+		"03-missing/TestPlain":      "no result is not a reason",
+	})
+	assert.Equal(t, []string{"01-still-caught/TestScale", "02-lost/TestPlain", "03-missing/TestPlain"}, stale)
+	assert.True(t, findings[0].ok())
+	assert.Empty(t, findings[0].Accepted)
+	assert.True(t, findings[1].ok())
+	assert.Equal(t, map[string]string{"TestScale": "the catch depended on timing"}, findings[1].Accepted)
+	assert.False(t, findings[2].ok())
+}
+
+func TestAcceptKillsNeedsEveryLostTest(t *testing.T) {
+	findings := []killFinding{{Bug: "04-two-lost", Caught: 3, Lost: []string{"TestA", "TestB"}}}
+	stale := acceptKills(findings, map[string]string{"04-two-lost/TestA": "explained"})
+	assert.Empty(t, stale)
+	assert.False(t, findings[0].ok(), "TestB has no reason")
 }
 
 const suiteSrc = `package e2e

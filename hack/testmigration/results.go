@@ -311,9 +311,42 @@ type killFinding struct {
 	Caught int
 	// Missing is set when the new directory has no result file for this bug.
 	Missing bool
+	// Accepted maps a test in Lost to the recorded reason it may pass now.
+	Accepted map[string]string
 }
 
-func (f killFinding) ok() bool { return !f.Missing && len(f.Lost) == 0 && len(f.NotRun) == 0 }
+// ok reports whether every test that caught the bug still does, or has a
+// recorded reason not to.
+func (f killFinding) ok() bool {
+	return !f.Missing && len(f.Lost) == len(f.Accepted) && len(f.NotRun) == 0
+}
+
+// acceptKills marks the lost tests that are listed in exceptions, a map of
+// "<bug>/<test>" to the reason the test may pass with the bug now. It returns
+// the entries that match no lost test: they are stale.
+func acceptKills(findings []killFinding, exceptions map[string]string) (stale []string) {
+	used := map[string]bool{}
+	for i := range findings {
+		f := &findings[i]
+		for _, name := range f.Lost {
+			key := f.Bug + "/" + name
+			if reason, ok := exceptions[key]; ok {
+				if f.Accepted == nil {
+					f.Accepted = map[string]string{}
+				}
+				f.Accepted[name] = reason
+				used[key] = true
+			}
+		}
+	}
+	for key := range exceptions {
+		if !used[key] {
+			stale = append(stale, key)
+		}
+	}
+	sort.Strings(stale)
+	return stale
+}
 
 // compareKills compares, for every seeded bug, which tests fail. baseDir and
 // newDir each hold one JUnit file per bug, named <bug>.xml.

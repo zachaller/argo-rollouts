@@ -16,7 +16,7 @@ go run ./hack/testmigration <command> -base <baseline-ref> [flags]
 | `inventory-diff` | a baseline test has no counterpart, has two, or two baseline tests map to the same test |
 | `bodydiff` | a test body differs from the baseline and is not listed in the exceptions file |
 | `junitdiff` | a test fails, is newly skipped, skips without being on the expected-skip list, or has no result |
-| `killmatrix` | a test that failed under a seeded bug in the baseline passes under the same bug now |
+| `killmatrix` | a test that failed under a seeded bug in the baseline passes under the same bug now, without a reason recorded in `seeded-bug-exceptions.yaml` next to the baseline directory (or the file given with `-exceptions`) |
 | `skips` | a run skipped a test that is not on the expected-skip list (needs only the run's JUnit file; this is the check CI runs) |
 | `convert` | the suite cannot be converted mechanically (it has a suite hook other than `SetupSuite`, or its `SetupSuite` does not start with the embedded call) |
 

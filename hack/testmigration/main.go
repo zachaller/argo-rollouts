@@ -313,9 +313,23 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 	baseDir := c.fs.String("base-dir", "", "directory of baseline JUnit files, one per seeded bug (required)")
 	newDir := c.fs.String("new-dir", "", "directory of new JUnit files, one per seeded bug (required)")
 	onlyExpr := c.fs.String("only", "", "regular expression; only check tests whose new name matches")
+	exceptionsFile := c.fs.String("exceptions", "", "YAML map of \"<bug>/<test>\" to the reason the test may pass with that bug now (default: seeded-bug-exceptions.yaml next to -base-dir, if it exists)")
 	c.parse(args)
 	if *baseDir == "" || *newDir == "" {
 		return false, fmt.Errorf("-base-dir and -new-dir are required")
+	}
+	exceptions := map[string]string{}
+	if *exceptionsFile == "" {
+		defaultFile := filepath.Join(filepath.Dir(filepath.Clean(*baseDir)), "seeded-bug-exceptions.yaml")
+		if _, err := os.Stat(defaultFile); err == nil {
+			*exceptionsFile = defaultFile
+		}
+	}
+	if *exceptionsFile != "" {
+		var err error
+		if exceptions, err = loadStringMap(*exceptionsFile); err != nil {
+			return false, err
+		}
 	}
 
 	m, err := c.mapping()
@@ -333,6 +347,7 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 	if len(findings) == 0 {
 		return false, fmt.Errorf("no JUnit files found in %s", *baseDir)
 	}
+	stale := acceptKills(findings, exceptions)
 
 	ok := true
 	for _, f := range findings {
@@ -341,16 +356,24 @@ func cmdKillMatrix(w io.Writer, args []string) (bool, error) {
 			fmt.Fprintf(w, "MISSING  %s: no result file in the new directory\n", f.Bug)
 		case f.Caught == 0:
 			fmt.Fprintf(w, "unused   %s: no compared test caught it in the baseline\n", f.Bug)
-		case f.ok():
+		case f.ok() && len(f.Lost) == 0:
 			fmt.Fprintf(w, "ok       %s: all %d tests that caught it still fail\n", f.Bug, f.Caught)
+		case f.ok():
+			fmt.Fprintf(w, "accepted %s: %d of %d tests that caught it no longer do, each with a recorded reason\n", f.Bug, len(f.Lost), f.Caught)
 		default:
 			fmt.Fprintf(w, "WEAKER   %s: %d of %d tests that caught it no longer do\n", f.Bug, len(f.Lost)+len(f.NotRun), f.Caught)
 		}
-		printList(w, "  no longer fails", f.Lost)
+		for _, name := range f.Lost {
+			fmt.Fprintf(w, "  no longer fails %s\n", name)
+			if reason, accepted := f.Accepted[name]; accepted {
+				fmt.Fprintf(w, "         reason: %s\n", reason)
+			}
+		}
 		printList(w, "  not run", f.NotRun)
 		printList(w, "  newly fails", f.Gained)
 		ok = ok && f.ok()
 	}
+	printList(w, "stale exception (the test still fails with the bug, or is not compared)", stale)
 	return ok, nil
 }
 

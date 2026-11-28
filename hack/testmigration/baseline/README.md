@@ -123,6 +123,22 @@ Fork workflow run 46088344300 ran the converted tests against all 47 patches
 catches the patch above also fails there on every attempt: 163 pairs of patch
 and test. The other three patches (18, 32, 42) are caught by no test above.
 
+Fork workflow run 46107325855 repeated it after two controller fixes (commit
+`9f52246a`: the Experiment status fix `1f6499b7` and the worker-loop nil guard
+`064b3513`). 161 of the 163 pairs fail again on every attempt. The two that do
+not are listed, each with its reason, in `seeded-bug-exceptions.yaml` next to
+this file:
+
+- Patch 27 and `TestBlueGreenDuration_ScalingOnly`: the test can only see the
+  patch when two timestamps fall into different seconds, before the conversion
+  as after it.
+- Patch 40 and `TestALBExperimentStepNoSetWeightMultiIngress`: the failure
+  above was the Experiment status defect, not the patch, and that defect is
+  fixed.
+
+`killmatrix` reads that file. A pair without an entry there fails the check;
+an entry whose test fails with the patch again is reported as stale.
+
 Repeat it with:
 
 ```

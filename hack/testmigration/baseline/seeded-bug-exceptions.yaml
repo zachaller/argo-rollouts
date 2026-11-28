@@ -1,0 +1,18 @@
+# "<seeded bug>/<test>" -> reason the test is allowed to pass with that bug now
+# although it failed with it before the conversion.
+# Read by `go run ./hack/testmigration killmatrix`. An entry whose test still
+# fails with the bug is reported as stale.
+27-duration-restarted-by-scaling/TestBlueGreenDuration_ScalingOnly: >-
+  The test compares a start time before and after scaling. The patch moves it
+  to the time of the scaling, about a second later, and the times have
+  one-second resolution: when both fall into the same second the test cannot
+  see the patch. That was so before the conversion too. Its twin,
+  TestCanaryDuration_ScalingOnly, passed with the patch in 1 of 3 attempts of
+  the unconverted suite, which is why it is not counted as catching it. This
+  test caught it in 4 of 4 attempts before and in 3 of 4 after (fork runs
+  46088344300 and 46107325855).
+40-successful-analysisrun-history-not-kept/TestALBExperimentStepNoSetWeightMultiIngress: >-
+  The one baseline failure was not the patch. It was the Experiment status
+  defect: target groups without a ServiceName at aws_test.go:365, one attempt
+  with reruns off. The test uses no analysis, which is what the patch breaks.
+  The defect is fixed in 1f6499b7, and the test now passes with the patch.
