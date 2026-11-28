@@ -1,0 +1,355 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites>
+  <testsuite name="old Canary suite, fork run 46035139344 (one rerun)">
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScale" time="17.540000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleAbortScaleDownDelay" time="26.020000" />
+    <testcase name="TestCanarySuite/TestCanaryDynamicStableScaleRollbackToStable" time="13.910000" />
+    <testcase name="TestCanarySuite/TestCanaryProgressDeadlineExceededWithPause" time="129.919000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelay" time="12.100000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownDelayWithProgressDeadline" time="16.000000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbort" time="8.960000" />
+    <testcase name="TestCanarySuite/TestCanaryScaleDownOnAbortNoTrafficRouting" time="9.940000" />
+    <testcase name="TestCanarySuite/TestCanarySetCanaryScale" time="8.050000" />
+    <testcase name="TestCanarySuite/TestCanaryUnScaleDownOnAbort" time="9.150000" />
+    <testcase name="TestCanarySuite/TestCanaryWithPausedRollout" time="103.010000" />
+    <testcase name="TestCanarySuite/TestCanaryWithSpecPause" time="38.900000" />
+    <testcase name="TestCanarySuite/TestEphemeralMetadata" time="14.100000" />
+    <testcase name="TestCanarySuite/TestReduceWeightAndHonorMaxUnavailable" time="28.150000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingDuringUpdate" time="3.740000" />
+    <testcase name="TestCanarySuite/TestRolloutScalingWhenPaused" time="7.170000" />
+    <testcase name="TestCanarySuite/TestRolloutWithMaxSurgeScalingDuringUpdate" time="4.130000" />
+    <testcase name="TestCanarySuite" time="453.040000" />
+  </testsuite>
+  <testsuite name="15 old suites, fork run 46061128211">
+    <testcase name="TestAnalysisSuite/TestBlueGreenKitchenSink" time="24.760000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite" time="385.430000">
+      <failure />
+    </testcase>
+    <testcase name="TestAppMeshSuite" time="0.040000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBBlueGreenUpdate" time="0.060000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBCanaryUpdate" time="0.060000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBCanaryUpdateMultiIngress" time="0.060000">
+      <skipped />
+    </testcase>
+    <testcase name="TestSMIIngressSuite" time="0.030000">
+      <skipped />
+    </testcase>
+    <testcase name="TestSMISuite" time="0.000000">
+      <skipped />
+    </testcase>
+    <testcase name="TestStepPluginSuite" time="0.010000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAnalysisSuite/TestAnalysisWithArgs" time="23.220000" />
+    <testcase name="TestAnalysisSuite/TestAnalysisWithSecret" time="11.910000" />
+    <testcase name="TestAnalysisSuite/TestAnalysisWithSharedSecret" time="10.310000" />
+    <testcase name="TestAnalysisSuite/TestBackgroundAnalysisWithArgs" time="8.050000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenAbortAndUpdate" time="18.800000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenAnalysis" time="30.020000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenPostPromotionFail" time="17.170000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenPrePromotionFail" time="27.050000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysis" time="4.170000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisInvalidImageJob" time="6.990000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisLongRunningJob" time="5.020000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisLongRunningJobWithDeadline" time="47.990000" />
+    <testcase name="TestAnalysisSuite/TestCanaryFailInlineMultipleAnalysis" time="13.880000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInconclusiveBackgroundAnalysis" time="33.080000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysis" time="16.000000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysisInvalidImageJob" time="6.130000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysisLongRunningJobWithDeadline" time="51.010000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineMultipleAnalysis" time="18.700000" />
+    <testcase name="TestAnalysisSuite/TestMultipleAnalysis" time="6.130000" />
+    <testcase name="TestAPISIXSuite/TestAPISIXCanarySetHeaderStep" time="57.450000" />
+    <testcase name="TestAPISIXSuite/TestAPISIXCanaryStep" time="26.230000" />
+    <testcase name="TestAPISIXSuite" time="84.110000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStep" time="17.350000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepMultiIngress" time="17.890000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeight" time="16.200000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeightMultiIngress" time="18.770000" />
+    <testcase name="TestAWSSuite/TestALBMesh_PingPong_StableCanary_Update" time="12.070000" />
+    <testcase name="TestAWSSuite/TestALBPingPongUpdate" time="12.000000" />
+    <testcase name="TestAWSSuite/TestALBPingPongUpdateMultiIngress" time="12.030000" />
+    <testcase name="TestAWSSuite/TestAlbHeaderRoute" time="8.940000" />
+    <testcase name="TestAWSSuite/TestAlbHeaderRouteMultiIngress" time="21.030000" />
+    <testcase name="TestAWSSuite" time="137.890000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenPreviewReplicaCount" time="5.570000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenProgressDeadlineExceededWithPause" time="65.910000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenProgressDeadlineExceededWithoutPause" time="66.050000" />
+    <testcase name="TestBlueGreenSuite/TestEphemeralMetadata" time="15.050000" />
+    <testcase name="TestBlueGreenSuite" time="152.990000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_Abort" time="3.600000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_AutoPromotion" time="5.940000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_FullyPromoted" time="5.030000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_InitialRollout" time="6.930000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_ManualPromotion" time="5.030000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_Retry" time="6.940000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_RollbackInsideWindow" time="8.140000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_RollbackOutsideWindow" time="11.070000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_ScalingOnly" time="3.760000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SpecPaused" time="5.110000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollback" time="5.030000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollbackToStable" time="4.930000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollout" time="7.140000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_Abort" time="5.020000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_FullyPromoted" time="3.920000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_IndefinitePauseStep" time="5.230000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_InitialRollout" time="3.670000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_PauseStep" time="4.120000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_Retry" time="7.040000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_RollbackInsideWindow" time="8.039000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_RollbackOutsideWindow" time="8.750000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_ScalingOnly" time="4.019000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SpecPaused" time="7.340000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SupersededRollback" time="3.890000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SupersededRollout" time="5.970000" />
+    <testcase name="TestDurationSuite" time="146.000000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithDryRunMetrics" time="35.680000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithMeasurementRetentionMetrics" time="36.820000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithMultiportServiceAndScaleDownDelay" time="20.970000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithServiceAndScaleDownDelay" time="20.000000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithServiceNameAndScaleDownDelay" time="19.140000" />
+    <testcase name="TestExperimentSuite/TestRolloutWithExperimentAndAnalysis" time="10.930000" />
+    <testcase name="TestExperimentSuite" time="143.960000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenExceedProgressDeadlineAbort" time="13.580000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenPreviewReplicaCountPromoteFull" time="7.950000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenPromoteFull" time="8.990000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenScaleDownDelay" time="9.950000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenScaleDownOnAbort" time="8.100000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenToCanary" time="4.019000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenUpdate" time="4.920000" />
+    <testcase name="TestFunctionalSuite/TestCanaryPromoteFull" time="12.070000" />
+    <testcase name="TestFunctionalSuite/TestCompleteRolloutRestart" time="21.930000" />
+    <testcase name="TestFunctionalSuite/TestContainerResourceFormats" time="3.270000" />
+    <testcase name="TestFunctionalSuite/TestControllerMetrics" time="0.120000" />
+    <testcase name="TestFunctionalSuite/TestFixInvalidSpec" time="2.830000" />
+    <testcase name="TestFunctionalSuite/TestKubectlWaitForCompleted" time="26.760000" />
+    <testcase name="TestFunctionalSuite/TestKubectlWaitForPaused" time="6.030000" />
+    <testcase name="TestFunctionalSuite/TestMalformedRollout" time="3.330000" />
+    <testcase name="TestFunctionalSuite/TestMalformedRolloutEphemeralCtr" time="1.910000" />
+    <testcase name="TestFunctionalSuite/TestNeverScaleDown" time="2.820000" />
+    <testcase name="TestFunctionalSuite/TestRolloutAbortRetryPromote" time="7.850000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToBadUpdate" time="24.330000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToGoodSetWeightUpdate" time="21.120000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToGoodUpdate" time="16.890000" />
+    <testcase name="TestFunctionalSuite/TestRolloutGoodToBadUpdate" time="24.950000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPDBRestart" time="47.910000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPauseDurationGreaterThanProgressDeadlineSeconds" time="35.280000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPodVolumesItemsSpec" time="8.020000" />
+    <testcase name="TestFunctionalSuite/TestRolloutRestart" time="17.520000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownOnSuccess" time="12.050000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressively" time="9.050000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressivelyCompleted" time="17.880000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressivelyCompletedCanary" time="18.080000" />
+    <testcase name="TestFunctionalSuite/TestSpecAndReplicaChangeSameTime" time="20.330000" />
+    <testcase name="TestFunctionalSuite/TestWorkloadRef" time="10.760000" />
+    <testcase name="TestFunctionalSuite/TestWorkloadRefTemplate" time="2.920000" />
+    <testcase name="TestFunctionalSuite" time="434.860000" />
+    <testcase name="TestHeaderRoutingSuite/TestIstioHostHeaderRoute" time="10.750000" />
+    <testcase name="TestHeaderRoutingSuite" time="11.130000" />
+    <testcase name="TestIstioSuite/TestIstioAbortUpdate" time="6.580000" />
+    <testcase name="TestIstioSuite/TestIstioAbortUpdateDeleteAllCanaryPods" time="9.050000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplit" time="14.210000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplitExperimentStep" time="17.230000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplitOnlyTls" time="9.050000" />
+    <testcase name="TestIstioSuite/TestIstioPingPongUpdate" time="12.540000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplit" time="9.930000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitExperimentStep" time="18.370000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort" time="9.170000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitSingleRoute" time="7.460000" />
+    <testcase name="TestIstioSuite/TestIstioUpdateInMiddleZeroCanaryReplicas" time="7.000000" />
+    <testcase name="TestIstioSuite" time="121.000000" />
+    <testcase name="TestMirrorRouteSuite/TestIstioHostMirrorRoute" time="11.680000" />
+    <testcase name="TestMirrorRouteSuite" time="12.210000" />
+    <testcase name="TestRollbackSuite/TestRollbackAnalysisOutsideWindow" time="30.110000" />
+    <testcase name="TestRollbackSuite/TestRollbackAnalysisWithinWindow" time="20.050000" />
+    <testcase name="TestRollbackSuite" time="52.580000" />
+  </testsuite>
+  <testsuite name="15 old suites, fork run 46067372629 (two reruns)">
+    <testcase name="TestAnalysisSuite/TestBlueGreenKitchenSink" time="22.950000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite" time="381.200000">
+      <failure />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeight" time="16.050000">
+      <failure />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeightMultiIngress" time="17.090000">
+      <failure />
+    </testcase>
+    <testcase name="TestAWSSuite" time="135.870000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite/TestBlueGreenKitchenSink" time="25.260000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite" time="27.980000">
+      <failure />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeightMultiIngress" time="15.120000">
+      <failure />
+    </testcase>
+    <testcase name="TestAWSSuite" time="15.340000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite/TestBlueGreenKitchenSink" time="23.520000">
+      <failure />
+    </testcase>
+    <testcase name="TestAnalysisSuite" time="25.280000">
+      <failure />
+    </testcase>
+    <testcase name="TestAppMeshSuite" time="0.000000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBBlueGreenUpdate" time="0.040000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBCanaryUpdate" time="0.040000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAWSSuite/TestALBCanaryUpdateMultiIngress" time="0.040000">
+      <skipped />
+    </testcase>
+    <testcase name="TestSMIIngressSuite" time="0.060000">
+      <skipped />
+    </testcase>
+    <testcase name="TestSMISuite" time="0.000000">
+      <skipped />
+    </testcase>
+    <testcase name="TestStepPluginSuite" time="0.000000">
+      <skipped />
+    </testcase>
+    <testcase name="TestAnalysisSuite/TestAnalysisWithArgs" time="23.130000" />
+    <testcase name="TestAnalysisSuite/TestAnalysisWithSecret" time="11.260000" />
+    <testcase name="TestAnalysisSuite/TestAnalysisWithSharedSecret" time="12.770000" />
+    <testcase name="TestAnalysisSuite/TestBackgroundAnalysisWithArgs" time="8.240000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenAbortAndUpdate" time="16.800000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenAnalysis" time="30.160000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenPostPromotionFail" time="14.880000" />
+    <testcase name="TestAnalysisSuite/TestBlueGreenPrePromotionFail" time="25.040000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysis" time="6.240000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisInvalidImageJob" time="8.600000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisLongRunningJob" time="5.330000" />
+    <testcase name="TestAnalysisSuite/TestCanaryBackgroundAnalysisLongRunningJobWithDeadline" time="48.030000" />
+    <testcase name="TestAnalysisSuite/TestCanaryFailInlineMultipleAnalysis" time="13.010000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInconclusiveBackgroundAnalysis" time="32.990000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysis" time="20.010000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysisInvalidImageJob" time="7.130000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineAnalysisLongRunningJobWithDeadline" time="49.800000" />
+    <testcase name="TestAnalysisSuite/TestCanaryInlineMultipleAnalysis" time="17.890000" />
+    <testcase name="TestAnalysisSuite/TestMultipleAnalysis" time="4.920000" />
+    <testcase name="TestAPISIXSuite/TestAPISIXCanarySetHeaderStep" time="55.750000" />
+    <testcase name="TestAPISIXSuite/TestAPISIXCanaryStep" time="25.910000" />
+    <testcase name="TestAPISIXSuite" time="82.050000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStep" time="17.560000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepMultiIngress" time="16.940000" />
+    <testcase name="TestAWSSuite/TestALBMesh_PingPong_StableCanary_Update" time="11.870000" />
+    <testcase name="TestAWSSuite/TestALBPingPongUpdate" time="12.070000" />
+    <testcase name="TestAWSSuite/TestALBPingPongUpdateMultiIngress" time="11.970000" />
+    <testcase name="TestAWSSuite/TestAlbHeaderRoute" time="9.960000" />
+    <testcase name="TestAWSSuite/TestAlbHeaderRouteMultiIngress" time="21.020000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenPreviewReplicaCount" time="4.730000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenProgressDeadlineExceededWithPause" time="66.010000" />
+    <testcase name="TestBlueGreenSuite/TestBlueGreenProgressDeadlineExceededWithoutPause" time="66.060000" />
+    <testcase name="TestBlueGreenSuite/TestEphemeralMetadata" time="16.059000" />
+    <testcase name="TestBlueGreenSuite" time="153.190000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_Abort" time="2.780000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_AutoPromotion" time="3.020000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_FullyPromoted" time="4.830000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_InitialRollout" time="3.120000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_ManualPromotion" time="5.940000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_Retry" time="6.130000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_RollbackInsideWindow" time="6.930000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_RollbackOutsideWindow" time="8.950000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_ScalingOnly" time="4.120000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SpecPaused" time="5.950000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollback" time="6.030000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollbackToStable" time="4.019000" />
+    <testcase name="TestDurationSuite/TestBlueGreenDuration_SupersededRollout" time="6.840000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_Abort" time="4.120000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_FullyPromoted" time="4.019000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_IndefinitePauseStep" time="6.030000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_InitialRollout" time="4.019000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_PauseStep" time="3.920000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_Retry" time="7.040000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_RollbackInsideWindow" time="8.770000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_RollbackOutsideWindow" time="10.250000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_ScalingOnly" time="3.920000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SpecPaused" time="6.040000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SupersededRollback" time="4.019000" />
+    <testcase name="TestDurationSuite/TestCanaryDuration_SupersededRollout" time="6.140000" />
+    <testcase name="TestDurationSuite" time="137.220000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithDryRunMetrics" time="35.680000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithMeasurementRetentionMetrics" time="37.000000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithMultiportServiceAndScaleDownDelay" time="17.810000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithServiceAndScaleDownDelay" time="19.310000" />
+    <testcase name="TestExperimentSuite/TestExperimentWithServiceNameAndScaleDownDelay" time="17.920000" />
+    <testcase name="TestExperimentSuite/TestRolloutWithExperimentAndAnalysis" time="10.650000" />
+    <testcase name="TestExperimentSuite" time="139.030000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenExceedProgressDeadlineAbort" time="13.370000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenPreviewReplicaCountPromoteFull" time="7.950000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenPromoteFull" time="10.050000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenScaleDownDelay" time="11.860000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenScaleDownOnAbort" time="9.050000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenToCanary" time="5.030000" />
+    <testcase name="TestFunctionalSuite/TestBlueGreenUpdate" time="5.920000" />
+    <testcase name="TestFunctionalSuite/TestCanaryPromoteFull" time="10.450000" />
+    <testcase name="TestFunctionalSuite/TestCompleteRolloutRestart" time="22.090000" />
+    <testcase name="TestFunctionalSuite/TestContainerResourceFormats" time="6.100000" />
+    <testcase name="TestFunctionalSuite/TestControllerMetrics" time="1.810000" />
+    <testcase name="TestFunctionalSuite/TestFixInvalidSpec" time="4.550000" />
+    <testcase name="TestFunctionalSuite/TestKubectlWaitForCompleted" time="27.150000" />
+    <testcase name="TestFunctionalSuite/TestKubectlWaitForPaused" time="6.030000" />
+    <testcase name="TestFunctionalSuite/TestMalformedRollout" time="3.930000" />
+    <testcase name="TestFunctionalSuite/TestMalformedRolloutEphemeralCtr" time="2.210000" />
+    <testcase name="TestFunctionalSuite/TestNeverScaleDown" time="2.920000" />
+    <testcase name="TestFunctionalSuite/TestRolloutAbortRetryPromote" time="7.250000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToBadUpdate" time="23.940000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToGoodSetWeightUpdate" time="22.140000" />
+    <testcase name="TestFunctionalSuite/TestRolloutBadToGoodUpdate" time="15.480000" />
+    <testcase name="TestFunctionalSuite/TestRolloutGoodToBadUpdate" time="28.220000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPDBRestart" time="48.880000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPauseDurationGreaterThanProgressDeadlineSeconds" time="35.070000" />
+    <testcase name="TestFunctionalSuite/TestRolloutPodVolumesItemsSpec" time="8.150000" />
+    <testcase name="TestFunctionalSuite/TestRolloutRestart" time="15.800000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownOnSuccess" time="9.970000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressively" time="10.860000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressivelyCompleted" time="16.190000" />
+    <testcase name="TestFunctionalSuite/TestScaleDownProgressivelyCompletedCanary" time="18.120000" />
+    <testcase name="TestFunctionalSuite/TestSpecAndReplicaChangeSameTime" time="19.940000" />
+    <testcase name="TestFunctionalSuite/TestWorkloadRef" time="10.860000" />
+    <testcase name="TestFunctionalSuite/TestWorkloadRefTemplate" time="4.019000" />
+    <testcase name="TestFunctionalSuite" time="447.460000" />
+    <testcase name="TestHeaderRoutingSuite/TestIstioHostHeaderRoute" time="10.760000" />
+    <testcase name="TestHeaderRoutingSuite" time="11.180000" />
+    <testcase name="TestIstioSuite/TestIstioAbortUpdate" time="7.650000" />
+    <testcase name="TestIstioSuite/TestIstioAbortUpdateDeleteAllCanaryPods" time="8.960000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplit" time="15.330000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplitExperimentStep" time="17.950000" />
+    <testcase name="TestIstioSuite/TestIstioHostSplitOnlyTls" time="8.200000" />
+    <testcase name="TestIstioSuite/TestIstioPingPongUpdate" time="13.530000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplit" time="10.960000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitExperimentStep" time="18.690000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitInStableDownscaleAfterCanaryAbort" time="12.730000" />
+    <testcase name="TestIstioSuite/TestIstioSubsetSplitSingleRoute" time="9.580000" />
+    <testcase name="TestIstioSuite/TestIstioUpdateInMiddleZeroCanaryReplicas" time="8.060000" />
+    <testcase name="TestIstioSuite" time="132.120000" />
+    <testcase name="TestMirrorRouteSuite/TestIstioHostMirrorRoute" time="11.510000" />
+    <testcase name="TestMirrorRouteSuite" time="12.230000" />
+    <testcase name="TestRollbackSuite/TestRollbackAnalysisOutsideWindow" time="29.220000" />
+    <testcase name="TestRollbackSuite/TestRollbackAnalysisWithinWindow" time="18.160000" />
+    <testcase name="TestRollbackSuite" time="49.700000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeight" time="17.450000" />
+    <testcase name="TestAWSSuite" time="17.820000" />
+    <testcase name="TestAWSSuite/TestALBExperimentStepNoSetWeightMultiIngress" time="17.370000" />
+    <testcase name="TestAWSSuite" time="17.860000" />
+  </testsuite>
+</testsuites>
